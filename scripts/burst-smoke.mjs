@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
-const API = (process.env.LIVE_API_URL || 'https://delta-travel-api.onrender.com/api/v1').replace(/\/$/, '');
+const API = (process.env.LIVE_API_URL || 'https://delta-travel-api.onrender.com/api/v1').replace(
+  /\/$/,
+  '',
+);
 const TOTAL = Number(process.env.BURST_REQUESTS || 60);
 const CONCURRENCY = Number(process.env.BURST_CONCURRENCY || 10);
 const P95_LIMIT_MS = Number(process.env.BURST_P95_LIMIT_MS || 15000);
@@ -31,7 +34,9 @@ await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
 
 const failures = results.filter((r) => r.status >= 500 || r.status < 200 || r.status >= 400);
 if (failures.length) {
-  throw new Error(`Burst smoke had ${failures.length}/${TOTAL} non-2xx responses: ${JSON.stringify(failures.slice(0, 5))}`);
+  throw new Error(
+    `Burst smoke had ${failures.length}/${TOTAL} non-2xx responses: ${JSON.stringify(failures.slice(0, 5))}`,
+  );
 }
 
 const sorted = results.map((r) => r.ms).sort((a, b) => a - b);

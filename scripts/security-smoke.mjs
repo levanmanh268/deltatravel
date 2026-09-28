@@ -1,7 +1,13 @@
 #!/usr/bin/env node
 
-const API = (process.env.LIVE_API_URL || 'https://delta-travel-api.onrender.com/api/v1').replace(/\/$/, '');
-const WEB = (process.env.LIVE_WEB_URL || 'https://delta-travel-web.onrender.com').replace(/\/$/, '');
+const API = (process.env.LIVE_API_URL || 'https://delta-travel-api.onrender.com/api/v1').replace(
+  /\/$/,
+  '',
+);
+const WEB = (process.env.LIVE_WEB_URL || 'https://delta-travel-web.onrender.com').replace(
+  /\/$/,
+  '',
+);
 
 async function raw(path, init = {}) {
   const response = await fetch(API + path, { redirect: 'manual', ...init });
