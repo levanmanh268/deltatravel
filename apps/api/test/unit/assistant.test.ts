@@ -31,14 +31,54 @@ describe('assistant Stage 1 grounding and authorization', () => {
     const user = { id: 'principal', role: 'CUSTOMER' };
     const result = await service.chat({ message: 'đơn của tôi', history: [] }, user);
     expect(result.reply).toBe('ok');
-    expect(customer.myBookings).toHaveBeenCalledWith(user);
+    expect(customer.myBookings).toHaveBeenCalledWith(user, undefined);
   });
 
   it('rejects customer access to OperationsAgent', async () => {
-    const admin = { summary: vi.fn() };
+    const admin = { operationsOverview: vi.fn() };
     const operations = new OperationsAgent(admin);
     await expect(operations.run({ id: 'customer', role: 'CUSTOMER' })).rejects.toThrow();
-    expect(admin.summary).not.toHaveBeenCalled();
+    expect(admin.operationsOverview).not.toHaveBeenCalled();
+  });
+
+  it('detects a concrete booking context without treating its id as a schedule id', async () => {
+    const ai = new AiProviderService(new ConfigService({}));
+    const id = '33333333-3333-4333-8333-333333333333';
+    const planned = await ai.classify('Tóm tắt booking ' + id + ' của tôi', []);
+    expect(planned.mode).toBe('RULE_BASED');
+    expect(planned.intent.intent).toBe('MY_BOOKINGS');
+    expect(planned.intent.bookingId).toBe(id);
+    expect(planned.intent.scheduleId).toBeUndefined();
+  });
+
+  it('synthesizes booking facts while preserving authenticated ownership lookup', async () => {
+    const ai = {
+      classify: vi.fn().mockResolvedValue({
+        intent: {
+          intent: 'MY_BOOKINGS',
+          query: '',
+          bookingId: '33333333-3333-4333-8333-333333333333',
+        },
+        mode: 'RULE_BASED',
+      }),
+      synthesize: vi.fn().mockResolvedValue({ reply: 'grounded booking summary', mode: 'GROQ' }),
+    };
+    const facts = [{ id: '33333333-3333-4333-8333-333333333333', status: 'PAID' }];
+    const customer = {
+      myBookings: vi
+        .fn()
+        .mockResolvedValue({ reply: 'fallback', actions: [], sources: [], facts }),
+    };
+    const service = new AssistantService(ai, {}, customer, {}, {}, {});
+    const user = { id: 'principal', role: 'CUSTOMER' };
+    const result = await service.chat({ message: 'booking của tôi', history: [] }, user);
+    expect(customer.myBookings).toHaveBeenCalledWith(
+      user,
+      '33333333-3333-4333-8333-333333333333',
+    );
+    expect(ai.synthesize).toHaveBeenCalledWith('booking của tôi', facts, 'vi');
+    expect(result.reply).toBe('grounded booking summary');
+    expect(result.mode).toBe('GROQ');
   });
 
   it('does not invent availability without a schedule id', async () => {
