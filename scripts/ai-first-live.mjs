@@ -44,9 +44,13 @@ try {
   await page.getByTestId('ai-command-center-launcher').click();
   const center = page.getByTestId('ai-command-center');
   await center.waitFor({ state: 'visible' });
-  await center
-    .getByRole('button', { name: 'Tìm tour cho 2 người lớn, ngân sách khoảng 8 triệu.' })
-    .click();
+  const contextualSuggestion = center
+    .getByText('Gợi ý theo ngữ cảnh', { exact: true })
+    .locator('..')
+    .locator('button')
+    .first();
+  await contextualSuggestion.waitFor({ state: 'visible', timeout: 30000 });
+  await contextualSuggestion.click();
   await center
     .getByTestId('ai-command-center-message-assistant')
     .last()
