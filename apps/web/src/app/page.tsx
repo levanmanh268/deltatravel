@@ -940,7 +940,7 @@ function HomeContent() {
                 </div>
 
                 <div className="mt-6 pt-5 border-t border-neutral-100">
-                  <h4 className="text-sm font-black text-black">{rev.name}</h4>
+                  <h3 className="text-sm font-black text-black">{rev.name}</h3>
                   <p className="text-[11px] text-neutral-500 font-medium">{rev.role}</p>
                   <span className="inline-block mt-1 text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
                     {rev.tour}

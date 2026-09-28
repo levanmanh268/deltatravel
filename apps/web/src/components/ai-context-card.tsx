@@ -40,10 +40,19 @@ export function AiContextCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const autoKey = useRef('');
+  const autoRetryCount = useRef(0);
+  const retryTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setQuery(prompt);
   }, [prompt]);
+
+  useEffect(
+    () => () => {
+      if (retryTimerRef.current !== null) window.clearTimeout(retryTimerRef.current);
+    },
+    [],
+  );
 
   const contextPrompt = useMemo(
     () =>
@@ -73,6 +82,12 @@ export function AiContextCard({
       setQuery(clean);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'AI chưa thể phản hồi lúc này.');
+      if (autoRun && autoRetryCount.current < 1) {
+        autoRetryCount.current += 1;
+        retryTimerRef.current = window.setTimeout(() => {
+          void run(clean);
+        }, 1500);
+      }
     } finally {
       setBusy(false);
     }
@@ -83,6 +98,7 @@ export function AiContextCard({
     const key = prompt + '|' + context;
     if (autoKey.current === key) return;
     autoKey.current = key;
+    autoRetryCount.current = 0;
     void run(prompt);
   }, [autoRun, prompt, context]);
 

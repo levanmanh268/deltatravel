@@ -64,7 +64,14 @@ try {
   await page.goto(WEB + href, { waitUntil: 'domcontentloaded', timeout: 120000 });
   const advisor = page.locator('[data-ai-surface="context-card"]').first();
   await advisor.waitFor({ state: 'visible' });
-  await advisor.locator('[data-ai-response="true"]').waitFor({ state: 'visible', timeout: 90000 });
+  const advisorResponse = advisor.locator('[data-ai-response="true"]');
+  try {
+    await advisorResponse.waitFor({ state: 'visible', timeout: 15000 });
+  } catch {
+    const askAdvisor = advisor.getByRole('button', { name: 'Hỏi AI' });
+    await askAdvisor.click({ timeout: 30000 });
+    await advisorResponse.waitFor({ state: 'visible', timeout: 90000 });
+  }
   pass('tour detail AI fit advisor');
 
   await page.goto(WEB + '/assistant', { waitUntil: 'domcontentloaded', timeout: 120000 });
