@@ -14,6 +14,7 @@ type QuoteResult = z.infer<typeof QuoteResultSchema>;
 
 import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
+import { AiContextCard } from '@/components/ai-context-card';
 import { useLanguage } from '@/providers/language-provider';
 import {
   Calendar,
@@ -139,7 +140,40 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
   const isSeatExceeded = schedule ? totalGuests > schedule.availableSeats : false;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+    <div className="space-y-8">
+      <AiContextCard
+        eyebrow="DELTA AI • PRE-BOOKING REVIEW"
+        title="AI kiểm tra đơn trước khi bạn giữ chỗ"
+        description="AI đọc lịch, số chỗ và báo giá hiện tại. Backend vẫn là lớp quyết định cuối cùng khi tạo booking, nên AI không thể bỏ qua kiểm tra nghiệp vụ."
+        prompt={
+          schedule && quote
+            ? `Kiểm tra giúp tôi trước khi đặt lịch ${scheduleId}: ${adults} người lớn, ${childrenCount} trẻ em, tổng báo giá ${quote.totalAmount.toLocaleString('vi-VN')} VND, hiện còn ${schedule.availableSeats} chỗ. Hãy nêu điều cần chú ý và bước tiếp theo.`
+            : `Kiểm tra giúp tôi lịch ${scheduleId} trước khi đặt tour.`
+        }
+        context={
+          schedule
+            ? `Checkout schedule ${scheduleId}; departure ${schedule.departureAt}; availableSeats ${schedule.availableSeats}; quote được lấy trực tiếp từ backend.`
+            : `Checkout schedule ${scheduleId}; hệ thống đang tải availability.`
+        }
+        suggestions={[
+          'Kiểm tra lại giá và số chỗ cho tôi.',
+          'Giải thích quy trình giữ chỗ 15 phút.',
+          'Tôi muốn AI tiếp tục thực hiện việc đặt tour.',
+        ]}
+        autoRun={Boolean(schedule && quote)}
+        agentHref={
+          '/assistant?scheduleId=' +
+          encodeURIComponent(scheduleId) +
+          '&adults=' +
+          adults +
+          '&children=' +
+          childrenCount +
+          '&prompt=' +
+          encodeURIComponent('Tiếp tục lập kế hoạch đặt lịch tôi đang checkout.')
+        }
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
       {/* Left: Contact Form & Passenger Config */}
       <div className="lg:col-span-2 space-y-8">
         <form onSubmit={handleSubmitBooking} className="space-y-8">
@@ -399,6 +433,7 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
