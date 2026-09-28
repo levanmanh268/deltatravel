@@ -1,0 +1,40 @@
+name: Temporary Dependency Audit Inspect
+
+on:
+  push:
+    branches:
+      - manh/audit-inspect
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Report all dependency vulnerabilities
+        run: |
+          npm audit --json > audit.json || true
+          node <<'NODE'
+          const fs = require('fs');
+          const a = JSON.parse(fs.readFileSync('audit.json','utf8'));
+          console.log('AUDIT_METADATA', JSON.stringify(a.metadata?.vulnerabilities || {}));
+          for (const [name,v] of Object.entries(a.vulnerabilities || {})) {
+            console.log('VULN', JSON.stringify({
+              name,
+              severity:v.severity,
+              isDirect:v.isDirect,
+              via:v.via,
+              effects:v.effects,
+              range:v.range,
+              nodes:v.nodes,
+              fixAvailable:v.fixAvailable
+            }));
+          }
+          NODE
