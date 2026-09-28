@@ -48,6 +48,12 @@ Lượt kiểm chứng ngày 28/09/2026 đã tạo một customer tổng hợp, 
 
 Browser smoke cũng đã chạy thành công trên Chromium desktop, Chromium mobile 390x844 và Firefox desktop cho năm route công khai chính. Không phát hiện page error trong lượt chạy đó.
 
+## Operational smoke đã chạy
+
+Lượt kiểm chứng ngày 28/09/2026 xác nhận anonymous admin và booking access đều bị từ chối 401, forged bearer token bị từ chối 401, cross-origin registration bị CSRF chặn 403, role injection bị strict schema chặn 400, untrusted Origin không được CORS cấp quyền và callback VNPay rỗng bị từ chối với RspCode 97.
+
+Burst smoke read-only đã gửi 60 request với concurrency 10 tới health và catalog. Kết quả không có response ngoài 2xx, p50 293.1 ms, p95 835.5 ms và max 872.4 ms. Đây là smoke tải ngắn, không phải load certification hay SLA benchmark.
+
 ## Phần cần credential hoặc quyền bên ngoài
 
 VNPay, MoMo và ZaloPay chưa thể chạy giao dịch sandbox thật nếu chưa có merchant credentials do nhà cung cấp cấp. Đây là dependency bên ngoài duy nhất đang chặn full payment E2E của ba gateway.
