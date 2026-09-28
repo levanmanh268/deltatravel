@@ -29,6 +29,28 @@ function contextForPath(pathname: string, role?: string) {
   const booking = pathname.match(/^\/bookings\/([^/]+)/);
   const tour = pathname.match(/^\/tours\/([^/]+)/);
 
+  if (pathname === '/payments/return') {
+    return {
+      label: 'trang xác nhận quay về từ thanh toán',
+      suggestions: [
+        'Giải thích cách hệ thống xác minh trạng thái thanh toán.',
+        'Vì sao quay về từ cổng thanh toán chưa có nghĩa là đã PAID?',
+        'Tôi nên kiểm tra booking ở đâu sau khi thanh toán?',
+      ],
+      agentHref: null,
+    };
+  }
+  if (pathname === '/login' || pathname === '/register' || pathname === '/forgot-password') {
+    return {
+      label: 'khu vực tài khoản ' + pathname,
+      suggestions: [
+        'Giải thích cách tài khoản Delta Travel được dùng khi đặt tour.',
+        'Tôi quên mật khẩu thì quy trình khôi phục như thế nào?',
+        'AI Agent cần đăng nhập để làm những hành động nào?',
+      ],
+      agentHref: null,
+    };
+  }
   if (pathname.startsWith('/admin')) {
     return {
       label: 'cổng vận hành ' + pathname,
