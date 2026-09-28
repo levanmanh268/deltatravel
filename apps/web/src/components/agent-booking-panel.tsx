@@ -459,9 +459,9 @@ export function AgentBookingPanel() {
               placeholder="Ví dụ: Mình muốn đi Đà Nẵng giữa tháng 10, 2 người, ngân sách dưới 8 triệu..."
             />
             <p className="mt-2 text-[11px] leading-5 text-stone-500">
-              Bạn có thể nói luôn số điện thoại và phương thức thanh toán như MoMo, ZaloPay,
-              VNPay hoặc tiền mặt. AI chỉ dùng những gì bạn nói rõ và vẫn dừng ở checkpoint
-              trước hành động thật.
+              Bạn có thể nói luôn số điện thoại và phương thức thanh toán như MoMo, ZaloPay, VNPay
+              hoặc tiền mặt. AI chỉ dùng những gì bạn nói rõ và vẫn dừng ở checkpoint trước hành
+              động thật.
             </p>
           </div>
           <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
