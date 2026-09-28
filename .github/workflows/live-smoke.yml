@@ -1,0 +1,15 @@
+name: Live Smoke
+on:
+  push:
+    branches: [manh/stage-ai-first-frontend]
+    paths: [.github/workflows/live-smoke.yml]
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node -e "fetch('https://delta-travel-api.onrender.com/api/v1/health/ready').then(async r=>{if(!r.ok)throw new Error('HTTP '+r.status);console.log(await r.text())})"
