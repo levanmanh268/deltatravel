@@ -93,6 +93,8 @@ export function AdminAiCopilotStrip() {
   const pathname = usePathname();
   const content = useMemo(() => promptFor(pathname), [pathname]);
 
+  if (pathname === '/admin') return null;
+
   return (
     <AiContextCard
       eyebrow="DELTA AI • OPERATIONS COPILOT"

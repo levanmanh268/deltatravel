@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { AssistantResult } from '@tour/shared';
@@ -134,8 +134,24 @@ export function AiAgentLauncher() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const context = useMemo(() => contextForPath(pathname, user?.role), [pathname, user?.role]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 80);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
 
   if (pathname.startsWith('/assistant') || pathname.startsWith('/admin')) return null;
 
@@ -206,6 +222,9 @@ export function AiAgentLauncher() {
           />
           <section
             data-testid="ai-command-center"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delta-ai-command-title"
             className="relative z-10 flex h-[82vh] w-full flex-col overflow-hidden rounded-t-[30px] border border-white/60 bg-white shadow-2xl sm:h-[720px] sm:max-h-[88vh] sm:w-[440px] sm:rounded-[30px]"
           >
             <header className="bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.25),transparent_38%),linear-gradient(135deg,#0c0a09,#1c1917_60%,#422006)] p-5 text-white">
@@ -215,7 +234,9 @@ export function AiAgentLauncher() {
                     <Sparkles className="h-3.5 w-3.5" />
                     DELTA AI • PAGE-AWARE
                   </div>
-                  <h2 className="mt-2 text-lg font-black">AI hiểu trang bạn đang xem</h2>
+                  <h2 id="delta-ai-command-title" className="mt-2 text-lg font-black">
+                    AI hiểu trang bạn đang xem
+                  </h2>
                   <p className="mt-1 text-[11px] leading-5 text-white/65">
                     Bối cảnh: {context.label}
                   </p>
@@ -325,6 +346,7 @@ export function AiAgentLauncher() {
             >
               <div className="flex items-end gap-2">
                 <textarea
+                  ref={inputRef}
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
                   rows={2}

@@ -160,7 +160,6 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
           'Giải thích quy trình giữ chỗ 15 phút.',
           'Tôi muốn AI tiếp tục thực hiện việc đặt tour.',
         ]}
-        autoRun={Boolean(schedule && quote)}
         agentHref={
           '/assistant?scheduleId=' +
           encodeURIComponent(scheduleId) +

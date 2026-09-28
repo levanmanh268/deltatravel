@@ -66,6 +66,20 @@ try {
   }
   pass('action agent remains human-in-the-loop');
 
+  const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await mobile.goto(WEB + '/tours', { waitUntil: 'domcontentloaded', timeout: 120000 });
+  await mobile.getByTestId('ai-command-center-launcher').click();
+  const mobileCenter = mobile.getByTestId('ai-command-center');
+  await mobileCenter.waitFor({ state: 'visible' });
+  const mobileBox = await mobileCenter.boundingBox();
+  if (!mobileBox || mobileBox.width > 390 || mobileBox.height > 844) {
+    throw new Error('Mobile AI command center overflowed the viewport');
+  }
+  await mobile.keyboard.press('Escape');
+  await mobileCenter.waitFor({ state: 'hidden' });
+  await mobile.close();
+  pass('mobile AI command center + Escape close');
+
   if (pageErrors.length) {
     throw new Error('Page errors during AI-first acceptance: ' + pageErrors.join(' | '));
   }
