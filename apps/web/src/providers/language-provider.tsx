@@ -27,7 +27,7 @@ export const DICTIONARY: Translations = {
   nav_tours: { vi: 'Tất cả tour', en: 'All Tours' },
   nav_my_bookings: { vi: 'Đơn của tôi', en: 'My Bookings' },
   nav_bookings: { vi: 'Đơn của tôi', en: 'My Bookings' },
-  nav_assistant: { vi: 'Trợ lý du lịch', en: 'Travel Assistant' },
+  nav_assistant: { vi: 'AI Agent', en: 'AI Agent' },
   nav_login: { vi: 'Đăng nhập', en: 'Login' },
   nav_register: { vi: 'Đăng ký', en: 'Register' },
   nav_admin: { vi: 'Quản trị', en: 'Admin' },
