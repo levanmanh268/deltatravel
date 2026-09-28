@@ -41,6 +41,23 @@ describe('assistant Stage 1 grounding and authorization', () => {
     expect(admin.operationsOverview).not.toHaveBeenCalled();
   });
 
+  it('routes admin page context to operations even when the prompt is about payments or inventory', async () => {
+    const ai = new AiProviderService(new ConfigService({}));
+
+    const refund = await ai.classify(
+      'Có khoản hoàn tiền nào đang chờ không? Bối cảnh giao diện hiện tại: Admin route hiện tại: /admin/payments.',
+      [],
+    );
+    expect(refund.mode).toBe('RULE_BASED');
+    expect(refund.intent.intent).toBe('OPERATIONS');
+
+    const inventory = await ai.classify(
+      'Lịch nào cần chú ý về số chỗ? Bối cảnh giao diện hiện tại: Admin route hiện tại: /admin/schedules.',
+      [],
+    );
+    expect(inventory.intent.intent).toBe('OPERATIONS');
+  });
+
   it('detects a concrete booking context without treating its id as a schedule id', async () => {
     const ai = new AiProviderService(new ConfigService({}));
     const id = '33333333-3333-4333-8333-333333333333';

@@ -23,6 +23,16 @@ const requirements = [
   ['assistant action agent', 'apps/web/src/app/assistant/page.tsx', '<AgentBookingPanel'],
   ['context seeded agent', 'apps/web/src/components/agent-booking-panel.tsx', 'initialScheduleId'],
   ['page-aware launcher', 'apps/web/src/components/ai-agent-launcher.tsx', 'contextForPath'],
+  [
+    'account-aware AI helper',
+    'apps/web/src/components/ai-agent-launcher.tsx',
+    "pathname === '/login'",
+  ],
+  [
+    'payment-return AI helper',
+    'apps/web/src/components/ai-agent-launcher.tsx',
+    "pathname === '/payments/return'",
+  ],
   ['grounded booking AI', 'apps/api/src/assistant/assistant.service.ts', 'intent.bookingId'],
   ['grounded operations AI', 'apps/api/src/admin/admin.service.ts', 'operationsOverview'],
   [
