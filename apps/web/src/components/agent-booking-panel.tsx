@@ -111,9 +111,8 @@ export function AgentBookingPanel() {
               Để AI lập kế hoạch và đặt tour thay bạn
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-300">
-              AI có thể tự tìm tour, kiểm tra giá và chỗ, lập kế hoạch rồi thực hiện từng
-              bước. Mọi hành động tạo booking đều dừng ở checkpoint để bạn chọn Cho phép
-              hoặc Không cho phép.
+              AI có thể tự tìm tour, kiểm tra giá và chỗ, lập kế hoạch rồi thực hiện từng bước. Mọi
+              hành động tạo booking đều dừng ở checkpoint để bạn chọn Cho phép hoặc Không cho phép.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Button asChild className="bg-amber-400 text-black hover:bg-amber-300">
@@ -132,8 +131,8 @@ export function AgentBookingPanel() {
   if (user.role !== 'CUSTOMER') {
     return (
       <section className="rounded-3xl border border-stone-200 bg-white p-6 text-sm text-stone-700">
-        AI Booking Agent hiện dành cho tài khoản khách hàng. Tài khoản vận hành vẫn có thể
-        dùng trợ lý AI phía trên để tra cứu nghiệp vụ.
+        AI Booking Agent hiện dành cho tài khoản khách hàng. Tài khoản vận hành vẫn có thể dùng trợ
+        lý AI phía trên để tra cứu nghiệp vụ.
       </section>
     );
   }
@@ -233,8 +232,8 @@ export function AgentBookingPanel() {
               Một travel agent có thể hành động, nhưng không bao giờ vượt quyền bạn
             </h2>
             <p className="mt-3 text-sm leading-6 text-stone-300">
-              AI tự tìm, xếp hạng, kiểm tra giá và chỗ, tạo booking và chuẩn bị thanh
-              toán. Trước hành động thật, hệ thống luôn hiển thị checkpoint để bạn duyệt.
+              AI tự tìm, xếp hạng, kiểm tra giá và chỗ, tạo booking và chuẩn bị thanh toán. Trước
+              hành động thật, hệ thống luôn hiển thị checkpoint để bạn duyệt.
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-xs font-bold text-emerald-200">
@@ -472,10 +471,7 @@ export function AgentBookingPanel() {
                     />
                   </CompactField>
                   <CompactField label="Điểm đến">
-                    <input
-                      value={destination}
-                      onChange={(e) => setDestination(e.target.value)}
-                    />
+                    <input value={destination} onChange={(e) => setDestination(e.target.value)} />
                   </CompactField>
                   <CompactField label="Từ ngày">
                     <input
@@ -662,7 +658,10 @@ export function AgentBookingPanel() {
         )}
 
         {error && (
-          <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-800">
+          <div
+            role="alert"
+            className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-800"
+          >
             {error}
           </div>
         )}
@@ -671,13 +670,7 @@ export function AgentBookingPanel() {
   );
 }
 
-function CompactField({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactElement;
-}) {
+function CompactField({ label, children }: { label: string; children: React.ReactElement }) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-stone-500">
@@ -726,9 +719,7 @@ function AgentTimeline({ plan }: { plan: AgentPlan }) {
               </div>
               {index < plan.steps.length - 1 && (
                 <div
-                  className={`mt-4 h-px w-5 shrink-0 ${
-                    done ? 'bg-emerald-300' : 'bg-stone-200'
-                  }`}
+                  className={`mt-4 h-px w-5 shrink-0 ${done ? 'bg-emerald-300' : 'bg-stone-200'}`}
                 />
               )}
             </div>
