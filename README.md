@@ -56,7 +56,7 @@ npm run docs:generate
 npm test
 npm run build
 npm run test:integration
-npm audit --omit=dev --audit-level=high
+npm audit --omit=dev --audit-level=moderate
 npm run verify:live
 ```
 
