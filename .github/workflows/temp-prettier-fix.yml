@@ -1,0 +1,34 @@
+name: Temporary Prettier Fix
+
+on:
+  push:
+    branches:
+      - manh/ai-first-frontend
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: manh/ai-first-frontend
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Format target file and remove temporary workflow
+        run: |
+          npx prettier --write apps/web/src/app/admin/system/page.tsx
+          rm .github/workflows/temp-prettier-fix.yml
+      - name: Commit formatter result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/src/app/admin/system/page.tsx .github/workflows/temp-prettier-fix.yml
+          git commit -m "style: format admin system page"
+          git push origin HEAD:manh/ai-first-frontend
