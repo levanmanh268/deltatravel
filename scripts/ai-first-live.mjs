@@ -86,8 +86,13 @@ try {
   pass('action agent remains human-in-the-loop');
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await mobile.addInitScript(() => {
+    sessionStorage.setItem('delta_intro_played', 'true');
+  });
   await mobile.goto(WEB + '/tours', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await mobile.getByTestId('ai-command-center-launcher').click();
+  const mobileLauncher = mobile.getByTestId('ai-command-center-launcher');
+  await mobileLauncher.waitFor({ state: 'visible', timeout: 30000 });
+  await mobileLauncher.click();
   const mobileCenter = mobile.getByTestId('ai-command-center');
   await mobileCenter.waitFor({ state: 'visible' });
   const mobileBox = await mobileCenter.boundingBox();
