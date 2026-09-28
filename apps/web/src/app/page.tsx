@@ -14,6 +14,7 @@ import { getTourImage, getTourLuxuryTag } from '@/lib/tour-assets';
 import { GiantScrollTypography } from '@/components/giant-scroll-typography';
 import { LuxuryPreloader } from '@/components/luxury-preloader';
 import { LiquidGlassBadge } from '@/components/ui/liquid-glass-badge';
+import { AiContextCard } from '@/components/ai-context-card';
 import {
   MapPin,
   Calendar,
@@ -350,6 +351,25 @@ function HomeContent() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="relative z-20 mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <AiContextCard
+          eyebrow="DELTA AI • LIVE PLANNER"
+          title="Bắt đầu chuyến đi bằng một câu nói, không phải bằng bộ lọc"
+          description="AI đang kết nối với catalog thật. Bạn vẫn có thể dùng toàn bộ giao diện thủ công của An ở phía dưới, nhưng luồng mặc định bây giờ bắt đầu từ AI."
+          prompt="Tôi muốn đi du lịch trong nước. Hãy giúp tôi tìm chuyến đi phù hợp nhất theo ngân sách, thời gian và số người."
+          context={`Homepage production; hiện có ${allTours.length} tour được tải từ backend.`}
+          suggestions={[
+            '2 người lớn, ngân sách 8 triệu, đi 3 ngày.',
+            'Tôi thích biển, muốn lịch còn nhiều chỗ.',
+            'Gợi ý chuyến đi miền Bắc cho cuối tuần.',
+          ]}
+          agentHref={
+            '/assistant?prompt=' +
+            encodeURIComponent('Hãy lập kế hoạch chuyến đi phù hợp nhất cho tôi.')
+          }
+        />
       </section>
 
       {/* Content wrapper with overflow-hidden to protect parallax typography without breaking sticky */}
