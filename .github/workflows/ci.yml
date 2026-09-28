@@ -45,7 +45,7 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run test:integration
-      - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit --omit=dev --audit-level=moderate
       - uses: actions/upload-artifact@v4
         with:
           name: build-metadata
