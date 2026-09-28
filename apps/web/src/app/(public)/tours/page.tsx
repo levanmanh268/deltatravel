@@ -14,6 +14,7 @@ import { getTourImage, getTourLuxuryTag } from '@/lib/tour-assets';
 import { GiantScrollTypography } from '@/components/giant-scroll-typography';
 import { formatVND } from '@/lib/format';
 import { LiquidGlassBadge } from '@/components/ui/liquid-glass-badge';
+import { AiContextCard } from '@/components/ai-context-card';
 import {
   MapPin,
   Calendar,
@@ -129,6 +130,32 @@ function ToursListContent() {
           outline={true}
         />
       </div>
+
+      <AiContextCard
+        eyebrow="DELTA AI • TOUR DISCOVERY"
+        title="Nói nhu cầu, AI tìm tour trước khi bạn phải lọc thủ công"
+        description="AI đọc catalog production, lịch khởi hành và dữ liệu hiện có để gợi ý. Bộ lọc truyền thống của An vẫn giữ nguyên ngay bên dưới."
+        prompt={
+          activeRegion
+            ? `Tìm tour phù hợp nhất ở miền ${activeRegion === 'bac' ? 'Bắc' : activeRegion === 'trung' ? 'Trung' : 'Nam'} cho tôi. Hãy ưu tiên lịch còn chỗ, giá hợp lý và giải thích vì sao phù hợp.`
+            : 'Tìm giúp tôi một tour phù hợp nhất. Hãy hỏi hoặc suy luận từ nhu cầu tôi cung cấp, ưu tiên lịch còn chỗ và giá hợp lý.'
+        }
+        context={`Trang danh sách tour. Bộ lọc vùng hiện tại: ${activeRegion || 'tất cả'}. Catalog đang hiển thị ${tours.length} tour từ backend.`}
+        suggestions={[
+          'Tìm tour cho 2 người lớn, ngân sách khoảng 8 triệu.',
+          'Tôi muốn đi 3-4 ngày, ưu tiên biển và lịch còn nhiều chỗ.',
+          'Gợi ý chuyến đi tiết kiệm nhưng trải nghiệm tốt.',
+        ]}
+        agentHref={
+          '/assistant?prompt=' +
+          encodeURIComponent(
+            activeRegion
+              ? `Hãy lập kế hoạch một chuyến đi phù hợp ở miền ${activeRegion === 'bac' ? 'Bắc' : activeRegion === 'trung' ? 'Trung' : 'Nam'} cho tôi.`
+              : 'Hãy lập kế hoạch chuyến đi phù hợp nhất cho tôi.',
+          )
+        }
+        className="relative z-10"
+      />
 
       {/* Apple Liquid Glass Segmented Region Switcher (No Search Bar) */}
       <div className="relative z-10 flex flex-col items-center justify-center pt-2">
