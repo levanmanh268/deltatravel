@@ -85,23 +85,30 @@ try {
   }
   pass('action agent remains human-in-the-loop');
 
-  const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await mobile.addInitScript(() => {
-    sessionStorage.setItem('delta_intro_played', 'true');
-  });
-  await mobile.goto(WEB + '/tours', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  const mobileLauncher = mobile.getByTestId('ai-command-center-launcher');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(WEB + '/tours', { waitUntil: 'domcontentloaded', timeout: 120000 });
+  const mobileLauncher = page.getByTestId('ai-command-center-launcher');
   await mobileLauncher.waitFor({ state: 'visible', timeout: 30000 });
   await mobileLauncher.click();
-  const mobileCenter = mobile.getByTestId('ai-command-center');
-  await mobileCenter.waitFor({ state: 'visible' });
+  await page.waitForFunction(
+    () =>
+      document
+        .querySelector('[data-testid="ai-command-center-launcher"]')
+        ?.getAttribute('aria-expanded') === 'true',
+    null,
+    { timeout: 30000 },
+  );
+  const mobileCenter = page.getByTestId('ai-command-center');
+  await mobileCenter.waitFor({ state: 'visible', timeout: 30000 });
   const mobileBox = await mobileCenter.boundingBox();
   if (!mobileBox || mobileBox.width > 390 || mobileBox.height > 844) {
     throw new Error('Mobile AI command center overflowed the viewport');
   }
-  await mobile.keyboard.press('Escape');
-  await mobileCenter.waitFor({ state: 'hidden' });
-  await mobile.close();
+  await page.keyboard.press('Escape');
+  await mobileCenter.waitFor({ state: 'hidden', timeout: 30000 });
+  if ((await mobileLauncher.getAttribute('aria-expanded')) !== 'false') {
+    throw new Error('Mobile AI command center did not reset expanded state after Escape');
+  }
   pass('mobile AI command center + Escape close');
 
   if (pageErrors.length) {
