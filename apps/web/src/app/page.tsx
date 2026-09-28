@@ -272,9 +272,9 @@ function HomeContent() {
                 Nói chuyến đi bạn muốn. AI tự tìm, lập kế hoạch và đặt tour cùng bạn.
               </h2>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-white/75">
-                AI kiểm tra tour, ngày khởi hành, ngân sách và số chỗ thật. Trước mọi hành động
-                tạo booking hoặc thanh toán, hệ thống dừng ở checkpoint để bạn quyết định Cho
-                phép hoặc Không cho phép.
+                AI kiểm tra tour, ngày khởi hành, ngân sách và số chỗ thật. Trước mọi hành động tạo
+                booking hoặc thanh toán, hệ thống dừng ở checkpoint để bạn quyết định Cho phép hoặc
+                Không cho phép.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link

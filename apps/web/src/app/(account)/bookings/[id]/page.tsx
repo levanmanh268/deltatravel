@@ -101,9 +101,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const [paying, setPaying] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [directPaymentSuccess, setDirectPaymentSuccess] = useState(false);
-  const [paymentCapabilities, setPaymentCapabilities] = useState<
-    Awaited<ReturnType<typeof paymentApi.providers>> | null
-  >(null);
+  const [paymentCapabilities, setPaymentCapabilities] = useState<Awaited<
+    ReturnType<typeof paymentApi.providers>
+  > | null>(null);
   const [paymentCapabilitiesLoading, setPaymentCapabilitiesLoading] = useState(true);
 
   // Cancel booking modal
@@ -182,14 +182,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
     if (!booking) return;
 
     const provider: Provider = selectedMethod === 'DIRECT' ? 'CASH' : selectedMethod;
-    const capability = paymentCapabilities?.providers.find(
-      (item) => item.provider === provider,
-    );
+    const capability = paymentCapabilities?.providers.find((item) => item.provider === provider);
 
-    if (
-      provider !== 'CASH' &&
-      (!capability || !capability.available)
-    ) {
+    if (provider !== 'CASH' && (!capability || !capability.available)) {
       setPaymentError(
         capability?.reason ||
           'Cổng thanh toán này chưa được cấu hình trên server. Hãy chọn phương thức khác.',
@@ -570,10 +565,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                     const capability = paymentCapabilities?.providers.find(
                       (item) => item.provider === provider,
                     );
-                    const available =
-                      provider === 'CASH'
-                        ? true
-                        : Boolean(capability?.available);
+                    const available = provider === 'CASH' ? true : Boolean(capability?.available);
                     const environment = capability?.environment;
 
                     return (

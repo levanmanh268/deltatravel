@@ -125,10 +125,7 @@ export default function SystemAdminPage() {
           detail={
             snapshot.payments
               ? snapshot.payments.providers
-                  .map(
-                    (item) =>
-                      `${item.provider}: ${item.available ? item.environment : 'OFF'}`,
-                  )
+                  .map((item) => `${item.provider}: ${item.available ? item.environment : 'OFF'}`)
                   .join(' • ')
               : 'Đọc trực tiếp từ backend'
           }
@@ -198,10 +195,7 @@ export default function SystemAdminPage() {
                   : 'N/A'
               }
             />
-            <Row
-              label="Payment return"
-              value={snapshot.payments?.returnOrigin ?? 'N/A'}
-            />
+            <Row label="Payment return" value={snapshot.payments?.returnOrigin ?? 'N/A'} />
             <Row label="Cấu hình bí mật" value="Quản lý tại Render, không chỉnh từ trình duyệt" />
           </dl>
         </section>
