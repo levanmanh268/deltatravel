@@ -68,7 +68,7 @@ try {
   pass('tour detail AI fit advisor');
 
   await page.goto(WEB + '/assistant', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.getByText('DELTA AI AGENT', { exact: true }).waitFor({
+  await page.getByText('DELTA AI AGENT', { exact: true }).first().waitFor({
     state: 'visible',
     timeout: 30000,
   });
