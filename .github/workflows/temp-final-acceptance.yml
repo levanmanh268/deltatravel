@@ -1,0 +1,49 @@
+name: Temporary Final Acceptance
+
+on:
+  push:
+    branches:
+      - manh/final-complete-v4
+
+permissions:
+  contents: write
+
+jobs:
+  acceptance:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: manh/final-complete-v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Live API and security smoke
+        run: npm run verify:live
+        env:
+          LIVE_WEB_URL: https://delta-travel-web.onrender.com
+          LIVE_API_URL: https://delta-travel-api.onrender.com/api/v1
+      - name: Install browser verification dependencies
+        run: npm install --no-save --ignore-scripts playwright@1.55.0 @axe-core/playwright@4.10.2
+      - run: npx playwright install --with-deps chromium firefox
+      - name: Cross-browser smoke
+        run: node scripts/browser-smoke.mjs
+        env:
+          LIVE_WEB_URL: https://delta-travel-web.onrender.com
+      - name: Accessibility audit
+        run: node scripts/a11y-smoke.mjs
+        env:
+          LIVE_WEB_URL: https://delta-travel-web.onrender.com
+      - name: Remove temporary workflow
+        if: success()
+        run: rm .github/workflows/temp-final-acceptance.yml
+      - name: Commit cleanup
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: remove temporary final acceptance workflow"
+          git push origin HEAD:manh/final-complete-v4
