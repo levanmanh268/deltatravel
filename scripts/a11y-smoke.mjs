@@ -30,6 +30,11 @@ try {
 
     for (const violation of [...critical, ...serious]) {
       console.log(`  - ${violation.id}: ${violation.help}`);
+      for (const node of violation.nodes.slice(0, 8)) {
+        console.log(`    target: ${JSON.stringify(node.target)}`);
+        console.log(`    html: ${node.html.slice(0, 500)}`);
+        if (node.failureSummary) console.log(`    why: ${node.failureSummary.replace(/\n/g, ' ')}`);
+      }
     }
   }
 
