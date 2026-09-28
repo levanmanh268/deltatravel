@@ -31,16 +31,7 @@ export interface SystemAuditItem {
   status: 'SUCCESS' | 'WARNING' | 'ALERT';
 }
 
-export const DEFAULT_GROQ_KEY = [
-  'g' + 's' + 'k' + '_',
-  'VQb54WEr',
-  'qu0Nw73F',
-  '95IeWGdy',
-  'b3FYQBFS',
-  'IhaAygfL',
-  '5Opjif8k',
-  'z8Tk',
-].join('');
+export const DEFAULT_GROQ_KEY = '';
 
 export const DEFAULT_SYSTEM_PROMPT = `You are the Official Luxury Concierge & Travel Consultant of DELTA TRAVEL VIETNAM (deltatravel.vn).
 Maintain a prestigious, hospitable, ultra-refined, and warm demeanor.
@@ -51,10 +42,26 @@ CRITICAL MANDATES:
 4. Output strictly valid JSON with reply, isOffTopic, actions, and sources.`;
 
 export const AVAILABLE_MODELS = [
-  { id: 'openai/gpt-oss-120b', name: 'GPT OSS 120B (Groq Fast LPU - Flagship Deep Reasoning)', provider: 'groq' },
-  { id: 'qwen/qwen3.8-27b', name: 'Qwen 3.8 27B (Groq Siêu Tốc Độ - Chuẩn Đa Ngôn Ngữ Việt/Anh)', provider: 'groq' },
-  { id: 'openai/gpt-oss-20b', name: 'GPT OSS 20B (Groq Ultra Fast - Phản hồi chớp mắt <120ms)', provider: 'groq' },
-  { id: 'openai/gpt-oss-safeguard-20b', name: 'GPT OSS Safeguard 20B (AI Bảo Mật Tối Cao Chống Hack)', provider: 'groq' },
+  {
+    id: 'openai/gpt-oss-120b',
+    name: 'GPT OSS 120B (Groq Fast LPU - Flagship Deep Reasoning)',
+    provider: 'groq',
+  },
+  {
+    id: 'qwen/qwen3.8-27b',
+    name: 'Qwen 3.8 27B (Groq Siêu Tốc Độ - Chuẩn Đa Ngôn Ngữ Việt/Anh)',
+    provider: 'groq',
+  },
+  {
+    id: 'openai/gpt-oss-20b',
+    name: 'GPT OSS 20B (Groq Ultra Fast - Phản hồi chớp mắt <120ms)',
+    provider: 'groq',
+  },
+  {
+    id: 'openai/gpt-oss-safeguard-20b',
+    name: 'GPT OSS Safeguard 20B (AI Bảo Mật Tối Cao Chống Hack)',
+    provider: 'groq',
+  },
   { id: 'gemini-1.5-flash', name: 'Google Gemini 1.5 Flash (Google Cloud AI)', provider: 'gemini' },
 ];
 
@@ -104,7 +111,10 @@ export function getSystemConfig(): SystemConfig {
   }
 }
 
-export function saveSystemConfig(patch: Partial<SystemConfig>, actor: string = 'ADMIN'): SystemConfig {
+export function saveSystemConfig(
+  patch: Partial<SystemConfig>,
+  actor: string = 'ADMIN',
+): SystemConfig {
   const current = getSystemConfig();
   const updated: SystemConfig = {
     ...current,
@@ -125,7 +135,7 @@ export function saveSystemConfig(patch: Partial<SystemConfig>, actor: string = '
         temperature: updated.temperature,
         maxTokens: updated.maxTokens,
         systemPrompt: updated.systemPrompt,
-      })
+      }),
     );
 
     // Record audit entry
@@ -133,7 +143,7 @@ export function saveSystemConfig(patch: Partial<SystemConfig>, actor: string = '
       actor,
       'CẬP NHẬT CẤU HÌNH HỆ THỐNG / AI',
       `Thay đổi cấu hình AI (Provider: ${updated.aiProvider}, Model: ${updated.aiModel}, Maintenance: ${updated.maintenanceMode ? 'BẬT' : 'TẮT'})`,
-      'SUCCESS'
+      'SUCCESS',
     );
   }
 
@@ -166,7 +176,7 @@ export function addSystemAuditLog(
   actor: string,
   action: string,
   details: string,
-  status: 'SUCCESS' | 'WARNING' | 'ALERT' = 'SUCCESS'
+  status: 'SUCCESS' | 'WARNING' | 'ALERT' = 'SUCCESS',
 ) {
   if (typeof window === 'undefined') return;
   try {
@@ -199,46 +209,35 @@ export function maskApiKey(key: string): string {
  * Live AI ping diagnostic tester
  */
 export async function testAiConnection(
-  apiKey: string,
-  model: string = 'openai/gpt-oss-120b'
+  _apiKey: string,
+  model: string = 'openai/gpt-oss-120b',
 ): Promise<{ success: boolean; latency: number; message: string; modelUsed: string }> {
   const startTime = Date.now();
+  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
   try {
-    const keyToUse = apiKey || DEFAULT_GROQ_KEY;
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${keyToUse}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: 'Ping test. Reply with word OK.' }],
-        max_tokens: 5,
-        temperature: 0,
-      }),
-      signal: AbortSignal.timeout(8000),
+    const res = await fetch(`${base}/assistant/provider-status`, {
+      method: 'GET',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(15000),
     });
-
     const latency = Date.now() - startTime;
-
     if (!res.ok) {
-      const errBody = await res.text();
       return {
         success: false,
         latency,
-        message: `HTTP ${res.status}: ${errBody.slice(0, 120)}`,
+        message: `Backend AI status HTTP ${res.status}`,
         modelUsed: model,
       };
     }
-
-    const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || 'OK';
-
+    const body = await res.json();
+    const data = body?.data ?? body;
+    const live = data?.preferredProvider === 'GROQ' && data?.groqConfigured === true;
     return {
-      success: true,
+      success: live,
       latency,
-      message: `Kết nối thành công! Phản hồi: "${reply.trim()}"`,
+      message: live
+        ? 'Backend production đã cấu hình Groq.'
+        : 'Backend production chưa xác nhận cấu hình Groq.',
       modelUsed: model,
     };
   } catch (err: any) {
@@ -246,7 +245,10 @@ export async function testAiConnection(
     return {
       success: false,
       latency,
-      message: err.name === 'TimeoutError' ? 'Hết thời gian chờ (Timeout >8s)' : err.message || 'Lỗi kết nối',
+      message:
+        err?.name === 'TimeoutError'
+          ? 'Hết thời gian chờ backend.'
+          : err?.message || 'Lỗi kết nối backend',
       modelUsed: model,
     };
   }

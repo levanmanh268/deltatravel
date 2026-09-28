@@ -16,8 +16,6 @@ import {
   KeyRound,
   ArrowRight,
   RefreshCw,
-  Copy,
-  Check,
 } from 'lucide-react';
 import { useLanguage } from '@/providers/language-provider';
 
@@ -47,8 +45,6 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
   const [otpCode, setOtpCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [sentOtp, setSentOtp] = useState<string | null>(null);
-  const [copiedOtp, setCopiedOtp] = useState(false);
 
   // Status
   const [error, setError] = useState('');
@@ -60,14 +56,6 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
     setSuccess('');
   };
 
-  const handleCopyOtp = () => {
-    if (sentOtp) {
-      navigator.clipboard.writeText(sentOtp);
-      setCopiedOtp(true);
-      setTimeout(() => setCopiedOtp(false), 2000);
-    }
-  };
-
   // Submit Handler
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -76,15 +64,25 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
     // ─── REGISTER FLOW ───
     if (mode === 'register') {
       if (!name.trim()) {
-        setError(lang === 'en' ? 'Please enter your full name.' : 'Vui lòng nhập họ và tên của bạn.');
+        setError(
+          lang === 'en' ? 'Please enter your full name.' : 'Vui lòng nhập họ và tên của bạn.',
+        );
         return;
       }
       if (!email.trim()) {
-        setError(lang === 'en' ? 'Please enter a valid email address.' : 'Vui lòng nhập địa chỉ email hợp lệ.');
+        setError(
+          lang === 'en'
+            ? 'Please enter a valid email address.'
+            : 'Vui lòng nhập địa chỉ email hợp lệ.',
+        );
         return;
       }
-      if (password.length < 6) {
-        setError(lang === 'en' ? 'Password must be at least 6 characters.' : 'Mật khẩu phải có tối thiểu 6 ký tự.');
+      if (password.length < 12) {
+        setError(
+          lang === 'en'
+            ? 'Password must be at least 12 characters.'
+            : 'Mật khẩu phải có tối thiểu 12 ký tự.',
+        );
         return;
       }
       if (password !== confirmPassword) {
@@ -144,7 +142,11 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
           router.push('/tours');
         }
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Đăng nhập không thành công. Vui lòng kiểm tra email và mật khẩu.');
+        setError(
+          e instanceof Error
+            ? e.message
+            : 'Đăng nhập không thành công. Vui lòng kiểm tra email và mật khẩu.',
+        );
       } finally {
         setBusy(false);
       }
@@ -156,14 +158,17 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
       // Step 1: Request OTP
       if (forgotStep === 1) {
         if (!email.trim() || !email.includes('@')) {
-          setError(lang === 'en' ? 'Please enter a valid email address.' : 'Vui lòng nhập địa chỉ email hợp lệ.');
+          setError(
+            lang === 'en'
+              ? 'Please enter a valid email address.'
+              : 'Vui lòng nhập địa chỉ email hợp lệ.',
+          );
           return;
         }
 
         setBusy(true);
         try {
-          const res = await authApi.requestPasswordReset(email.trim().toLowerCase());
-          setSentOtp(res.code);
+          await authApi.requestPasswordReset(email.trim().toLowerCase());
           setForgotStep(2);
           setSuccess(
             lang === 'en'
@@ -171,7 +176,9 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
               : `Mã xác thực 6 số đã được gửi tới email ${email.trim()} (hiệu lực 10 phút).`,
           );
         } catch (e) {
-          setError(e instanceof Error ? e.message : 'Chưa thể gửi mã xác nhận. Vui lòng thử lại sau.');
+          setError(
+            e instanceof Error ? e.message : 'Chưa thể gửi mã xác nhận. Vui lòng thử lại sau.',
+          );
         } finally {
           setBusy(false);
         }
@@ -188,11 +195,11 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
           );
           return;
         }
-        if (newPassword.length < 6) {
+        if (newPassword.length < 12) {
           setError(
             lang === 'en'
-              ? 'New password must be at least 6 characters.'
-              : 'Mật khẩu mới phải có tối thiểu 6 ký tự.',
+              ? 'New password must be at least 12 characters.'
+              : 'Mật khẩu mới phải có tối thiểu 12 ký tự.',
           );
           return;
         }
@@ -255,12 +262,12 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
               ? 'Create Account'
               : 'Tạo Tài Khoản Mới'
             : mode === 'forgot'
-            ? lang === 'en'
-              ? 'Reset Password'
-              : 'Khôi Phục Mật Khẩu'
-            : lang === 'en'
-            ? 'Welcome Back'
-            : 'Chào Mừng Trở Lại'}
+              ? lang === 'en'
+                ? 'Reset Password'
+                : 'Khôi Phục Mật Khẩu'
+              : lang === 'en'
+                ? 'Welcome Back'
+                : 'Chào Mừng Trở Lại'}
         </h2>
         <p className="mt-1.5 text-xs text-stone-500">
           {mode === 'register'
@@ -268,12 +275,12 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
               ? 'Sign up to manage your bookings and unlock exclusive member rates'
               : 'Đăng ký để quản lý đơn đặt vé và nhận các ưu đãi hành trình độc quyền'
             : mode === 'forgot'
-            ? lang === 'en'
-              ? 'Enter your registered email to receive a 6-digit verification code'
-              : 'Nhập email đã đăng ký để nhận mã xác thực OTP 6 số và đặt lại mật khẩu'
-            : lang === 'en'
-            ? 'Sign in to access your itinerary and reservations'
-            : 'Đăng nhập vào tài khoản DELTA TRAVEL để quản lý hành trình'}
+              ? lang === 'en'
+                ? 'Enter your registered email to receive a 6-digit verification code'
+                : 'Nhập email đã đăng ký để nhận mã xác thực OTP 6 số và đặt lại mật khẩu'
+              : lang === 'en'
+                ? 'Sign in to access your itinerary and reservations'
+                : 'Đăng nhập vào tài khoản DELTA TRAVEL để quản lý hành trình'}
         </p>
       </div>
 
@@ -331,7 +338,7 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
                 Mật khẩu *
               </label>
               {mode === 'register' && (
-                <span className="text-[10px] text-amber-700 font-semibold">Tối thiểu 6 ký tự</span>
+                <span className="text-[10px] text-amber-700 font-semibold">Tối thiểu 12 ký tự</span>
               )}
               {mode === 'login' && (
                 <button
@@ -366,7 +373,10 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
         {/* Confirm Password (Register mode only) */}
         {mode === 'register' && (
           <div>
-            <label htmlFor="confirmPassword" className="text-xs font-bold text-stone-800 block mb-1">
+            <label
+              htmlFor="confirmPassword"
+              className="text-xs font-bold text-stone-800 block mb-1"
+            >
               Nhập lại mật khẩu *
             </label>
             <div className="relative">
@@ -406,29 +416,10 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
                 </button>
               </div>
               <p className="text-[11px] text-amber-800/90 leading-relaxed">
-                Vui lòng kiểm tra hộp thư (hoặc mục Spam). Nhập mã 6 chữ số bên dưới để đặt lại mật khẩu.
+                Vui lòng kiểm tra hộp thư (hoặc mục Spam). Nhập mã 6 chữ số bên dưới để đặt lại mật
+                khẩu.
               </p>
             </div>
-
-            {/* Simulated Live OTP Copy helper for instant testing */}
-            {sentOtp && (
-              <div className="p-2.5 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-between">
-                <div className="text-[11px] text-stone-700">
-                  <span>Mã OTP của bạn: </span>
-                  <strong className="font-mono text-xs text-stone-950 font-bold ml-1 tracking-widest">
-                    {sentOtp}
-                  </strong>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCopyOtp}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-stone-300 text-[10px] font-bold text-stone-800 hover:bg-stone-50 transition active:scale-95"
-                >
-                  {copiedOtp ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
-                  <span>{copiedOtp ? 'Đã chép' : 'Sao chép mã'}</span>
-                </button>
-              </div>
-            )}
 
             {/* OTP Input */}
             <div>
@@ -456,7 +447,7 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
                 <label htmlFor="newPassword" className="text-xs font-bold text-stone-800">
                   Mật khẩu mới *
                 </label>
-                <span className="text-[10px] text-amber-700 font-semibold">Tối thiểu 6 ký tự</span>
+                <span className="text-[10px] text-amber-700 font-semibold">Tối thiểu 12 ký tự</span>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
@@ -474,7 +465,10 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
 
             {/* Confirm New Password */}
             <div>
-              <label htmlFor="confirmNewPassword" className="text-xs font-bold text-stone-800 block mb-1">
+              <label
+                htmlFor="confirmNewPassword"
+                className="text-xs font-bold text-stone-800 block mb-1"
+              >
                 Nhập lại mật khẩu mới *
               </label>
               <div className="relative">
@@ -495,7 +489,10 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
 
         {/* ─── ERROR & SUCCESS MESSAGES ─── */}
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 flex items-start gap-2" role="alert">
+          <div
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700 flex items-start gap-2"
+            role="alert"
+          >
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
             <span className="font-semibold leading-relaxed">{error}</span>
           </div>
@@ -517,12 +514,12 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
           {busy
             ? 'Đang xử lý...'
             : mode === 'register'
-            ? 'Tạo tài khoản ngay'
-            : mode === 'forgot'
-            ? forgotStep === 1
-              ? 'Gửi mã xác nhận qua email'
-              : 'Xác nhận đặt lại mật khẩu'
-            : 'Đăng nhập ngay'}
+              ? 'Tạo tài khoản ngay'
+              : mode === 'forgot'
+                ? forgotStep === 1
+                  ? 'Gửi mã xác nhận qua email'
+                  : 'Xác nhận đặt lại mật khẩu'
+                : 'Đăng nhập ngay'}
         </Button>
 
         {/* ─── BOTTOM NAVIGATION SWITCHERS ─── */}
