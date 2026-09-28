@@ -25,6 +25,7 @@ import {
   Star,
   Crown,
   Compass,
+  Bot,
 } from 'lucide-react';
 
 // Apple-Grade Liquid Glass Tour Cards
@@ -257,6 +258,62 @@ function HomeContent() {
 
       {/* High-Performance 3D Scroll Scrubber */}
       <Scroll3DHero />
+
+      {/* AI-first primary journey */}
+      <section className="relative z-20 mx-auto -mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="overflow-hidden rounded-[32px] border border-white/50 bg-black text-white shadow-[0_35px_100px_-45px_rgba(0,0,0,0.75)]">
+          <div className="grid gap-0 lg:grid-cols-[1.35fr_.65fr]">
+            <div className="p-7 sm:p-9 lg:p-10">
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-amber-300">
+                <Sparkles className="h-4 w-4" />
+                DELTA AI AGENT • PRIMARY EXPERIENCE
+              </div>
+              <h2 className="mt-4 max-w-3xl text-2xl font-black tracking-tight text-white sm:text-4xl">
+                Nói chuyến đi bạn muốn. AI tự tìm, lập kế hoạch và đặt tour cùng bạn.
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/75">
+                AI kiểm tra tour, ngày khởi hành, ngân sách và số chỗ thật. Trước mọi hành động
+                tạo booking hoặc thanh toán, hệ thống dừng ở checkpoint để bạn quyết định Cho
+                phép hoặc Không cho phép.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/assistant"
+                  className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-6 py-3 text-xs font-black text-black transition hover:bg-amber-300"
+                >
+                  <Bot className="h-4 w-4" />
+                  Để AI đặt tour cho tôi
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+                <Link
+                  href="/tours"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3 text-xs font-black text-white transition hover:bg-white/15"
+                >
+                  Tôi muốn tự chọn tour
+                </Link>
+              </div>
+            </div>
+            <div className="border-t border-white/10 bg-white/[0.06] p-7 lg:border-l lg:border-t-0 lg:p-8">
+              <div className="flex h-full flex-col justify-center gap-4">
+                {[
+                  ['01', 'Hiểu yêu cầu tự nhiên'],
+                  ['02', 'Kiểm tra dữ liệu production'],
+                  ['03', 'Đề xuất phương án phù hợp'],
+                  ['04', 'Xin duyệt trước hành động thật'],
+                  ['05', 'Đặt tour & chuẩn bị thanh toán'],
+                ].map(([number, label]) => (
+                  <div key={number} className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-300/40 bg-amber-300/10 text-[10px] font-black text-amber-300">
+                      {number}
+                    </span>
+                    <span className="text-xs font-bold text-white/85">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Content wrapper with overflow-hidden to protect parallax typography without breaking sticky */}
       <div className="relative overflow-hidden">
