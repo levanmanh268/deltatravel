@@ -56,9 +56,7 @@ export class AiProviderService {
     const budgetVnd = budgetMatch
       ? Math.round(Number(budgetMatch[1].replace(',', '.')) * 1000000)
       : undefined;
-    const idMatch = s.match(
-      /[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i,
-    );
+    const idMatch = s.match(/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
     const mentionsBooking = /booking|đơn đặt|đơn của|mã đơn/i.test(s);
 
     const base = {

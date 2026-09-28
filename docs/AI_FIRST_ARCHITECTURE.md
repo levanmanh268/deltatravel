@@ -15,18 +15,18 @@ Delta Travel dùng AI như một lớp điều phối xuyên suốt sản phẩm
 
 ## Các surface AI
 
-| Surface | AI-first behavior |
-| --- | --- |
-| Homepage | Live AI Planner đứng trước catalog thủ công và handoff sang Agent |
-| Global | Page-aware AI Command Center hiểu route đang xem |
-| Tour catalog | AI discovery, nguồn TOUR từ backend và đưa tour được AI đề xuất lên trước |
-| Tour detail | AI Fit Advisor tự đọc tour production và handoff schedule sang Agent |
-| Checkout | AI pre-booking review đọc quote và availability trước khi user giữ chỗ |
-| My Bookings | AI Trip Concierge tóm tắt các đơn theo quyền customer |
-| Booking detail | AI phân tích đúng booking ID, trạng thái, bước tiếp theo và policy |
-| Assistant | Action Agent nhận context từ tour/checkout và vẫn yêu cầu phê duyệt |
-| Admin dashboard | Grounded Operations Copilot đọc live operations facts |
-| Admin subpages | Persistent AI Ops strip thay prompt theo route hiện tại |
+| Surface         | AI-first behavior                                                         |
+| --------------- | ------------------------------------------------------------------------- |
+| Homepage        | Live AI Planner đứng trước catalog thủ công và handoff sang Agent         |
+| Global          | Page-aware AI Command Center hiểu route đang xem                          |
+| Tour catalog    | AI discovery, nguồn TOUR từ backend và đưa tour được AI đề xuất lên trước |
+| Tour detail     | AI Fit Advisor tự đọc tour production và handoff schedule sang Agent      |
+| Checkout        | AI pre-booking review đọc quote và availability trước khi user giữ chỗ    |
+| My Bookings     | AI Trip Concierge tóm tắt các đơn theo quyền customer                     |
+| Booking detail  | AI phân tích đúng booking ID, trạng thái, bước tiếp theo và policy        |
+| Assistant       | Action Agent nhận context từ tour/checkout và vẫn yêu cầu phê duyệt       |
+| Admin dashboard | Grounded Operations Copilot đọc live operations facts                     |
+| Admin subpages  | Persistent AI Ops strip thay prompt theo route hiện tại                   |
 
 ## Grounding
 

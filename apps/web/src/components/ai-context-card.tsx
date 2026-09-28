@@ -101,7 +101,11 @@ export function AiContextCard({
               <Sparkles className="h-3.5 w-3.5" />
               {eyebrow}
             </div>
-            <h2 className={compact ? 'mt-2 text-lg font-black' : 'mt-2 text-xl font-black sm:text-2xl'}>
+            <h2
+              className={
+                compact ? 'mt-2 text-lg font-black' : 'mt-2 text-xl font-black sm:text-2xl'
+              }
+            >
               {title}
             </h2>
             {description && (
@@ -158,7 +162,10 @@ export function AiContextCard({
         )}
 
         {error && (
-          <div role="alert" className="flex items-start justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-800">
+          <div
+            role="alert"
+            className="flex items-start justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-800"
+          >
             <span>{error}</span>
             <button type="button" onClick={() => void run()} aria-label="Thử lại">
               <RefreshCcw className="h-4 w-4" />
@@ -167,7 +174,10 @@ export function AiContextCard({
         )}
 
         {result && (
-          <div data-ai-response="true" className="rounded-2xl border border-stone-200 bg-stone-50/70 p-4 sm:p-5">
+          <div
+            data-ai-response="true"
+            className="rounded-2xl border border-stone-200 bg-stone-50/70 p-4 sm:p-5"
+          >
             <div className="mb-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-amber-800">
               <Bot className="h-4 w-4" />
               AI insight • {result.mode}

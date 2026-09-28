@@ -109,14 +109,7 @@ export function AgentBookingPanel({
     if (initialDestination) setDestination(initialDestination);
     setAdults(String(initialAdults));
     setChildren(String(initialChildren));
-  }, [
-    plan,
-    initialMessage,
-    initialScheduleId,
-    initialDestination,
-    initialAdults,
-    initialChildren,
-  ]);
+  }, [plan, initialMessage, initialScheduleId, initialDestination, initialAdults, initialChildren]);
 
   const phonePattern = /^(?:\+84|0)[0-9]{9,10}$/;
 

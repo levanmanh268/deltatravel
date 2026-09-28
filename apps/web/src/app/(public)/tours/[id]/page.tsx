@@ -266,9 +266,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
         agentHref={
           '/assistant?prompt=' +
           encodeURIComponent(`Tôi muốn AI lập kế hoạch để đặt tour ${displayTour.title}.`) +
-          (selectedScheduleId
-            ? '&scheduleId=' + encodeURIComponent(selectedScheduleId)
-            : '') +
+          (selectedScheduleId ? '&scheduleId=' + encodeURIComponent(selectedScheduleId) : '') +
           '&destination=' +
           encodeURIComponent(displayTour.destination) +
           '&adults=' +

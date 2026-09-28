@@ -105,7 +105,8 @@ function contextForPath(pathname: string, role?: string) {
       ],
       agentHref:
         role === 'CUSTOMER'
-          ? '/assistant?prompt=' + encodeURIComponent('Hãy tìm và lập kế hoạch chuyến đi phù hợp cho tôi.')
+          ? '/assistant?prompt=' +
+            encodeURIComponent('Hãy tìm và lập kế hoạch chuyến đi phù hợp cho tôi.')
           : null,
     };
   }
@@ -118,7 +119,8 @@ function contextForPath(pathname: string, role?: string) {
     ],
     agentHref:
       role === 'CUSTOMER'
-        ? '/assistant?prompt=' + encodeURIComponent('Hãy giúp tôi lập kế hoạch một chuyến đi phù hợp.')
+        ? '/assistant?prompt=' +
+          encodeURIComponent('Hãy giúp tôi lập kế hoạch một chuyến đi phù hợp.')
         : null,
   };
 }
@@ -133,10 +135,7 @@ export function AiAgentLauncher() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const context = useMemo(
-    () => contextForPath(pathname, user?.role),
-    [pathname, user?.role],
-  );
+  const context = useMemo(() => contextForPath(pathname, user?.role), [pathname, user?.role]);
 
   if (pathname.startsWith('/assistant')) return null;
 
@@ -164,10 +163,7 @@ export function AiAgentLauncher() {
         history,
         lang,
       });
-      setMessages((current) => [
-        ...current,
-        { role: 'assistant', content: result.reply, result },
-      ]);
+      setMessages((current) => [...current, { role: 'assistant', content: result.reply, result }]);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'AI chưa thể phản hồi.');
     } finally {
@@ -297,7 +293,11 @@ export function AiAgentLauncher() {
                 </div>
               )}
 
-              {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs text-red-700">{error}</p>}
+              {error && (
+                <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs text-red-700">
+                  {error}
+                </p>
+              )}
 
               {context.agentHref && (
                 <Link

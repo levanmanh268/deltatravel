@@ -65,17 +65,12 @@ describe('assistant Stage 1 grounding and authorization', () => {
     };
     const facts = [{ id: '33333333-3333-4333-8333-333333333333', status: 'PAID' }];
     const customer = {
-      myBookings: vi
-        .fn()
-        .mockResolvedValue({ reply: 'fallback', actions: [], sources: [], facts }),
+      myBookings: vi.fn().mockResolvedValue({ reply: 'fallback', actions: [], sources: [], facts }),
     };
     const service = new AssistantService(ai, {}, customer, {}, {}, {});
     const user = { id: 'principal', role: 'CUSTOMER' };
     const result = await service.chat({ message: 'booking của tôi', history: [] }, user);
-    expect(customer.myBookings).toHaveBeenCalledWith(
-      user,
-      '33333333-3333-4333-8333-333333333333',
-    );
+    expect(customer.myBookings).toHaveBeenCalledWith(user, '33333333-3333-4333-8333-333333333333');
     expect(ai.synthesize).toHaveBeenCalledWith('booking của tôi', facts, 'vi');
     expect(result.reply).toBe('grounded booking summary');
     expect(result.mode).toBe('GROQ');
