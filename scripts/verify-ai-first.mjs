@@ -42,9 +42,13 @@ const launcher = readFileSync(
   new URL('../apps/web/src/components/ai-agent-launcher.tsx', import.meta.url),
   'utf8',
 );
-for (const route of ['/admin', '/checkout/', '/bookings/', '/tours/']) {
-  if (!launcher.includes(route))
-    failures.push('page-aware launcher missing route context ' + route);
+for (const [label, token] of [
+  ['admin', "pathname.startsWith('/admin')"],
+  ['checkout', 'const checkout = pathname.match'],
+  ['booking', 'const booking = pathname.match'],
+  ['tour', 'const tour = pathname.match'],
+]) {
+  if (!launcher.includes(token)) failures.push('page-aware launcher missing ' + label + ' context');
 }
 
 const agent = readFileSync(
