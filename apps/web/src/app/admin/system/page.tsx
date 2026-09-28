@@ -157,8 +157,8 @@ export default function SystemAdminPage() {
           detail="OTP đặt lại mật khẩu và email nghiệp vụ"
           ok={Boolean(
             snapshot.integrations?.mailProvider &&
-              snapshot.integrations.mailProvider !== 'DISABLED' &&
-              snapshot.integrations.mailProvider !== 'CONSOLE',
+            snapshot.integrations.mailProvider !== 'DISABLED' &&
+            snapshot.integrations.mailProvider !== 'CONSOLE',
           )}
           icon={<Activity className="h-6 w-6" />}
         />
