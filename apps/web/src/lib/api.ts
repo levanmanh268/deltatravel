@@ -10,6 +10,7 @@ import {
   ScheduleSchema,
   BookingSchema,
   PaymentSchema,
+  PaymentProviderStatusSchema,
   PageSchema,
   QuoteResultSchema,
   AssistantResultSchema,
@@ -320,6 +321,12 @@ export const bookingApi = {
 };
 
 export const paymentApi = {
+  providers: () =>
+    api('/payments/providers/status', PaymentProviderStatusSchema, {
+      retryAuth: false,
+      anonymous: true,
+    }),
+
   create: (input: z.input<typeof CreatePaymentSchema>) =>
     api('/payments', PaymentSchema, {
       method: 'POST',
