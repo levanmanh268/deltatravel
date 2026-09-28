@@ -2,7 +2,10 @@
 
 import { chromium } from 'playwright';
 
-const WEB = (process.env.LIVE_WEB_URL || 'https://delta-travel-web.onrender.com').replace(/\/$/, '');
+const WEB = (process.env.LIVE_WEB_URL || 'https://delta-travel-web.onrender.com').replace(
+  /\/$/,
+  '',
+);
 
 function pass(label, detail = '') {
   console.log(`PASS  ${label}${detail ? `  ${detail}` : ''}`);
@@ -25,13 +28,17 @@ try {
   const discoveryInput = discovery.locator('textarea[aria-label="Yêu cầu cho DELTA AI"]');
   await discoveryInput.fill('Tìm tour phù hợp cho 2 người lớn, ngân sách khoảng 8 triệu.');
   await discovery.getByRole('button', { name: 'Hỏi AI' }).click();
-  await discovery.locator('[data-ai-response="true"]').waitFor({ state: 'visible', timeout: 90000 });
+  await discovery
+    .locator('[data-ai-response="true"]')
+    .waitFor({ state: 'visible', timeout: 90000 });
   const discoveryText = (await discovery.locator('[data-ai-response="true"]').innerText()).trim();
-  if (discoveryText.length < 40) throw new Error('Tour discovery AI response is unexpectedly short');
+  if (discoveryText.length < 40)
+    throw new Error('Tour discovery AI response is unexpectedly short');
   pass('tour discovery grounded AI response', `chars=${discoveryText.length}`);
 
   const recommended = await page.getByText('AI đề xuất', { exact: true }).count();
-  if (recommended < 1) throw new Error('AI discovery did not surface any TOUR source into catalog ranking');
+  if (recommended < 1)
+    throw new Error('AI discovery did not surface any TOUR source into catalog ranking');
   pass('AI-ranked tour catalog', `recommended=${recommended}`);
 
   await page.getByTestId('ai-command-center-launcher').click();
