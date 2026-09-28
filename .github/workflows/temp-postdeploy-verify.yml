@@ -1,0 +1,35 @@
+name: Temporary Postdeploy Verification
+
+on:
+  push:
+    branches:
+      - manh/postdeploy-verify
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Live API and security smoke
+        run: npm run verify:live
+        env:
+          LIVE_WEB_URL: https://delta-travel-web.onrender.com
+          LIVE_API_URL: https://delta-travel-api.onrender.com/api/v1
+      - name: Install browser audit tools
+        run: npm install --no-save --ignore-scripts playwright@1.55.0 @axe-core/playwright@4.10.2
+      - run: npx playwright install --with-deps chromium firefox
+      - name: Browser smoke
+        run: node scripts/browser-smoke.mjs
+        env:
+          LIVE_WEB_URL: https://delta-travel-web.onrender.com
+      - name: Accessibility audit
+        run: node scripts/a11y-smoke.mjs
+        env:
+          LIVE_WEB_URL: https://delta-travel-web.onrender.com
