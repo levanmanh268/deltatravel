@@ -38,7 +38,7 @@ function TourCardsGrid({
   t: (k: string) => string;
   lang: 'vi' | 'en';
 }) {
-  const getTourPrice = (tour: Tour): number => {
+  const getTourPrice = (tour: Tour): number | null => {
     if (
       'adultPrice' in tour &&
       typeof (tour as any).adultPrice === 'number' &&
@@ -46,8 +46,7 @@ function TourCardsGrid({
     ) {
       return (tour as any).adultPrice;
     }
-    const match = FALLBACK_TOURS.find((f) => f.id === tour.id || f.slug === tour.slug);
-    return match ? match.adultPrice : 2450000;
+    return null;
   };
 
   return (
@@ -139,10 +138,16 @@ function TourCardsGrid({
                     {t('card_price_from')}
                   </span>
                   <span className="text-sm font-black text-black tracking-tight">
-                    {formatVND(price)}
-                    <span className="text-[10px] font-medium text-neutral-600 ml-1">
-                      {t('card_per_guest')}
-                    </span>
+                    {price !== null
+                      ? formatVND(price)
+                      : lang === 'en'
+                        ? 'View live schedules'
+                        : 'Xem lịch & giá thật'}
+                    {price !== null && (
+                      <span className="text-[10px] font-medium text-neutral-600 ml-1">
+                        {t('card_per_guest')}
+                      </span>
+                    )}
                   </span>
                 </div>
 
@@ -166,8 +171,9 @@ function HomeContent() {
   const urlRegion = searchParams.get('region') || '';
 
   const [activeTab, setActiveTab] = useState<string>(urlRegion);
-  const [allTours, setAllTours] = useState<Tour[]>(() => FALLBACK_TOURS);
-  const [loading, setLoading] = useState(false);
+  const [allTours, setAllTours] = useState<Tour[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tourLoadError, setTourLoadError] = useState('');
 
   // Sync state with URL query parameter
   useEffect(() => {
@@ -207,14 +213,27 @@ function HomeContent() {
   useEffect(() => {
     let active = true;
     const fetchTours = () => {
+      if (active) {
+        setLoading(true);
+        setTourLoadError('');
+      }
       tourApi
         .list()
         .then((res) => {
-          if (active) {
-            setAllTours(res.items);
-          }
+          if (active) setAllTours(res.items);
         })
-        .catch(() => {});
+        .catch((error) => {
+          if (!active) return;
+          setAllTours([]);
+          setTourLoadError(
+            error instanceof Error
+              ? error.message
+              : 'Không thể tải catalog production. Vui lòng thử lại.',
+          );
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
     };
 
     fetchTours();
@@ -475,6 +494,24 @@ function HomeContent() {
                   </div>
                 </div>
               ))}
+            </div>
+          ) : tourLoadError ? (
+            <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center">
+              <p className="text-sm font-bold text-red-900">
+                Không thể tải catalog tour production
+              </p>
+              <p className="mt-2 text-xs text-red-700">{tourLoadError}</p>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new Event('delta_tours_updated'))}
+                className="mt-4 rounded-full bg-black px-5 py-2 text-xs font-black text-white"
+              >
+                Thử tải lại
+              </button>
+            </div>
+          ) : displayedTours.length === 0 ? (
+            <div className="rounded-3xl border border-stone-200 bg-stone-50 p-8 text-center text-sm text-stone-600">
+              Chưa có tour production phù hợp với bộ lọc hiện tại.
             </div>
           ) : (
             <TourCardsGrid tours={displayedTours} t={t} lang={lang} />
