@@ -28,7 +28,7 @@ try {
       `A11Y ${route}: violations=${result.violations.length}, serious=${serious.length}, critical=${critical.length}`,
     );
 
-    for (const violation of [...critical, ...serious]) {
+    for (const violation of result.violations) {
       console.log(`  - ${violation.id}: ${violation.help}`);
       for (const node of violation.nodes.slice(0, 8)) {
         console.log(`    target: ${JSON.stringify(node.target)}`);
