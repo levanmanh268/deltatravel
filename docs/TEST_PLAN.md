@@ -2,7 +2,7 @@
 
 ## Trạng thái thực thi 28/09/2026
 
-CI native PostgreSQL 16 + Redis đã PASS toàn bộ quality gate. Public live smoke đã PASS. Browser smoke đã PASS trên Chromium desktop, Chromium mobile 390x844 và Firefox desktop. Axe accessibility audit đã PASS với 0 violations trên năm route công khai chính. Mutation E2E trên staging đã PASS luồng register, AI Agent checkpoint, approve, CASH booking, persistence, cancel và direct booking cleanup.
+CI native PostgreSQL 16 + Redis đã PASS toàn bộ quality gate. Public live smoke đã PASS. Browser smoke đã PASS trên Chromium desktop, Chromium mobile 390x844 và Firefox desktop. Axe accessibility audit đã PASS với 0 violations trên năm route công khai chính. Mutation E2E trên staging đã PASS luồng register, AI Agent checkpoint, approve, CASH booking, persistence, cancel và direct booking cleanup. Live security boundary smoke đã PASS và burst smoke read-only 60 request với concurrency 10 đạt p95 835.5 ms, không có response ngoài 2xx.
 
 Ba gateway VNPay, MoMo và ZaloPay vẫn cần merchant sandbox credentials thật trước khi có thể đánh dấu các case PAY liên quan provider là sandbox-certified.
 
