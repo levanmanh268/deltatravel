@@ -1,0 +1,28 @@
+name: AI First Frontend Formatter Temporary
+on:
+  push:
+    branches:
+      - manh/ai-first-frontend
+permissions:
+  contents: write
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: manh/ai-first-frontend
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run format
+      - name: Commit formatting
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web packages/shared
+          git commit -m "style: format AI-first frontend changes"
+          git push origin HEAD:manh/ai-first-frontend
