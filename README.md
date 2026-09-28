@@ -58,6 +58,8 @@ npm run build
 npm run test:integration
 npm audit --omit=dev --audit-level=moderate
 npm run verify:live
+npm run verify:security
+npm run verify:burst
 ```
 
 CI dùng PostgreSQL 16 và Redis native. Không dùng DB production cho test.
