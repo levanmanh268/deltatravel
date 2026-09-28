@@ -643,7 +643,7 @@ export function AgentBookingPanel() {
 
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               disabled={busy}
               onClick={() => {
                 setPlan(null);
