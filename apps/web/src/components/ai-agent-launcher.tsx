@@ -260,6 +260,11 @@ export function AiAgentLauncher() {
                   className={message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}
                 >
                   <div
+                    data-testid={
+                      message.role === 'assistant'
+                        ? 'ai-command-center-message-assistant'
+                        : 'ai-command-center-message-user'
+                    }
                     className={
                       message.role === 'user'
                         ? 'max-w-[88%] rounded-2xl rounded-tr-sm bg-stone-950 px-4 py-3 text-xs leading-5 text-white'
