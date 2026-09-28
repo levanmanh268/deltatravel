@@ -19,6 +19,8 @@ Cập nhật: 28/09/2026.
 - Browser smoke PASS trên Chromium desktop, Chromium mobile 390x844 và Firefox desktop.
 - Axe accessibility audit PASS với 0 violations trên năm route công khai chính.
 - Staging mutation E2E PASS cho register, AI Agent approval, CASH booking, persistence và cancellation cleanup.
+- Live security boundary smoke PASS cho auth/RBAC, forged JWT, CSRF, role injection, CORS và invalid payment callback.
+- Burst smoke PASS với 60 request, concurrency 10 và p95 835.5 ms, không có response ngoài 2xx.
 
 ## Tự động hóa kiểm thử
 
