@@ -215,6 +215,8 @@ export function AiAgentLauncher() {
         type="button"
         data-testid="ai-command-center-launcher"
         aria-label="Mở DELTA AI Command Center"
+        aria-expanded={open}
+        aria-controls="delta-ai-command-center"
         onClick={() => setOpen(true)}
         className="group fixed bottom-5 right-5 z-[90] flex items-center gap-3 rounded-full border border-white/70 bg-black/90 px-4 py-3 text-white shadow-[0_18px_55px_-18px_rgba(0,0,0,0.65)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-black sm:bottom-7 sm:right-7"
       >
@@ -243,6 +245,7 @@ export function AiAgentLauncher() {
             onClick={() => setOpen(false)}
           />
           <section
+            id="delta-ai-command-center"
             data-testid="ai-command-center"
             role="dialog"
             aria-modal="true"
