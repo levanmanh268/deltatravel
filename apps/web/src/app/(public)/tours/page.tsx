@@ -151,7 +151,7 @@ function ToursListContent() {
                   className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full transition-colors ${
                     isActive
                       ? 'bg-white/20 text-amber-200'
-                      : 'bg-black/5 text-neutral-500 group-hover:bg-black/10'
+                      : 'bg-black/5 text-neutral-700 group-hover:bg-black/10'
                   }`}
                 >
                   {tab.subtitle}
