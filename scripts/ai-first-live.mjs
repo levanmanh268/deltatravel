@@ -68,8 +68,9 @@ try {
   pass('tour detail AI fit advisor');
 
   await page.goto(WEB + '/assistant', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.getByText('DELTA AI AGENT • HUMAN-IN-THE-LOOP', { exact: true }).waitFor({
+  await page.getByText('DELTA AI AGENT', { exact: true }).waitFor({
     state: 'visible',
+    timeout: 30000,
   });
   const body = await page.locator('body').innerText();
   if (!body.includes('checkpoint') && !body.includes('Checkpoint')) {
