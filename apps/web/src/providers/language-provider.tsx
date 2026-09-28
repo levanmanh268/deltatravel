@@ -34,11 +34,11 @@ export const DICTIONARY: Translations = {
   nav_logout: { vi: 'Đăng xuất', en: 'Logout' },
 
   // Travel Assistant Page
-  asst_badge: { vi: 'TƯ VẤN DU LỊCH', en: 'LUXURY CONCIERGE' },
-  asst_title: { vi: 'HỎI ĐÁP & TƯ VẤN DU LỊCH', en: 'Q&A & TRAVEL CONCIERGE' },
+  asst_badge: { vi: 'DELTA AI AGENT', en: 'DELTA AI AGENT' },
+  asst_title: { vi: 'AI TRAVEL AGENT', en: 'AI TRAVEL AGENT' },
   asst_desc: {
-    vi: 'Tìm kiếm hành trình 3 miền, tra cứu quy định hoặc kiểm tra đơn đặt của bạn một cách nhanh chóng.',
-    en: 'Discover 3-region Vietnam journeys, look up booking policies, or check your reservations seamlessly.',
+    vi: 'Nói chuyến đi bạn muốn. AI tìm tour, kiểm tra dữ liệu thật, lập kế hoạch và thực hiện từng bước sau khi bạn duyệt.',
+    en: 'Describe the trip you want. AI searches live data, builds a plan, and executes each step only after your approval.',
   },
   asst_suggestions_title: { vi: 'Gợi ý câu hỏi thường gặp', en: 'Frequently Asked Questions' },
   asst_q1: {
