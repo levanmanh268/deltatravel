@@ -18,6 +18,7 @@ type AiContextCardProps = {
   agentHref?: string;
   compact?: boolean;
   className?: string;
+  onResult?: (result: AssistantResult) => void;
 };
 
 export function AiContextCard({
@@ -31,6 +32,7 @@ export function AiContextCard({
   agentHref,
   compact = false,
   className = '',
+  onResult,
 }: AiContextCardProps) {
   const { lang } = useLanguage();
   const [query, setQuery] = useState(prompt);
@@ -67,6 +69,7 @@ export function AiContextCard({
         lang,
       });
       setResult(response);
+      onResult?.(response);
       setQuery(clean);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'AI chưa thể phản hồi lúc này.');
