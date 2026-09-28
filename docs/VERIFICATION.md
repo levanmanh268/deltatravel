@@ -14,7 +14,7 @@ Cập nhật: 28/09/2026.
 | unit tests                              | PASS           | backend business rules và boundaries                             |
 | production build                        | PASS           | NestJS + Next.js                                                 |
 | integration tests                       | PASS           | PostgreSQL 16 + Redis service                                    |
-| npm audit --omit=dev --audit-level=high | PASS           | không có advisory mức high trở lên tại lượt release              |
+| npm audit --omit=dev --audit-level=moderate | PASS       | không có advisory mức moderate trở lên sau khi nâng Vitest        |
 | Render web deploy                       | PASS           | service live                                                     |
 | Render API deploy                       | PASS           | service live                                                     |
 | public web smoke                        | PASS           | /, /assistant, /tours                                            |
