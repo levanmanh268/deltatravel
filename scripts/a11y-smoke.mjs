@@ -8,7 +8,8 @@ const routes = ['/', '/tours', '/assistant', '/login', '/register'];
 
 const browser = await chromium.launch({ headless: true });
 try {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
   let totalSerious = 0;
   let totalCritical = 0;
 
