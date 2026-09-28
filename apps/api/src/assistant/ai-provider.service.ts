@@ -78,7 +78,7 @@ export class AiProviderService {
     if (/đơn của|đơn đã đặt|booking của|các booking|my booking/.test(s)) {
       return { ...base, intent: 'MY_BOOKINGS' };
     }
-    if (/quản trị|vận hành|thống kê/.test(s)) {
+    if (/quản trị|vận hành|thống kê|\badmin\b|\boperations\b|inventory|kho chỗ|đối soát/.test(s)) {
       return { ...base, intent: 'OPERATIONS' };
     }
     if (/hủy|huỷ|cancel/.test(s)) {
