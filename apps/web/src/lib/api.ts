@@ -336,6 +336,27 @@ export const paymentApi = {
   get: (id: string) => api(`/payments/${id}`, PaymentSchema),
 };
 
+const IntegrationStatusSchema = z.object({
+  mailProvider: z.string(),
+  aiProvider: z.string().nullable(),
+  aiConfigured: z.boolean(),
+  avatarStorageConfigured: z.boolean(),
+  payments: z.object({
+    cashConfigured: z.boolean(),
+    vnpayConfigured: z.boolean(),
+    momoConfigured: z.boolean(),
+    zalopayConfigured: z.boolean(),
+  }),
+});
+
+export const systemApi = {
+  integrations: () =>
+    api('/health/integrations', IntegrationStatusSchema, {
+      retryAuth: false,
+      anonymous: true,
+    }),
+};
+
 export const assistantApi = {
   chat: (input: z.input<typeof AssistantRequestSchema>) =>
     api('/assistant/chat', AssistantResultSchema, {
