@@ -3,7 +3,10 @@
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 
-const WEB = (process.env.LIVE_WEB_URL || 'https://delta-travel-web.onrender.com').replace(/\/$/, '');
+const WEB = (process.env.LIVE_WEB_URL || 'https://delta-travel-web.onrender.com').replace(
+  /\/$/,
+  '',
+);
 const routes = ['/', '/tours', '/assistant', '/login', '/register'];
 
 const browser = await chromium.launch({ headless: true });
@@ -33,7 +36,9 @@ try {
 }
 
 if (violationCount > 0) {
-  throw new Error(`Accessibility audit found ${violationCount} rule violations across public routes`);
+  throw new Error(
+    `Accessibility audit found ${violationCount} rule violations across public routes`,
+  );
 }
 
 console.log('\nA11Y_AUDIT_PASS violations=0');
