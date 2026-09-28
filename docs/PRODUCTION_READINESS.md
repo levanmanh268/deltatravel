@@ -13,9 +13,12 @@ Cập nhật: 28/09/2026.
 - Resend readiness và Supabase avatar storage readiness đang live.
 - CASH payment hoạt động theo trạng thái `AWAITING_CASH`, không giả thành PAID.
 - VNPay, MoMo và ZaloPay fail closed khi chưa cấu hình.
-- Full quality gate PASS.
+- Full quality gate PASS, bao gồm dependency audit ở ngưỡng moderate.
 - Render deploy PASS.
 - Public live smoke PASS.
+- Browser smoke PASS trên Chromium desktop, Chromium mobile 390x844 và Firefox desktop.
+- Axe accessibility audit PASS với 0 violations trên năm route công khai chính.
+- Staging mutation E2E PASS cho register, AI Agent approval, CASH booking, persistence và cancellation cleanup.
 
 ## Tự động hóa kiểm thử
 
