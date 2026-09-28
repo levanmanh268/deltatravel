@@ -1,0 +1,34 @@
+name: Temporary Vitest Security Upgrade
+
+on:
+  push:
+    branches:
+      - manh/final-release
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: manh/final-release
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Upgrade Vitest past security advisory
+        run: npm install --save-dev vitest@5.0.2 -w @tour/api
+      - name: Remove temporary workflow
+        run: rm .github/workflows/temp-vitest-security-upgrade.yml
+      - name: Commit dependency update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/api/package.json package-lock.json .github/workflows/temp-vitest-security-upgrade.yml
+          git commit -m "chore: upgrade Vitest to patched release"
+          git push origin HEAD:manh/final-release
