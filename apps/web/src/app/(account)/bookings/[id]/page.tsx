@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { bookingApi, paymentApi } from '@/lib/api';
-import type { Booking, Provider } from '@tour/shared';
+import type { Booking, PaymentChannel, Provider } from '@tour/shared';
 import { BOOKING_LABELS } from '@tour/shared';
 import { formatVND, formatDate, formatDateTime } from '@/lib/format';
 import { PageShell } from '@/components/page-shell';
@@ -31,10 +31,20 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/providers/language-provider';
 
-type PaymentMethod = Provider | 'DIRECT';
+type PaymentMethod =
+  | 'DIRECT'
+  | 'VNPAY_QR'
+  | 'VNPAY_DOMESTIC'
+  | 'VNPAY_INTERNATIONAL'
+  | 'MOMO_WALLET'
+  | 'MOMO_ATM'
+  | 'MOMO_CARD'
+  | 'ZALOPAY';
 
 interface PaymentOption {
   id: PaymentMethod;
+  provider: Provider;
+  channel?: PaymentChannel;
   label: string;
   badge?: string;
   desc: string;
@@ -53,25 +63,82 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const paymentOptions: PaymentOption[] = [
     {
       id: 'DIRECT',
+      provider: 'CASH',
       label: t('bk_pay_direct_label'),
       desc: t('bk_pay_direct_desc'),
       icon: <Banknote className="h-5 w-5 text-emerald-600" />,
     },
     {
-      id: 'VNPAY',
-      label: t('bk_pay_vnpay_label'),
-      desc: t('bk_pay_vnpay_desc'),
+      id: 'VNPAY_QR',
+      provider: 'VNPAY',
+      channel: 'VNPAY_QR',
+      label: 'VNPay QR',
+      desc:
+        lang === 'en'
+          ? 'Scan a VNPay QR code in the official gateway.'
+          : 'Quét mã VNPay QR trên cổng thanh toán chính thức.',
       icon: <CreditCard className="h-5 w-5 text-blue-600" />,
     },
     {
-      id: 'MOMO',
-      label: t('bk_pay_momo_label'),
-      desc: t('bk_pay_momo_desc'),
+      id: 'VNPAY_DOMESTIC',
+      provider: 'VNPAY',
+      channel: 'VNPAY_DOMESTIC',
+      label: lang === 'en' ? 'VNPay · Domestic ATM / Bank' : 'VNPay · ATM / Ngân hàng nội địa',
+      desc:
+        lang === 'en'
+          ? 'Domestic ATM card or Vietnamese bank account via VNPay.'
+          : 'Thẻ ATM hoặc tài khoản ngân hàng nội địa qua VNPay.',
+      icon: <Building2 className="h-5 w-5 text-blue-700" />,
+    },
+    {
+      id: 'VNPAY_INTERNATIONAL',
+      provider: 'VNPAY',
+      channel: 'VNPAY_INTERNATIONAL',
+      label: lang === 'en' ? 'VNPay · International Card' : 'VNPay · Thẻ quốc tế',
+      desc:
+        lang === 'en'
+          ? 'International card checkout through VNPay.'
+          : 'Thanh toán thẻ quốc tế qua cổng VNPay.',
+      icon: <CreditCard className="h-5 w-5 text-indigo-600" />,
+    },
+    {
+      id: 'MOMO_WALLET',
+      provider: 'MOMO',
+      channel: 'MOMO_WALLET',
+      label: lang === 'en' ? 'MoMo Wallet' : 'Ví MoMo',
+      desc:
+        lang === 'en'
+          ? 'One-time checkout with the MoMo wallet.'
+          : 'Thanh toán một lần bằng ví MoMo.',
       icon: <Wallet className="h-5 w-5 text-pink-600" />,
     },
     {
+      id: 'MOMO_ATM',
+      provider: 'MOMO',
+      channel: 'MOMO_ATM',
+      label: lang === 'en' ? 'MoMo · Domestic ATM' : 'MoMo · Thẻ ATM nội địa',
+      desc:
+        lang === 'en'
+          ? 'Domestic ATM card through the MoMo payment gateway.'
+          : 'Thanh toán thẻ ATM nội địa qua cổng MoMo.',
+      icon: <Building2 className="h-5 w-5 text-pink-700" />,
+    },
+    {
+      id: 'MOMO_CARD',
+      provider: 'MOMO',
+      channel: 'MOMO_CARD',
+      label: lang === 'en' ? 'MoMo · International Card' : 'MoMo · Thẻ quốc tế',
+      desc:
+        lang === 'en'
+          ? 'International credit/debit card through MoMo.'
+          : 'Thanh toán thẻ quốc tế qua cổng MoMo.',
+      icon: <CreditCard className="h-5 w-5 text-fuchsia-700" />,
+    },
+    {
       id: 'ZALOPAY',
+      provider: 'ZALOPAY',
       label: t('bk_pay_zalopay_label'),
+      badge: 'SANDBOX · 0₫',
       desc: t('bk_pay_zalopay_desc'),
       icon: <Coins className="h-5 w-5 text-cyan-600" />,
     },
@@ -182,7 +249,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const handlePay = async () => {
     if (!booking) return;
 
-    const provider: Provider = selectedMethod === 'DIRECT' ? 'CASH' : selectedMethod;
+    const selected = paymentOptions.find((option) => option.id === selectedMethod);
+    if (!selected) return;
+    const provider = selected.provider;
     const capability = paymentCapabilities?.providers.find((item) => item.provider === provider);
 
     if (provider !== 'CASH' && (!capability || !capability.available)) {
@@ -223,6 +292,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       const payment = await paymentApi.create({
         bookingId: booking.id,
         provider,
+        ...(selected.channel ? { channel: selected.channel } : {}),
       });
 
       if (payment.checkoutUrl) {
@@ -612,11 +682,16 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                 <div className="space-y-3">
                   {paymentOptions.map((opt) => {
                     const isSelected = selectedMethod === opt.id;
-                    const provider: Provider = opt.id === 'DIRECT' ? 'CASH' : opt.id;
+                    const provider = opt.provider;
                     const capability = paymentCapabilities?.providers.find(
                       (item) => item.provider === provider,
                     );
-                    const available = provider === 'CASH' ? true : Boolean(capability?.available);
+                    const channelSupported =
+                      !opt.channel || Boolean(capability?.channels.includes(opt.channel));
+                    const available =
+                      provider === 'CASH'
+                        ? true
+                        : Boolean(capability?.available && channelSupported);
                     const environment = capability?.environment;
 
                     return (
@@ -640,7 +715,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                           <div className="flex items-center gap-2">
                             {opt.icon}
                             <span className="font-bold text-xs sm:text-sm text-stone-900">
-                              {capability?.label || opt.label}
+                              {opt.label}
                             </span>
                           </div>
                           <input
@@ -705,10 +780,19 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                   onClick={handlePay}
                   disabled={
                     paying ||
-                    (selectedMethod !== 'DIRECT' &&
-                      !paymentCapabilities?.providers.find(
-                        (item) => item.provider === selectedMethod,
-                      )?.available)
+                    (() => {
+                      const selected = paymentOptions.find((option) => option.id === selectedMethod);
+                      if (!selected || selected.provider === 'CASH') return false;
+                      const capability = paymentCapabilities?.providers.find(
+                        (item) => item.provider === selected.provider,
+                      );
+                      return (
+                        !capability?.available ||
+                        Boolean(
+                          selected.channel && !capability.channels.includes(selected.channel),
+                        )
+                      );
+                    })()
                   }
                   className={`w-full py-4 rounded-full shadow-lg text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
                     selectedMethod === 'DIRECT'
@@ -727,7 +811,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                       <span>
                         {paying
                           ? t('bk_connecting_gateway')
-                          : `${t('bk_pay_via')} ${selectedMethod}`}
+                          : `${t('bk_pay_via')} ${paymentOptions.find((option) => option.id === selectedMethod)?.label || selectedMethod}`}
                       </span>
                     </>
                   )}
