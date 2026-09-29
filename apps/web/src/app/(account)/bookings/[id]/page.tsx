@@ -60,6 +60,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Zero-cost sandbox-ready channels stay explicit so the UI never implies a gateway is live.
   const paymentOptions: PaymentOption[] = [
     {
       id: 'DIRECT',
