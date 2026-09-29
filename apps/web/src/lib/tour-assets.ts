@@ -12,6 +12,234 @@ export const TOUR_IMAGES: Record<string, string> = {
   'tay-ninh-nui-ba-den-toa-thanh': '/tour-tay-ninh.jpg',
 };
 
+
+export type TourGalleryImage = {
+  src: string;
+  altVi: string;
+  altEn: string;
+  credit?: string;
+  sourceUrl?: string;
+};
+
+const commonsFile = (name: string) =>
+  `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(name)}?width=1600`;
+
+export const TOUR_GALLERIES: Record<string, TourGalleryImage[]> = {
+  'vinh-ha-long-du-thuyen-kayak': [
+    {
+      src: '/tour-ha-long.jpg',
+      altVi: 'Toàn cảnh Vịnh Hạ Long',
+      altEn: 'Panoramic view of Ha Long Bay',
+    },
+    {
+      src: commonsFile('Ha Long Bay (52070059279).jpg'),
+      altVi: 'Các đảo đá vôi trên Vịnh Hạ Long',
+      altEn: 'Limestone islands in Ha Long Bay',
+      credit: 'Wikimedia Commons',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Ha_Long_Bay_(52070059279).jpg',
+    },
+    {
+      src: commonsFile('Ha Long Bay, Vietnam.jpg'),
+      altVi: 'Cảnh quan di sản Vịnh Hạ Long',
+      altEn: 'World heritage scenery in Ha Long Bay',
+      credit: 'Wikimedia Commons',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Ha_Long_Bay,_Vietnam.jpg',
+    },
+  ],
+  'sa-pa-chinh-phuc-fansipan-cat-cat': [
+    {
+      src: '/tour-sapa.jpg',
+      altVi: 'Phong cảnh Sa Pa',
+      altEn: 'Sa Pa landscape',
+    },
+    {
+      src: commonsFile('Rice terraces in Sapa, Vietnam.jpg'),
+      altVi: 'Ruộng bậc thang Sa Pa',
+      altEn: 'Rice terraces in Sa Pa',
+      credit: 'Wikimedia Commons',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Rice_terraces_in_Sapa,_Vietnam.jpg',
+    },
+    {
+      src: commonsFile('Der Fansipan.jpg'),
+      altVi: 'Đỉnh Fansipan nhìn từ Sa Pa',
+      altEn: 'Fansipan viewed from Sa Pa',
+      credit: 'Wikimedia Commons',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Der_Fansipan.jpg',
+    },
+  ],
+  'ninh-binh-trang-an-bai-dinh-hang-mua': [
+    {
+      src: '/tour-ninh-binh.jpg',
+      altVi: 'Cảnh quan Ninh Bình',
+      altEn: 'Ninh Binh landscape',
+    },
+    {
+      src: commonsFile('Vietnam, Ninh Binh, Trang An Area.jpg'),
+      altVi: 'Quần thể danh thắng Tràng An',
+      altEn: 'Trang An scenic landscape',
+      credit: 'Wikimedia Commons',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Vietnam,_Ninh_Binh,_Trang_An_Area.jpg',
+    },
+    {
+      src: commonsFile('Vietnam, Ninh Binh, Trang An River.jpg'),
+      altVi: 'Sông và núi đá vôi Tràng An',
+      altEn: 'River and limestone scenery in Trang An',
+      credit: 'Wikimedia Commons',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Vietnam,_Ninh_Binh,_Trang_An_River.jpg',
+    },
+  ],
+  'da-nang-hoi-an-ba-na-hills-cau-vang': [
+    {
+      src: '/tour-da-nang.jpg',
+      altVi: 'Cảnh quan Đà Nẵng',
+      altEn: 'Da Nang scenery',
+    },
+    {
+      src: commonsFile('Golden Bridge above the clouds Ba Na Hills Da Nang Vietnam.jpg'),
+      altVi: 'Cầu Vàng trên Bà Nà Hills',
+      altEn: 'Golden Bridge above the clouds at Ba Na Hills',
+      credit: 'Wikimedia Commons',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Golden_Bridge_above_the_clouds_Ba_Na_Hills_Da_Nang_Vietnam.jpg',
+    },
+    {
+      src: commonsFile('HoiAn VietNam.jpg'),
+      altVi: 'Một góc phố cổ Hội An',
+      altEn: 'A corner of Hoi An Ancient Town',
+      credit: 'Wikimedia Commons',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:HoiAn_VietNam.jpg',
+    },
+  ],
+  'hue-co-do-dai-noi-ca-hue-song-huong': [
+    {
+      src: '/tour-hue.jpg',
+      altVi: 'Cố đô Huế',
+      altEn: 'Hue heritage scenery',
+    },
+    {
+      src: commonsFile('Imperial City, Hue, Vietnam (49574900481).jpg'),
+      altVi: 'Không gian Đại Nội Huế',
+      altEn: 'Inside the Imperial City of Hue',
+      credit: 'Wikimedia Commons',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Imperial_City,_Hue,_Vietnam_(49574900481).jpg',
+    },
+    {
+      src: commonsFile('Hue Imperial City (40872823400).jpg'),
+      altVi: 'Kiến trúc Hoàng thành Huế',
+      altEn: 'Architecture of the Hue Imperial City',
+      credit: 'Wikimedia Commons',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Hue_Imperial_City_(40872823400).jpg',
+    },
+  ],
+  'nha-trang-bien-xanh-dao-diep-son': [
+    {
+      src: '/tour-nha-trang.jpg',
+      altVi: 'Biển Nha Trang',
+      altEn: 'Nha Trang coast',
+    },
+    {
+      src: commonsFile('Nha trang beach.jpg'),
+      altVi: 'Bãi biển Nha Trang',
+      altEn: 'Nha Trang beach',
+      credit: 'Wikimedia Commons',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Nha_trang_beach.jpg',
+    },
+    {
+      src: commonsFile('Nha Trang Beach 1.jpg'),
+      altVi: 'Bờ biển Nha Trang nhìn ra vịnh',
+      altEn: 'Nha Trang beachfront and bay',
+      credit: 'Wikimedia Commons',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Nha_Trang_Beach_1.jpg',
+    },
+  ],
+  'phu-quoc-dao-ngoc-lan-ngam-san-ho': [
+    {
+      src: '/tour-phu-quoc.jpg',
+      altVi: 'Biển Phú Quốc',
+      altEn: 'Phu Quoc coast',
+    },
+    {
+      src: commonsFile('Phu Quoc Beach.jpg'),
+      altVi: 'Bãi biển trên đảo Phú Quốc',
+      altEn: 'Beach on Phu Quoc Island',
+      credit: 'Wikimedia Commons',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Phu_Quoc_Beach.jpg',
+    },
+    {
+      src: commonsFile('Phu quoc plage.jpg'),
+      altVi: 'Bờ biển nhiệt đới Phú Quốc',
+      altEn: 'Tropical shoreline in Phu Quoc',
+      credit: 'Wikimedia Commons',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Phu_quoc_plage.jpg',
+    },
+  ],
+  'can-tho-cho-noi-cai-rang-miet-vuon': [
+    {
+      src: '/tour-can-tho.jpg',
+      altVi: 'Sông nước Cần Thơ',
+      altEn: 'Can Tho river scenery',
+    },
+    {
+      src: commonsFile('Cai Rang floating market, Can Tho (46061353692).jpg'),
+      altVi: 'Chợ nổi Cái Răng lúc sáng sớm',
+      altEn: 'Cai Rang floating market in the early morning',
+      credit: 'Wikimedia Commons',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Cai_Rang_floating_market,_Can_Tho_(46061353692).jpg',
+    },
+    {
+      src: commonsFile('Floating Market Can Tho1.jpg'),
+      altVi: 'Thuyền buôn trên chợ nổi Cái Răng',
+      altEn: 'Trading boats at Cai Rang floating market',
+      credit: 'Wikimedia Commons',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Floating_Market_Can_Tho1.jpg',
+    },
+  ],
+  'tay-ninh-nui-ba-den-toa-thanh': [
+    {
+      src: '/tour-tay-ninh.jpg',
+      altVi: 'Núi Bà Đen Tây Ninh',
+      altEn: 'Ba Den Mountain in Tay Ninh',
+    },
+    {
+      src: commonsFile('Ba Den Mountain summit temple illuminated night fog Tay Ninh Vietnam.jpg'),
+      altVi: 'Quần thể trên đỉnh Núi Bà Đen giữa mây',
+      altEn: 'Ba Den Mountain summit complex above the clouds',
+      credit: 'Wikimedia Commons',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Ba_Den_Mountain_summit_temple_illuminated_night_fog_Tay_Ninh_Vietnam.jpg',
+    },
+    {
+      src: commonsFile('Cao dai temple tay ninh vietnam.JPG'),
+      altVi: 'Không gian Tòa Thánh Cao Đài Tây Ninh',
+      altEn: 'Cao Dai Temple in Tay Ninh',
+      credit: 'Wikimedia Commons',
+      sourceUrl:
+        'https://commons.wikimedia.org/wiki/File:Cao_dai_temple_tay_ninh_vietnam.JPG',
+    },
+  ],
+};
+
+export function getTourGallery(
+  tour: Tour | { slug?: string; destination?: string; imageUrl?: string },
+): TourGalleryImage[] {
+  const gallery = tour.slug ? TOUR_GALLERIES[tour.slug] : undefined;
+  if (gallery?.length) return gallery;
+
+  const hero = getTourImage(tour);
+  return [
+    {
+      src: hero,
+      altVi: `Hình ảnh ${tour.destination || 'điểm đến'}`,
+      altEn: `${tour.destination || 'Destination'} travel image`,
+    },
+  ];
+}
+
 // Luxury editorial taglines for each destination
 export const TOUR_LUXURY_TAGS: Record<string, string> = {
   'vinh-ha-long-du-thuyen-kayak': 'KỲ QUAN DI SẢN THẾ GIỚI',
