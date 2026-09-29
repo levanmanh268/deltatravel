@@ -170,9 +170,7 @@ describe('assistant Stage 1 grounding and authorization', () => {
       departureTo: '2026-10-20',
     });
 
-    expect(result.sources).toEqual([
-      { type: 'TOUR', id: 'tour-ok', label: 'Đà Nẵng 3 ngày' },
-    ]);
+    expect(result.sources).toEqual([{ type: 'TOUR', id: 'tour-ok', label: 'Đà Nẵng 3 ngày' }]);
     expect(result.facts.candidates).toHaveLength(1);
     expect(result.facts.candidates[0].scheduleId).toBe('valid-schedule');
     expect(result.facts.candidates[0].partyTotal).toBe(6000000);

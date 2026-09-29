@@ -250,29 +250,29 @@ export class AdminService {
       aiProvider: this.config?.get<string>('AI_PROVIDER') || null,
       aiConfigured: Boolean(
         (this.config?.get<string>('GROQ_API_KEY') && this.config?.get<string>('GROQ_MODEL')) ||
-          (this.config?.get<string>('GEMINI_API_KEY') && this.config?.get<string>('GEMINI_MODEL')),
+        (this.config?.get<string>('GEMINI_API_KEY') && this.config?.get<string>('GEMINI_MODEL')),
       ),
       mailProvider: this.config?.get<string>('MAIL_PROVIDER') || 'DISABLED',
       avatarStorageConfigured: Boolean(
         this.config?.get<string>('SUPABASE_URL') &&
-          (this.config?.get<string>('SUPABASE_SECRET_KEY') ||
-            this.config?.get<string>('SUPABASE_SERVICE_ROLE_KEY')),
+        (this.config?.get<string>('SUPABASE_SECRET_KEY') ||
+          this.config?.get<string>('SUPABASE_SERVICE_ROLE_KEY')),
       ),
       payments: {
         cashConfigured: true,
         vnpayConfigured: Boolean(
           this.config?.get<string>('VNPAY_TMN_CODE') &&
-            this.config?.get<string>('VNPAY_HASH_SECRET'),
+          this.config?.get<string>('VNPAY_HASH_SECRET'),
         ),
         momoConfigured: Boolean(
           this.config?.get<string>('MOMO_PARTNER_CODE') &&
-            this.config?.get<string>('MOMO_ACCESS_KEY') &&
-            this.config?.get<string>('MOMO_SECRET_KEY'),
+          this.config?.get<string>('MOMO_ACCESS_KEY') &&
+          this.config?.get<string>('MOMO_SECRET_KEY'),
         ),
         zalopayConfigured: Boolean(
           this.config?.get<string>('ZALOPAY_APP_ID') &&
-            this.config?.get<string>('ZALOPAY_KEY1') &&
-            this.config?.get<string>('ZALOPAY_KEY2'),
+          this.config?.get<string>('ZALOPAY_KEY1') &&
+          this.config?.get<string>('ZALOPAY_KEY2'),
         ),
       },
     };
