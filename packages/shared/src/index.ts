@@ -153,10 +153,27 @@ export const CashReceiptSchema = z
   })
   .strict();
 export const IdempotencyKeySchema = z.string().uuid();
+export const AssistantPageContextSchema = z
+  .object({
+    kind: z.enum([
+      'GENERAL',
+      'TOUR_LIST',
+      'TOUR_DETAIL',
+      'CHECKOUT',
+      'BOOKING_LIST',
+      'BOOKING_DETAIL',
+      'PAYMENT_RETURN',
+      'ACCOUNT',
+    ]),
+    entityId: IdSchema.optional(),
+  })
+  .strict();
+
 export const AssistantRequestSchema = z
   .object({
     message: z.string().trim().min(1).max(2000),
     lang: z.enum(['vi', 'en']).optional(),
+    pageContext: AssistantPageContextSchema.optional(),
     history: z
       .array(
         z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(2000) }).strict(),
@@ -165,6 +182,39 @@ export const AssistantRequestSchema = z
       .default([]),
   })
   .strict();
+
+export const CreateTourReviewSchema = z
+  .object({
+    rating: z.number().int().min(1).max(5),
+    comment: z.string().trim().min(3).max(1200),
+  })
+  .strict();
+
+export const TourReviewSchema = z.object({
+  id: IdSchema,
+  tourId: IdSchema,
+  rating: z.number().int().min(1).max(5),
+  comment: z.string(),
+  authorName: z.string(),
+  authorAvatarUrl: z.string().url().nullable(),
+  verifiedPurchase: z.boolean(),
+  createdAt: IsoDateSchema,
+  updatedAt: IsoDateSchema,
+});
+
+export const TourReviewListSchema = z.object({
+  summary: z.object({
+    average: z.number().min(0).max(5),
+    count: z.number().int().min(0),
+    breakdown: z.array(
+      z.object({
+        rating: z.number().int().min(1).max(5),
+        count: z.number().int().min(0),
+      }),
+    ),
+  }),
+  items: z.array(TourReviewSchema),
+});
 
 // Public DTOs never expose database entities, credential hashes or provider secrets.
 export const UserSchema = z.object({
@@ -508,6 +558,9 @@ export type PaymentProviderCapability = z.infer<typeof PaymentProviderCapability
 export type IntegrationStatus = z.infer<typeof IntegrationStatusSchema>;
 export type AuthResult = z.infer<typeof AuthResultSchema>;
 export type AssistantResult = z.infer<typeof AssistantResultSchema>;
+export type AssistantPageContext = z.infer<typeof AssistantPageContextSchema>;
+export type TourReview = z.infer<typeof TourReviewSchema>;
+export type TourReviewList = z.infer<typeof TourReviewListSchema>;
 export type AgentPlan = z.infer<typeof AgentPlanSchema>;
 export type AgentPlanRequest = z.infer<typeof AgentPlanRequestSchema>;
 export type AgentPlanUpdate = z.infer<typeof AgentPlanUpdateSchema>;
