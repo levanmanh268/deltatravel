@@ -14,6 +14,15 @@ export const BookingStatusSchema = z.enum([
 export const TourStatusSchema = z.enum(['DRAFT', 'ACTIVE', 'INACTIVE']);
 export const ScheduleStatusSchema = z.enum(['OPEN', 'CLOSED']);
 export const ProviderSchema = z.enum(['VNPAY', 'MOMO', 'ZALOPAY', 'CASH']);
+export const PaymentChannelSchema = z.enum([
+  'VNPAY_DEFAULT',
+  'VNPAY_QR',
+  'VNPAY_DOMESTIC',
+  'VNPAY_INTERNATIONAL',
+  'MOMO_WALLET',
+  'MOMO_ATM',
+  'MOMO_CARD',
+]);
 export const PaymentStatusSchema = z.enum([
   'INITIATED',
   'SUCCEEDED',
@@ -24,6 +33,7 @@ export const PaymentStatusSchema = z.enum([
 export type Role = z.infer<typeof RoleSchema>;
 export type BookingStatus = z.infer<typeof BookingStatusSchema>;
 export type Provider = z.infer<typeof ProviderSchema>;
+export type PaymentChannel = z.infer<typeof PaymentChannelSchema>;
 export const BOOKING_LABELS: Record<BookingStatus, string> = {
   PENDING_PAYMENT: 'CHỜ THANH TOÁN',
   AWAITING_CASH: 'CHỜ THANH TOÁN TIỀN MẶT',
@@ -114,8 +124,25 @@ export const AssistantBookingProposalSchema = CreateBookingSchema.extend({
 export const CancelSchema = z.object({ reason: z.string().trim().min(3).max(500) }).strict();
 export const TransitionSchema = z.object({ status: z.enum(['CONFIRMED', 'COMPLETED']) }).strict();
 export const CreatePaymentSchema = z
-  .object({ bookingId: IdSchema, provider: ProviderSchema })
-  .strict();
+  .object({
+    bookingId: IdSchema,
+    provider: ProviderSchema,
+    channel: PaymentChannelSchema.optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (!value.channel) return;
+    const matches =
+      (value.provider === 'VNPAY' && value.channel.startsWith('VNPAY_')) ||
+      (value.provider === 'MOMO' && value.channel.startsWith('MOMO_'));
+    if (!matches) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['channel'],
+        message: 'Kênh thanh toán không thuộc cổng đã chọn',
+      });
+    }
+  });
 export const RefundRecordSchema = z
   .object({ reference: z.string().trim().min(3).max(100), note: z.string().trim().min(3).max(500) })
   .strict();
@@ -221,6 +248,7 @@ export const PaymentProviderCapabilitySchema = z.object({
   requiresExternalAuthorization: z.boolean(),
   environment: z.enum(['INTERNAL', 'SANDBOX', 'PRODUCTION', 'UNCONFIGURED']),
   reason: z.string().nullable(),
+  channels: z.array(PaymentChannelSchema).default([]),
 });
 export const PaymentProviderStatusSchema = z.object({
   providers: z.array(PaymentProviderCapabilitySchema),
