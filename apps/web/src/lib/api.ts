@@ -41,6 +41,9 @@ import {
   AgentPlanUpdateSchema,
   AgentApprovalSchema,
   AgentDeclineSchema,
+  CreateTourReviewSchema,
+  TourReviewSchema,
+  TourReviewListSchema,
 } from '@tour/shared';
 import { inferTourRegion } from './fallback-data';
 
@@ -269,6 +272,25 @@ export const tourApi = {
     api(`/tours/${id}/schedules?page=1&pageSize=100`, PageSchema(ScheduleSchema), {
       retryAuth: false,
       anonymous: true,
+    }),
+};
+
+export const reviewApi = {
+  list: (tourId: string) =>
+    api(`/tours/${tourId}/reviews`, TourReviewListSchema, {
+      retryAuth: false,
+      anonymous: true,
+    }),
+
+  upsert: (tourId: string, input: z.input<typeof CreateTourReviewSchema>) =>
+    api(`/tours/${tourId}/reviews`, TourReviewSchema, {
+      method: 'POST',
+      body: CreateTourReviewSchema.parse(input),
+    }),
+
+  removeMine: (tourId: string) =>
+    api(`/tours/${tourId}/reviews/mine`, AckSchema, {
+      method: 'DELETE',
     }),
 };
 
