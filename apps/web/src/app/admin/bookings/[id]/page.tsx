@@ -162,6 +162,21 @@ export default function AdminBookingDetailPage({ params }: { params: Promise<{ i
                 </div>
               </div>
 
+              <div className="mb-4 flex flex-wrap gap-2">
+                <Button asChild size="sm" variant="outline">
+                  <a href={`tel:${booking.contactPhone}`}>
+                    <Phone className="mr-1.5 h-3.5 w-3.5" />
+                    Gọi khách
+                  </a>
+                </Button>
+                <Button asChild size="sm" variant="outline">
+                  <a href={`mailto:${booking.contactEmail}?subject=DELTA%20TRAVEL%20-%20Booking%20${booking.id}`}>
+                    <Mail className="mr-1.5 h-3.5 w-3.5" />
+                    Gửi email
+                  </a>
+                </Button>
+              </div>
+
               <div className="grid gap-4 text-xs sm:grid-cols-2">
                 <Info
                   icon={<User className="h-4 w-4" />}
