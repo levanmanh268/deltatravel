@@ -10,10 +10,17 @@ import type { Tour, Schedule, QuoteResultSchema } from '@tour/shared';
 import { formatVND, formatDate } from '@/lib/format';
 import { useLanguage } from '@/providers/language-provider';
 import { Button } from '@/components/ui/button';
-import { getTourImage, getTourLuxuryTag, getTourItinerary } from '@/lib/tour-assets';
+import {
+  getTourGallery,
+  getTourImage,
+  getTourLuxuryTag,
+  getTourItinerary,
+} from '@/lib/tour-assets';
 import { getLocalizedTour } from '@/lib/fallback-data';
 import { LiquidGlassBadge } from '@/components/ui/liquid-glass-badge';
 import { AiContextCard } from '@/components/ai-context-card';
+import { TourPhotoGallery } from '@/components/tour-photo-gallery';
+import { TourReviews } from '@/components/tour-reviews';
 import {
   MapPin,
   Calendar,
@@ -176,6 +183,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
   const displayTour = tour ? getLocalizedTour(tour, lang) : null;
   const itinerary = tour ? getTourItinerary(tour, lang) : [];
   const heroImage = tour ? getTourImage(tour) : '/tour-ha-long.jpg';
+  const galleryImages = tour ? getTourGallery(tour) : [];
   const luxuryTag = tour ? getTourLuxuryTag(tour, lang) : '';
 
   if (!displayTour) return null;
@@ -250,6 +258,8 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
           </p>
         </div>
       </div>
+
+      <TourPhotoGallery images={galleryImages} lang={lang} />
 
       <AiContextCard
         eyebrow="DELTA AI • TOUR FIT ADVISOR"
@@ -632,6 +642,10 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
             )}
           </div>
         </div>
+      </div>
+
+      <div className="mt-12">
+        <TourReviews tourId={tour.id} lang={lang} />
       </div>
     </div>
   );
