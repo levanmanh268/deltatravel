@@ -1,0 +1,38 @@
+name: One-time web payment formatting
+
+on:
+  push:
+    branches:
+      - manh/integrate-production-api
+    paths:
+      - .github/workflows/format-web-payments-once.yml
+      - apps/web/src/app/(account)/bookings/[id]/page.tsx
+      - packages/shared/src/index.ts
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: manh/integrate-production-api
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prettier --write "apps/web/src/app/(account)/bookings/[id]/page.tsx" packages/shared/src/index.ts
+      - name: Commit formatting
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "apps/web/src/app/(account)/bookings/[id]/page.tsx" packages/shared/src/index.ts
+          git commit -m "style: prettier payment channel UI"
+          git push origin HEAD:manh/integrate-production-api
