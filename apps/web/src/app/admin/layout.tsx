@@ -36,6 +36,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+  const roleLabel =
+    user?.role === 'ADMIN'
+      ? 'QUẢN TRỊ VIÊN HỆ THỐNG'
+      : user?.role === 'OPERATIONS'
+        ? 'NHÂN SỰ VẬN HÀNH'
+        : 'TÀI KHOẢN';
 
   return (
     <RequireAuth roles={['ADMIN', 'OPERATIONS']}>
@@ -76,7 +82,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </div>
                   <div className="text-[10px] text-amber-400 font-mono flex items-center gap-1">
                     <ShieldCheck className="h-3 w-3 text-amber-400 shrink-0" />
-                    <span>QUẢN TRỊ VIÊN HỆ THỐNG</span>
+                    <span>{roleLabel}</span>
                   </div>
                 </div>
               </div>
