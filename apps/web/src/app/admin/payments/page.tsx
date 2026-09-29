@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
 import Link from 'next/link';
-import { adminApi } from '@/lib/api';
-import type { Payment } from '@tour/shared';
+import { adminApi, paymentApi } from '@/lib/api';
+import type { Payment, PaymentProviderCapability } from '@tour/shared';
 import { formatVND, formatDate, formatDateTime } from '@/lib/format';
 import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
@@ -27,11 +27,22 @@ const PAYMENT_STATUS_STYLE: Record<string, string> = {
   REFUNDED: 'bg-purple-100 text-purple-900 border-purple-300',
 };
 
+const CHANNEL_LABELS: Record<string, string> = {
+  VNPAY_DEFAULT: 'Chọn tại VNPay',
+  VNPAY_QR: 'VNPay QR',
+  VNPAY_DOMESTIC: 'ATM / ngân hàng nội địa',
+  VNPAY_INTERNATIONAL: 'Thẻ quốc tế',
+  MOMO_WALLET: 'Ví MoMo',
+  MOMO_ATM: 'ATM nội địa',
+  MOMO_CARD: 'Thẻ quốc tế',
+};
+
 export default function AdminPaymentsPage() {
   const { user } = useAuth();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [providerStatus, setProviderStatus] = useState<PaymentProviderCapability[]>([]);
 
   // Cash receipt modal
   const [cashPaymentId, setCashPaymentId] = useState<string | null>(null);
@@ -63,8 +74,16 @@ export default function AdminPaymentsPage() {
       });
   };
 
+  const fetchProviderStatus = () => {
+    paymentApi
+      .providers()
+      .then((res) => setProviderStatus(res.providers))
+      .catch(() => setProviderStatus([]));
+  };
+
   useEffect(() => {
     fetchPayments();
+    fetchProviderStatus();
   }, []);
 
   const handleRecordCash = async (e: React.FormEvent) => {
@@ -119,12 +138,115 @@ export default function AdminPaymentsPage() {
       title="Giao Dịch Thanh Toán & Hoàn Tiền"
       description="Đối soát VNPay, MoMo, ZaloPay, thu tiền mặt và xử lý các khoản hoàn tiền."
       action={
-        <Button variant="outline" onClick={fetchPayments} className="text-xs gap-1.5">
+        <Button
+          variant="outline"
+          onClick={() => {
+            fetchPayments();
+            fetchProviderStatus();
+          }}
+          className="text-xs gap-1.5"
+        >
           <RefreshCcw className="h-3.5 w-3.5" />
           <span>Tải lại</span>
         </Button>
       }
     >
+      {providerStatus.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-stone-200/80 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-emerald-700" />
+                <h2 className="font-serif text-lg font-bold text-stone-900">
+                  Trạng thái cổng thanh toán
+                </h2>
+              </div>
+              <p className="mt-1 text-[11px] text-stone-500">
+                Chỉ hiển thị capability, môi trường và kênh hỗ trợ. Không hiển thị credential bí mật.
+              </p>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
+              Zero-cost sandbox first
+            </span>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {providerStatus.map((provider) => {
+              const ready = provider.available;
+              const setupHref =
+                provider.provider === 'VNPAY'
+                  ? 'https://sandbox.vnpayment.vn/devreg'
+                  : provider.provider === 'MOMO'
+                    ? 'https://business.momo.vn/'
+                    : null;
+              const detail =
+                provider.provider === 'VNPAY' && !ready
+                  ? 'Code đã sẵn sàng cho QR, ATM nội địa và thẻ quốc tế. Chỉ còn Testing Credentials.'
+                  : provider.provider === 'MOMO' && !ready
+                    ? 'Code đã sẵn sàng cho Ví, ATM nội địa và thẻ quốc tế. Chỉ còn M4B Testing Credentials.'
+                    : provider.environment === 'SANDBOX'
+                      ? 'Sandbox đang sẵn sàng, không dùng tiền thật.'
+                      : provider.environment === 'INTERNAL'
+                        ? 'Luồng nội bộ của Delta Travel.'
+                        : 'Gateway đã được cấu hình.';
+
+              return (
+                <div
+                  key={provider.provider}
+                  className="rounded-xl border border-stone-200 bg-stone-50/60 p-4"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <strong className="text-xs text-stone-900">{provider.label}</strong>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase ${
+                        ready
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-stone-200 text-stone-600'
+                      }`}
+                    >
+                      {ready ? 'Sẵn sàng' : 'Chờ credential'}
+                    </span>
+                  </div>
+                  <div className="mt-2 text-[10px] font-bold uppercase tracking-wide text-blue-700">
+                    {provider.environment}
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-stone-600">{detail}</p>
+
+                  {provider.channels.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1">
+                      {provider.channels.map((channel) => (
+                        <span
+                          key={channel}
+                          className="rounded-full border border-stone-200 bg-white px-2 py-1 text-[9px] font-semibold text-stone-600"
+                        >
+                          {CHANNEL_LABELS[channel] || channel}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {!ready && setupHref && (
+                    <a
+                      href={setupHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 hover:underline"
+                    >
+                      <span>
+                        {provider.provider === 'VNPAY'
+                          ? 'Đăng ký Sandbox miễn phí'
+                          : 'Mở MoMo for Business'}
+                      </span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
