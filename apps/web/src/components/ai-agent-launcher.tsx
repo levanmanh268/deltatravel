@@ -24,6 +24,22 @@ type Message = {
   result?: AssistantResult;
 };
 
+function pageContextForPath(pathname: string) {
+  const checkout = pathname.match(/^\/checkout\/([^/]+)/);
+  const booking = pathname.match(/^\/bookings\/([^/]+)/);
+  const tour = pathname.match(/^\/tours\/([^/]+)/);
+
+  if (tour) return { kind: 'TOUR_DETAIL' as const, entityId: tour[1] };
+  if (pathname === '/tours') return { kind: 'TOUR_LIST' as const };
+  if (checkout) return { kind: 'CHECKOUT' as const, entityId: checkout[1] };
+  if (booking) return { kind: 'BOOKING_DETAIL' as const, entityId: booking[1] };
+  if (pathname === '/bookings') return { kind: 'BOOKING_LIST' as const };
+  if (pathname === '/payments/return') return { kind: 'PAYMENT_RETURN' as const };
+  if (pathname === '/login' || pathname === '/register' || pathname === '/forgot-password')
+    return { kind: 'ACCOUNT' as const };
+  return { kind: 'GENERAL' as const };
+}
+
 function contextForPath(pathname: string, role?: string) {
   const checkout = pathname.match(/^\/checkout\/([^/]+)/);
   const booking = pathname.match(/^\/bookings\/([^/]+)/);
@@ -193,13 +209,10 @@ export function AiAgentLauncher() {
 
     try {
       const result = await assistantApi.chat({
-        message:
-          clean +
-          '\n\nBối cảnh hiện tại: ' +
-          context.label +
-          '. Hãy ưu tiên dữ liệu production có thể kiểm chứng và không bịa giá, số chỗ hoặc trạng thái.',
+        message: clean,
         history,
         lang,
+        pageContext: pageContextForPath(pathname),
       });
       setMessages((current) => [...current, { role: 'assistant', content: result.reply, result }]);
     } catch (cause) {
