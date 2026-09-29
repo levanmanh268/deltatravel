@@ -162,7 +162,8 @@ export default function AdminPaymentsPage() {
                 </h2>
               </div>
               <p className="mt-1 text-[11px] text-stone-500">
-                Chỉ hiển thị capability, môi trường và kênh hỗ trợ. Không hiển thị credential bí mật.
+                Chỉ hiển thị capability, môi trường và kênh hỗ trợ. Không hiển thị credential bí
+                mật.
               </p>
             </div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
@@ -199,9 +200,7 @@ export default function AdminPaymentsPage() {
                     <strong className="text-xs text-stone-900">{provider.label}</strong>
                     <span
                       className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase ${
-                        ready
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-stone-200 text-stone-600'
+                        ready ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-stone-600'
                       }`}
                     >
                       {ready ? 'Sẵn sàng' : 'Chờ credential'}
