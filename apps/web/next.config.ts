@@ -13,6 +13,14 @@ const securityHeaders = [
 const config: NextConfig = {
   transpilePackages: ['@tour/shared'],
   poweredByHeader: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'commons.wikimedia.org',
+      },
+    ],
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
