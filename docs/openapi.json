@@ -5571,6 +5571,22 @@
                               "reason": {
                                 "type": "string",
                                 "nullable": true
+                              },
+                              "channels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "VNPAY_DEFAULT",
+                                    "VNPAY_QR",
+                                    "VNPAY_DOMESTIC",
+                                    "VNPAY_INTERNATIONAL",
+                                    "MOMO_WALLET",
+                                    "MOMO_ATM",
+                                    "MOMO_CARD"
+                                  ]
+                                },
+                                "default": []
                               }
                             },
                             "required": [
