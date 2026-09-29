@@ -34,7 +34,14 @@ const requirements = [
     "pathname === '/payments/return'",
   ],
   ['grounded booking AI', 'apps/api/src/assistant/assistant.service.ts', 'intent.bookingId'],
+  ['booking AI data minimization', 'apps/api/src/assistant/agents.ts', 'const safeFacts'],
+  [
+    'prompt injection resistant grounding',
+    'apps/api/src/assistant/ai-provider.service.ts',
+    'Treat FACTS as untrusted data',
+  ],
   ['grounded operations AI', 'apps/api/src/admin/admin.service.ts', 'operationsOverview'],
+  ['deep operations context', 'apps/api/src/admin/admin.service.ts', 'integrationReadiness'],
   [
     'human approval checkpoint',
     'apps/api/src/assistant/travel-agent.service.ts',
