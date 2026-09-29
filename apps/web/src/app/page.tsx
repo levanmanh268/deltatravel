@@ -997,7 +997,18 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-white">
+          <h1 className="sr-only">
+            Delta Travel, nền tảng quảng bá và đặt tour du lịch nội địa Việt Nam
+          </h1>
+          <p className="sr-only" role="status" aria-live="polite">
+            Đang tải trải nghiệm Delta Travel.
+          </p>
+        </main>
+      }
+    >
       <HomeContent />
     </Suspense>
   );
