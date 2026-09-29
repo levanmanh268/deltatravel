@@ -637,7 +637,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                           <div className="flex items-center gap-2">
                             {opt.icon}
                             <span className="font-bold text-xs sm:text-sm text-stone-900">
-                              {opt.label}
+                              {capability?.label || opt.label}
                             </span>
                           </div>
                           <input
@@ -657,7 +657,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                           </span>
                         )}
                         <p className="text-[11px] text-stone-500 mt-1.5 leading-relaxed">
-                          {opt.desc}
+                          {environment === 'SANDBOX'
+                            ? 'Môi trường thử nghiệm của cổng thanh toán. Không trừ tiền thật.'
+                            : opt.desc}
                         </p>
                         {provider !== 'CASH' && (
                           <div className="mt-2 flex flex-wrap items-center gap-1.5">
