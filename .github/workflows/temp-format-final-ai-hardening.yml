@@ -1,0 +1,50 @@
+name: Temporary Final AI Hardening Formatter
+
+on:
+  push:
+    branches:
+      - manh/final-ai-hardening-20260929
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: ${{ !contains(github.event.head_commit.message, '[formatted]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: manh/final-ai-hardening-20260929
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Format changed hardening files
+        run: |
+          npx prettier --write \
+            apps/api/src/assistant/agents.ts \
+            apps/api/src/assistant/ai-provider.service.ts \
+            apps/api/src/assistant/travel-agent.service.ts \
+            apps/api/src/admin/admin.service.ts \
+            apps/api/test/unit/assistant.test.ts \
+            scripts/verify-ai-first.mjs
+      - name: Commit formatting if needed
+        run: |
+          if git diff --quiet; then
+            echo "No formatting changes needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            apps/api/src/assistant/agents.ts \
+            apps/api/src/assistant/ai-provider.service.ts \
+            apps/api/src/assistant/travel-agent.service.ts \
+            apps/api/src/admin/admin.service.ts \
+            apps/api/test/unit/assistant.test.ts \
+            scripts/verify-ai-first.mjs
+          git commit -m "style: format final AI hardening [formatted]"
+          git push origin HEAD:manh/final-ai-hardening-20260929
