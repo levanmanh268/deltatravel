@@ -5498,6 +5498,18 @@
                   "provider": {
                     "type": "string",
                     "enum": ["VNPAY", "MOMO", "ZALOPAY", "CASH"]
+                  },
+                  "channel": {
+                    "type": "string",
+                    "enum": [
+                      "VNPAY_DEFAULT",
+                      "VNPAY_QR",
+                      "VNPAY_DOMESTIC",
+                      "VNPAY_INTERNATIONAL",
+                      "MOMO_WALLET",
+                      "MOMO_ATM",
+                      "MOMO_CARD"
+                    ]
                   }
                 },
                 "required": ["bookingId", "provider"],
