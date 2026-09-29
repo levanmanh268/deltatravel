@@ -781,16 +781,16 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                   disabled={
                     paying ||
                     (() => {
-                      const selected = paymentOptions.find((option) => option.id === selectedMethod);
+                      const selected = paymentOptions.find(
+                        (option) => option.id === selectedMethod,
+                      );
                       if (!selected || selected.provider === 'CASH') return false;
                       const capability = paymentCapabilities?.providers.find(
                         (item) => item.provider === selected.provider,
                       );
                       return (
                         !capability?.available ||
-                        Boolean(
-                          selected.channel && !capability.channels.includes(selected.channel),
-                        )
+                        Boolean(selected.channel && !capability.channels.includes(selected.channel))
                       );
                     })()
                   }
