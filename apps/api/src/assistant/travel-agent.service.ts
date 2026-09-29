@@ -134,6 +134,8 @@ export class TravelAgentService {
     ) => {
       const totalAmount = adultsForQuote * schedule.adultPrice + children * schedule.childPrice;
       if (!this.tourMatchesDestination(tour, input.destination)) return false;
+      if (input.durationDays !== undefined && tour.durationDays !== input.durationDays)
+        return false;
       if (schedule.availableSeats < partySize) return false;
       if (from !== null && schedule.departureAt.getTime() < from) return false;
       if (to !== null && schedule.departureAt.getTime() > to) return false;

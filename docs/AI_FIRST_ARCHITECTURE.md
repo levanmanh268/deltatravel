@@ -30,11 +30,13 @@ Delta Travel dùng AI như một lớp điều phối xuyên suốt sản phẩm
 
 ## Grounding
 
-Assistant classifier có deterministic fallback. Synthesis provider nhận FACTS đã lấy từ service nội bộ và system prompt cấm phát minh giá, chỗ, trạng thái booking/payment hoặc policy.
+Assistant classifier có deterministic fallback. Synthesis provider nhận FACTS đã lấy từ service nội bộ và system prompt cấm phát minh giá, chỗ, trạng thái booking/payment hoặc policy. FACTS được coi là dữ liệu không tin cậy về mặt chỉ dẫn, vì vậy nội dung giống prompt, lệnh hoặc yêu cầu đổi vai trò nằm trong dữ liệu không được phép ghi đè system policy.
 
-Customer booking facts luôn được truy vấn với user ID hiện tại. Booking ID cụ thể được phân biệt với schedule ID trước khi lookup.
+AI Tour Discovery áp dụng constraint gate trước khi xếp hạng. Điểm đến được nêu rõ không bị tự động nới sang tour khác; số chỗ phải đủ cho cả nhóm; thời lượng, cửa sổ ngày và ngân sách được kiểm tra trước khi tour trở thành candidate. Action Agent áp dụng cùng nguyên tắc constraint-first và kiểm tra quote lại ngay trước side effect.
 
-Operations facts gồm summary, booking status counts, pending refund records đã chuyển amount sang number và các lịch OPEN có số chỗ còn lại thấp. Chỉ ADMIN hoặc OPERATIONS được dùng OperationsAgent.
+Customer booking facts luôn được truy vấn với user ID hiện tại. Booking ID cụ thể được phân biệt với schedule ID trước khi lookup. Trước khi gửi facts cho provider ngoài, hệ thống loại contactName, contactEmail và contactPhone; UI và backend vẫn giữ đầy đủ dữ liệu cần thiết cho nghiệp vụ nhưng mô hình chỉ nhận phần tối thiểu phục vụ câu trả lời.
+
+Operations facts gồm summary, booking/payment/tour/schedule status counts, payment provider counts, pending refunds, low-inventory schedules, recent audit actions và integration readiness dạng capability boolean. Không có secret được đưa vào facts. Chỉ ADMIN hoặc OPERATIONS được dùng OperationsAgent.
 
 ## Handoff từ tư vấn sang hành động
 
