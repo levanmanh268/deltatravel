@@ -71,7 +71,9 @@ export default function AdminBookingsPage() {
       .bookings()
       .then((res) => {
         if (silent && knownBookingIds.current) {
-          const newlyReceived = res.items.filter((booking) => !knownBookingIds.current!.has(booking.id));
+          const newlyReceived = res.items.filter(
+            (booking) => !knownBookingIds.current!.has(booking.id),
+          );
           if (newlyReceived.length > 0) {
             showToast(
               newlyReceived.length === 1

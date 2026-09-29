@@ -170,7 +170,9 @@ export default function AdminBookingDetailPage({ params }: { params: Promise<{ i
                   </a>
                 </Button>
                 <Button asChild size="sm" variant="outline">
-                  <a href={`mailto:${booking.contactEmail}?subject=DELTA%20TRAVEL%20-%20Booking%20${booking.id}`}>
+                  <a
+                    href={`mailto:${booking.contactEmail}?subject=DELTA%20TRAVEL%20-%20Booking%20${booking.id}`}
+                  >
                     <Mail className="mr-1.5 h-3.5 w-3.5" />
                     Gửi email
                   </a>
