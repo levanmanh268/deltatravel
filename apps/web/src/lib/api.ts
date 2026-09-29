@@ -330,6 +330,9 @@ export const paymentApi = {
     }),
 
   get: (id: string) => api(`/payments/${id}`, PaymentSchema),
+
+  byBooking: (bookingId: string) =>
+    api(`/payments/booking/${bookingId}`, PaymentSchema.nullable()),
 };
 
 export const systemApi = {
