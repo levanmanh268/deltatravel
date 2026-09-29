@@ -63,8 +63,8 @@ export default function AdminBookingsPage() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const fetchBookings = () => {
-    setLoading(true);
+  const fetchBookings = (silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
     adminApi
       .bookings()
@@ -72,10 +72,12 @@ export default function AdminBookingsPage() {
         setBookings(res.items);
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Không thể tải danh sách đơn đặt.');
+        if (!silent) {
+          setError(err instanceof Error ? err.message : 'Không thể tải danh sách đơn đặt.');
+        }
       })
       .finally(() => {
-        setLoading(false);
+        if (!silent) setLoading(false);
       });
   };
 
@@ -83,10 +85,22 @@ export default function AdminBookingsPage() {
     fetchBookings();
 
     const handleUpdate = () => {
-      fetchBookings();
+      fetchBookings(true);
     };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') fetchBookings(true);
+    };
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') fetchBookings(true);
+    }, 15000);
+
     window.addEventListener('delta_bookings_updated', handleUpdate);
-    return () => window.removeEventListener('delta_bookings_updated', handleUpdate);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('delta_bookings_updated', handleUpdate);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
   }, []);
 
   // Filter Bookings in real time
@@ -248,7 +262,14 @@ export default function AdminBookingsPage() {
       description="Giám sát đơn đặt tour thời gian thực, quản lý đối soát giao dịch, cập nhật tiến trình thanh toán và xuất sao kê tài chính chuẩn thương mại."
       action={
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={fetchBookings} className="text-xs gap-1.5 shadow-sm">
+          <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-[10px] font-bold text-emerald-800 sm:inline-flex">
+            Tự đồng bộ mỗi 15 giây
+          </span>
+          <Button
+            variant="outline"
+            onClick={() => fetchBookings()}
+            className="text-xs gap-1.5 shadow-sm"
+          >
             <RefreshCcw className="h-3.5 w-3.5" />
             <span>Tải lại</span>
           </Button>
