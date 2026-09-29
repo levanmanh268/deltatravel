@@ -7,13 +7,7 @@ import { reviewApi } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 
-function Stars({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange?: (value: number) => void;
-}) {
+function Stars({ value, onChange }: { value: number; onChange?: (value: number) => void }) {
   return (
     <div className="flex items-center gap-1" aria-label={value + ' / 5 sao'}>
       {[1, 2, 3, 4, 5].map((star) => {
@@ -27,19 +21,13 @@ function Stars({
             aria-label={star + ' sao'}
           >
             <Star
-              className={
-                'h-5 w-5 ' +
-                (filled ? 'fill-amber-400 text-amber-500' : 'text-stone-300')
-              }
+              className={'h-5 w-5 ' + (filled ? 'fill-amber-400 text-amber-500' : 'text-stone-300')}
             />
           </button>
         ) : (
           <Star
             key={star}
-            className={
-              'h-4 w-4 ' +
-              (filled ? 'fill-amber-400 text-amber-500' : 'text-stone-300')
-            }
+            className={'h-4 w-4 ' + (filled ? 'fill-amber-400 text-amber-500' : 'text-stone-300')}
           />
         );
       })}
@@ -137,7 +125,10 @@ export function TourReviews({ tourId, lang }: { tourId: string; lang: 'vi' | 'en
       </div>
 
       {user && (
-        <form onSubmit={submit} className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/50 p-5">
+        <form
+          onSubmit={submit}
+          className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/50 p-5"
+        >
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
               <h3 className="text-sm font-black text-stone-950">
@@ -166,9 +157,7 @@ export function TourReviews({ tourId, lang }: { tourId: string; lang: 'vi' | 'en
             className="mt-4 w-full rounded-xl border border-stone-300 bg-white p-3 text-xs text-stone-900 outline-none focus:border-amber-500"
           />
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-            <span className="text-[10px] font-semibold text-stone-500">
-              {comment.length}/1200
-            </span>
+            <span className="text-[10px] font-semibold text-stone-500">{comment.length}/1200</span>
             <Button type="submit" disabled={submitting || comment.trim().length < 3}>
               {submitting
                 ? lang === 'en'

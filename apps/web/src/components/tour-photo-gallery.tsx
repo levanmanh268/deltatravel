@@ -60,9 +60,7 @@ export function TourPhotoGallery({
               alt={lang === 'en' ? image.altEn : image.altVi}
               fill
               sizes={
-                index === 0
-                  ? '(max-width: 640px) 100vw, 60vw'
-                  : '(max-width: 640px) 50vw, 25vw'
+                index === 0 ? '(max-width: 640px) 100vw, 60vw' : '(max-width: 640px) 50vw, 25vw'
               }
               unoptimized={image.src.startsWith('http')}
               className="object-cover transition duration-500 group-hover:scale-105"

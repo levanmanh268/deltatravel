@@ -12,7 +12,6 @@ export const TOUR_IMAGES: Record<string, string> = {
   'tay-ninh-nui-ba-den-toa-thanh': '/tour-tay-ninh.jpg',
 };
 
-
 export type TourGalleryImage = {
   src: string;
   altVi: string;
@@ -78,16 +77,14 @@ export const TOUR_GALLERIES: Record<string, TourGalleryImage[]> = {
       altVi: 'Quần thể danh thắng Tràng An',
       altEn: 'Trang An scenic landscape',
       credit: 'Wikimedia Commons',
-      sourceUrl:
-        'https://commons.wikimedia.org/wiki/File:Vietnam,_Ninh_Binh,_Trang_An_Area.jpg',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Vietnam,_Ninh_Binh,_Trang_An_Area.jpg',
     },
     {
       src: commonsFile('Vietnam, Ninh Binh, Trang An River.jpg'),
       altVi: 'Sông và núi đá vôi Tràng An',
       altEn: 'River and limestone scenery in Trang An',
       credit: 'Wikimedia Commons',
-      sourceUrl:
-        'https://commons.wikimedia.org/wiki/File:Vietnam,_Ninh_Binh,_Trang_An_River.jpg',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Vietnam,_Ninh_Binh,_Trang_An_River.jpg',
     },
   ],
   'da-nang-hoi-an-ba-na-hills-cau-vang': [
@@ -131,8 +128,7 @@ export const TOUR_GALLERIES: Record<string, TourGalleryImage[]> = {
       altVi: 'Kiến trúc Hoàng thành Huế',
       altEn: 'Architecture of the Hue Imperial City',
       credit: 'Wikimedia Commons',
-      sourceUrl:
-        'https://commons.wikimedia.org/wiki/File:Hue_Imperial_City_(40872823400).jpg',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Hue_Imperial_City_(40872823400).jpg',
     },
   ],
   'nha-trang-bien-xanh-dao-diep-son': [
@@ -218,8 +214,7 @@ export const TOUR_GALLERIES: Record<string, TourGalleryImage[]> = {
       altVi: 'Không gian Tòa Thánh Cao Đài Tây Ninh',
       altEn: 'Cao Dai Temple in Tay Ninh',
       credit: 'Wikimedia Commons',
-      sourceUrl:
-        'https://commons.wikimedia.org/wiki/File:Cao_dai_temple_tay_ninh_vietnam.JPG',
+      sourceUrl: 'https://commons.wikimedia.org/wiki/File:Cao_dai_temple_tay_ninh_vietnam.JPG',
     },
   ],
 };
