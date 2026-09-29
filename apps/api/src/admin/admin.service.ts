@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { z } from 'zod';
 import {
   CreateTourSchema,
@@ -19,6 +20,7 @@ export class AdminService {
   constructor(
     private readonly db: PrismaService,
     private readonly cache: CacheService,
+    private readonly config?: ConfigService,
   ) {}
   async createTour(input: z.infer<typeof CreateTourSchema>, actorId: string) {
     return this.db.serial(async (tx) => {
@@ -132,8 +134,34 @@ export class AdminService {
     const summary = await this.summary();
     const now = new Date();
 
-    const [statusGroups, refunds, openSchedules] = await Promise.all([
+    const [
+      bookingStatusGroups,
+      paymentStatusGroups,
+      paymentProviderGroups,
+      tourStatusGroups,
+      scheduleStatusGroups,
+      refunds,
+      openSchedules,
+      recentAuditRows,
+    ] = await Promise.all([
       this.db.booking.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+      }),
+      this.db.payment.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+      }),
+      this.db.payment.groupBy({
+        by: ['provider'],
+        _count: { _all: true },
+      }),
+      this.db.tour.groupBy({
+        by: ['status'],
+        where: { deletedAt: null },
+        _count: { _all: true },
+      }),
+      this.db.schedule.groupBy({
         by: ['status'],
         _count: { _all: true },
       }),
@@ -166,10 +194,31 @@ export class AdminService {
           tour: { select: { title: true } },
         },
       }),
+      this.db.auditLog.findMany({
+        take: 8,
+        orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+        select: {
+          action: true,
+          entityId: true,
+          createdAt: true,
+        },
+      }),
     ]);
 
     const bookingStatusCounts = Object.fromEntries(
-      statusGroups.map((item) => [item.status, item._count._all]),
+      bookingStatusGroups.map((item) => [item.status, item._count._all]),
+    );
+    const paymentStatusCounts = Object.fromEntries(
+      paymentStatusGroups.map((item) => [item.status, item._count._all]),
+    );
+    const paymentProviderCounts = Object.fromEntries(
+      paymentProviderGroups.map((item) => [item.provider, item._count._all]),
+    );
+    const tourStatusCounts = Object.fromEntries(
+      tourStatusGroups.map((item) => [item.status, item._count._all]),
+    );
+    const scheduleStatusCounts = Object.fromEntries(
+      scheduleStatusGroups.map((item) => [item.status, item._count._all]),
     );
 
     const pendingRefunds = refunds.map((item) => ({
@@ -189,16 +238,58 @@ export class AdminService {
         availableSeats: item.totalSeats - item.reservedSeats,
       }))
       .filter((item) => item.availableSeats <= 5)
-      .slice(0, 5);
+      .slice(0, 8);
+
+    const recentAudit = recentAuditRows.map((item) => ({
+      action: item.action,
+      entityId: item.entityId,
+      createdAt: item.createdAt.toISOString(),
+    }));
+
+    const integrationReadiness = {
+      aiProvider: this.config?.get<string>('AI_PROVIDER') || null,
+      aiConfigured: Boolean(
+        (this.config?.get<string>('GROQ_API_KEY') && this.config?.get<string>('GROQ_MODEL')) ||
+          (this.config?.get<string>('GEMINI_API_KEY') && this.config?.get<string>('GEMINI_MODEL')),
+      ),
+      mailProvider: this.config?.get<string>('MAIL_PROVIDER') || 'DISABLED',
+      avatarStorageConfigured: Boolean(
+        this.config?.get<string>('SUPABASE_URL') &&
+          (this.config?.get<string>('SUPABASE_SECRET_KEY') ||
+            this.config?.get<string>('SUPABASE_SERVICE_ROLE_KEY')),
+      ),
+      payments: {
+        cashConfigured: true,
+        vnpayConfigured: Boolean(
+          this.config?.get<string>('VNPAY_TMN_CODE') &&
+            this.config?.get<string>('VNPAY_HASH_SECRET'),
+        ),
+        momoConfigured: Boolean(
+          this.config?.get<string>('MOMO_PARTNER_CODE') &&
+            this.config?.get<string>('MOMO_ACCESS_KEY') &&
+            this.config?.get<string>('MOMO_SECRET_KEY'),
+        ),
+        zalopayConfigured: Boolean(
+          this.config?.get<string>('ZALOPAY_APP_ID') &&
+            this.config?.get<string>('ZALOPAY_KEY1') &&
+            this.config?.get<string>('ZALOPAY_KEY2'),
+        ),
+      },
+    };
 
     return {
       summary,
       bookingStatusCounts,
+      paymentStatusCounts,
+      paymentProviderCounts,
+      tourStatusCounts,
+      scheduleStatusCounts,
       pendingRefunds,
       lowInventorySchedules,
+      recentAudit,
+      integrationReadiness,
     };
   }
-
   async payments(q: z.infer<typeof PaginationSchema>) {
     const [items, total] = await this.db.$transaction([
       this.db.payment.findMany({
