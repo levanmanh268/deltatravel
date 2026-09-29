@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, FormEvent } from 'react';
+import { useEffect, useState, useMemo, useRef, FormEvent } from 'react';
 import Link from 'next/link';
 import { adminApi } from '@/lib/api';
 import type { Booking } from '@tour/shared';
@@ -57,6 +57,7 @@ export default function AdminBookingsPage() {
 
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const knownBookingIds = useRef<Set<string> | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -69,6 +70,17 @@ export default function AdminBookingsPage() {
     adminApi
       .bookings()
       .then((res) => {
+        if (silent && knownBookingIds.current) {
+          const newlyReceived = res.items.filter((booking) => !knownBookingIds.current!.has(booking.id));
+          if (newlyReceived.length > 0) {
+            showToast(
+              newlyReceived.length === 1
+                ? `Có đơn mới từ ${newlyReceived[0].contactName}. Mở danh sách để tiếp nhận.`
+                : `Có ${newlyReceived.length} đơn mới vừa gửi từ trang khách.`,
+            );
+          }
+        }
+        knownBookingIds.current = new Set(res.items.map((booking) => booking.id));
         setBookings(res.items);
       })
       .catch((err) => {
