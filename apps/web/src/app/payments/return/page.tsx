@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { BOOKING_LABELS, IdSchema } from '@tour/shared';
-import { bookingApi } from '@/lib/api';
+import { bookingApi, paymentApi } from '@/lib/api';
 import { PageShell } from '@/components/page-shell';
 import { useAuth } from '@/providers/auth-provider';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ function Result() {
 
     const poll = async () => {
       try {
+        await paymentApi.byBooking(id!);
         const booking = await bookingApi.get(id!);
         if (stopped) return;
         setStatusCode(booking.status);
