@@ -605,6 +605,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                 <label className="text-xs font-black uppercase tracking-wider text-stone-700 block">
                   {t('bk_payment_method_label')}
                 </label>
+                <p className="text-[11px] leading-relaxed text-stone-500">
+                  Cổng có nhãn SANDBOX chỉ dùng giao dịch thử nghiệm và không trừ tiền thật.
+                </p>
 
                 <div className="space-y-3">
                   {paymentOptions.map((opt) => {
