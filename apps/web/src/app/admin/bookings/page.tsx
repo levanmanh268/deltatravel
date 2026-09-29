@@ -450,7 +450,7 @@ export default function AdminBookingsPage() {
         <div className="rounded-2xl border border-stone-200 bg-white p-10 text-center shadow-sm">
           <p className="text-sm font-bold text-stone-800 mb-1">Lỗi tải danh sách đơn</p>
           <p className="text-xs text-stone-500 mb-4">{error}</p>
-          <Button variant="outline" onClick={fetchBookings}>
+          <Button variant="outline" onClick={() => fetchBookings()}>
             Thử lại
           </Button>
         </div>
