@@ -10980,6 +10980,30 @@
                     "type": "string",
                     "enum": ["vi", "en"]
                   },
+                  "pageContext": {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "GENERAL",
+                          "TOUR_LIST",
+                          "TOUR_DETAIL",
+                          "CHECKOUT",
+                          "BOOKING_LIST",
+                          "BOOKING_DETAIL",
+                          "PAYMENT_RETURN",
+                          "ACCOUNT"
+                        ]
+                      },
+                      "entityId": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "required": ["kind"],
+                    "additionalProperties": false
+                  },
                   "history": {
                     "type": "array",
                     "items": {
