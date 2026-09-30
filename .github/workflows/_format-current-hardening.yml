@@ -25,7 +25,7 @@ jobs:
       - name: Format changed files
         shell: bash
         run: |
-          ./node_modules/.bin/prettier --write             "apps/web/src/providers/language-provider.tsx"             "apps/web/src/components/footer.tsx"             "apps/web/src/app/page.tsx"             "apps/web/src/app/(public)/tours/page.tsx"             "apps/web/src/app/layout.tsx"             "apps/web/next.config.ts"             "netlify.toml"
+          ./node_modules/.bin/prettier --write "apps/web/src/providers/language-provider.tsx" "apps/web/src/components/footer.tsx" "apps/web/src/app/page.tsx" "apps/web/src/app/(public)/tours/page.tsx" "apps/web/src/app/layout.tsx" "apps/web/next.config.ts"
       - name: Commit formatting
         shell: bash
         run: |
