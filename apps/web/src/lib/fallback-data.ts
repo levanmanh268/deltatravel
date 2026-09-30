@@ -1,9 +1,6 @@
 import type { Tour } from '@tour/shared';
 
-export type ExtendedTour = Omit<
-  Tour,
-  'imageUrl' | 'galleryImages' | 'itinerary' | 'commercial'
-> & {
+export type ExtendedTour = Omit<Tour, 'imageUrl' | 'galleryImages' | 'itinerary' | 'commercial'> & {
   imageUrl?: Tour['imageUrl'];
   galleryImages?: Tour['galleryImages'];
   itinerary?: Tour['itinerary'];
