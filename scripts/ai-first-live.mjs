@@ -50,9 +50,7 @@ try {
     throw new Error(`Live tour API returned ${tourListResponse.status}`);
   }
   const tourEnvelope = await tourListResponse.json();
-  const liveTourId = tourEnvelope?.data?.items?.find(
-    (item) => typeof item?.id === 'string',
-  )?.id;
+  const liveTourId = tourEnvelope?.data?.items?.find((item) => typeof item?.id === 'string')?.id;
   if (!liveTourId) throw new Error('No live tour ID returned by production API envelope');
 
   await page.getByTestId('ai-command-center-launcher').click();
