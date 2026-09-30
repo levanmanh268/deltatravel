@@ -74,7 +74,20 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
           preset.length === 1 && preset[0]?.title.toLowerCase().includes('chờ xác minh');
         const existing = backend.length ? backend : presetIsPlaceholder ? [] : preset;
         const count = Math.max(required, existing.length);
-        setItinerary(Array.from({ length: count }, (_, i) => existing[i] ?? emptyDay(i + 1)));
+        setItinerary(
+          Array.from({ length: count }, (_, i) => {
+            const source = existing[i];
+            if (!source) return emptyDay(i + 1);
+            return {
+              day: source.day,
+              title: source.title,
+              activities: source.activities,
+              meals: source.meals ?? null,
+              stay: source.stay ?? null,
+              imageUrl: source.imageUrl ?? null,
+            };
+          }),
+        );
       })
       .catch(
         (e) => active && setError(e instanceof Error ? e.message : 'Không tải được nội dung tour.'),
