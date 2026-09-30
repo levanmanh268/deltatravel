@@ -34,7 +34,6 @@ function ToursListContent() {
 
   const [activeRegion, setActiveRegion] = useState(initialRegion);
   const [tours, setTours] = useState<Tour[]>([]);
-  const [livePrices, setLivePrices] = useState<Record<string, number | null>>({});
   const [aiRecommendedIds, setAiRecommendedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,44 +81,12 @@ function ToursListContent() {
     return () => window.removeEventListener('delta_tours_updated', onUpdate);
   }, [searchParams, lang]);
 
-  useEffect(() => {
-    let active = true;
-    if (!tours.length) {
-      setLivePrices({});
-      return () => {
-        active = false;
-      };
-    }
-
-    void Promise.all(
-      tours.map(async (tour) => {
-        try {
-          const page = await tourApi.schedules(tour.id);
-          const prices = page.items
-            .filter((schedule) => schedule.status === 'OPEN' && schedule.availableSeats > 0)
-            .map((schedule) => schedule.adultPrice);
-          return [tour.id, prices.length ? Math.min(...prices) : null] as const;
-        } catch {
-          return [tour.id, null] as const;
-        }
-      }),
-    ).then((entries) => {
-      if (active) setLivePrices(Object.fromEntries(entries));
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [tours]);
-
   const handleRegionChange = (regId: string) => {
     setActiveRegion(regId);
     const params = new URLSearchParams();
     if (regId) params.set('region', regId);
     router.push(`/tours${regId ? `?region=${regId}` : ''}`);
   };
-
-  const getTourPrice = (tour: Tour): number | null => livePrices[tour.id] ?? null;
 
   const orderedTours = useMemo(() => {
     if (!aiRecommendedIds.length) return tours;
@@ -280,7 +247,7 @@ function ToursListContent() {
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {orderedTours.map((rawTour, index) => {
             const tour = getLocalizedTour(rawTour, lang);
-            const price = getTourPrice(tour);
+            const price = rawTour.fromPrice ?? null;
             const luxuryTag = getTourLuxuryTag(tour, lang);
             const heroImage = getTourImage(tour);
 
