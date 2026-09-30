@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+// Cross-provider release identity for Render and Netlify.
+
 export function GET() {
   return NextResponse.json(
     {
