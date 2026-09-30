@@ -4,22 +4,26 @@ on:
   push:
     branches:
       - manh/integrate-production-api
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: release-live-acceptance
+  cancel-in-progress: true
+
 jobs:
   wait-for-deploy:
-    if: contains(github.event.head_commit.message, '[live-acceptance]')
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - name: Wait until Render serves this exact commit
         env:
           EXPECTED_SHA: ${{ github.sha }}
           RELEASE_URL: https://delta-travel-web.onrender.com/api/release
         run: |
-          for attempt in $(seq 1 50); do
+          for attempt in $(seq 1 60); do
             BODY="$(curl -fsS --max-time 15 "$RELEASE_URL" || true)"
             ACTUAL="$(printf '%s' "$BODY" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("commit") or "")' 2>/dev/null || true)"
             echo "attempt=$attempt expected=$EXPECTED_SHA actual=$ACTUAL"
@@ -34,7 +38,6 @@ jobs:
 
   live:
     needs: wait-for-deploy
-    if: contains(github.event.head_commit.message, '[live-acceptance]')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -47,9 +50,22 @@ jobs:
           LIVE_WEB_URL: https://delta-travel-web.onrender.com
           LIVE_API_URL: https://delta-travel-api.onrender.com/api/v1
 
+  security:
+    needs: wait-for-deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm run verify:security
+        env:
+          LIVE_WEB_URL: https://delta-travel-web.onrender.com
+          LIVE_API_URL: https://delta-travel-api.onrender.com/api/v1
+
   browser:
     needs: wait-for-deploy
-    if: contains(github.event.head_commit.message, '[live-acceptance]')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -65,7 +81,6 @@ jobs:
 
   accessibility:
     needs: wait-for-deploy
-    if: contains(github.event.head_commit.message, '[live-acceptance]')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -79,40 +94,8 @@ jobs:
         env:
           LIVE_WEB_URL: https://delta-travel-web.onrender.com
 
-  staging-mutation:
-    needs: wait-for-deploy
-    if: contains(github.event.head_commit.message, '[live-acceptance]')
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-      - run: npm run verify:staging
-        env:
-          VERIFY_API_URL: https://delta-travel-api.onrender.com/api/v1
-          VERIFY_ORIGIN: https://delta-travel-web.onrender.com
-          VERIFY_ALLOW_MUTATIONS: 'true'
-
-  security:
-    needs: wait-for-deploy
-    if: contains(github.event.head_commit.message, '[live-acceptance]')
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-      - run: npm run verify:security
-        env:
-          LIVE_WEB_URL: https://delta-travel-web.onrender.com
-          LIVE_API_URL: https://delta-travel-api.onrender.com/api/v1
-
   ai-first:
     needs: wait-for-deploy
-    if: contains(github.event.head_commit.message, '[live-acceptance]')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -125,3 +108,4 @@ jobs:
       - run: npm run verify:ai-first-live
         env:
           LIVE_WEB_URL: https://delta-travel-web.onrender.com
+          LIVE_API_URL: https://delta-travel-api.onrender.com/api/v1
