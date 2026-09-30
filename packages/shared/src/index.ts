@@ -92,6 +92,23 @@ export const TourItineraryDaySchema = z
   })
   .strict();
 
+export const TourCommercialSchema = z
+  .object({
+    departureBasis: z.string().trim().min(3).max(300),
+    transport: z.array(z.string().trim().min(2).max(300)).min(1).max(20),
+    included: z.array(z.string().trim().min(2).max(500)).min(1).max(30),
+    notIncluded: z.array(z.string().trim().min(2).max(500)).max(30).default([]),
+    optionalCosts: z.array(z.string().trim().min(2).max(500)).max(30).default([]),
+    cancellationPolicy: z.string().trim().min(5).max(2000),
+    dateChangePolicy: z.string().trim().min(5).max(2000),
+    refundPolicy: z.string().trim().min(5).max(2000),
+    singleRoomPolicy: z.string().trim().min(5).max(2000),
+    childPolicy: z.string().trim().min(5).max(2000),
+    weatherPolicy: z.string().trim().min(5).max(2000),
+    incidentalCostPolicy: z.string().trim().min(5).max(2000),
+  })
+  .strict();
+
 export const CreateTourSchema = z
   .object({
     title: z.string().trim().min(3).max(150),
@@ -106,6 +123,7 @@ export const CreateTourSchema = z
     imageUrl: z.string().url().max(2000).nullable().default(null),
     galleryImages: z.array(z.string().url().max(2000)).max(20).default([]),
     itinerary: z.array(TourItineraryDaySchema).max(60).default([]),
+    commercial: TourCommercialSchema.nullable().default(null),
     status: TourStatusSchema.default('DRAFT'),
   })
   .strict();
@@ -595,6 +613,7 @@ export const ErrorSchema = z.object({
 export type User = z.infer<typeof UserSchema>;
 export type Tour = z.infer<typeof TourSchema>;
 export type TourItineraryDay = z.infer<typeof TourItineraryDaySchema>;
+export type TourCommercial = z.infer<typeof TourCommercialSchema>;
 export type Schedule = z.infer<typeof ScheduleSchema>;
 export type Booking = z.infer<typeof BookingSchema>;
 export type Payment = z.infer<typeof PaymentSchema>;
