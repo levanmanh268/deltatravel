@@ -1,4 +1,4 @@
-name: Temporary Contract Example Patch
+name: Temporary Contract Refresh
 
 on:
   push:
@@ -9,51 +9,58 @@ permissions:
   contents: write
 
 jobs:
-  patch:
-    if: "!contains(github.event.head_commit.message, 'fix: refresh contract examples')"
+  refresh:
+    if: "!contains(github.event.head_commit.message, 'fix: refresh generated contract')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
+          fetch-depth: 0
           ref: manh/final-hardening-v3-20260930
-      - name: Patch contract examples
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        working-directory: .
+        run: npm ci
+      - name: Patch generator examples
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path("scripts/generate-contract.mjs")
           s = p.read_text()
-          old = """  departureAt: departure,
-          totalSeats: 30,"""
-          new = """  departureAt: departure,
-          durationDays: 3,
-          totalSeats: 30,"""
-          if old not in s:
-              raise SystemExit("schedule anchor not found")
-          s = s.replace(old, new, 1)
-          old2 = """const booking = {
-            id: bid,
-            ...createBooking,
-            status: 'PENDING_PAYMENT',"""
-          new2 = """const booking = {
-            id: bid,
-            ...createBooking,
-            tourId: id,
-            status: 'PENDING_PAYMENT',"""
-          if old2 not in s:
-              raise SystemExit("booking anchor not found")
-          s = s.replace(old2, new2, 1)
+          a = "  departureAt: departure,\n  totalSeats: 30,"
+          b = "  departureAt: departure,\n  durationDays: 3,\n  totalSeats: 30,"
+          if a in s:
+              s = s.replace(a, b, 1)
+          elif "  durationDays: 3,\n  totalSeats: 30," not in s:
+              raise SystemExit("schedule example anchor not found")
+          a2 = "const booking = {\n  id: bid,\n  ...createBooking,\n  status: 'PENDING_PAYMENT',"
+          b2 = "const booking = {\n  id: bid,\n  ...createBooking,\n  tourId: id,\n  status: 'PENDING_PAYMENT',"
+          if a2 in s:
+              s = s.replace(a2, b2, 1)
+          elif "  tourId: id,\n  status: 'PENDING_PAYMENT'," not in s:
+              raise SystemExit("booking example anchor not found")
           p.write_text(s)
           PY
-      - name: Commit patch
+      - name: Generate contract
+        working-directory: .
+        run: npm run docs:generate
+      - name: Format generated contract
+        working-directory: .
+        run: npx prettier --write docs/API_CONTRACT.md docs/openapi.json
+      - name: Commit refreshed contract
         shell: bash
         run: |
           if git diff --quiet; then
-            echo "No changes"
+            echo "No generated changes required."
             exit 0
           fi
           git config user.name "Delta Travel CI"
           git config user.email "actions@users.noreply.github.com"
-          git add scripts/generate-contract.mjs
-          git commit -m "fix: refresh contract examples"
+          git add scripts/generate-contract.mjs docs/API_CONTRACT.md docs/openapi.json
+          git commit -m "fix: refresh generated contract"
           git push origin HEAD:manh/final-hardening-v3-20260930
