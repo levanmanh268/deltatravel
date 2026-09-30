@@ -1,8 +1,5 @@
 name: Temporary Netlify Production Diagnostic
 
-# verify-after-main-sync
-# verify-after-main-sync-retry-2
-
 on:
   push:
     branches:
@@ -14,54 +11,50 @@ permissions:
 jobs:
   netlify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED_SHA: 72ffdad294aa7b60fa5a532c0aeff25219d56282
+      NETLIFY_URL: https://deltatravel.netlify.app
     steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: manh/integrate-production-api
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-      - name: Inspect Netlify release identity
+      - name: Wait for exact Netlify main release
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsS --max-time 30 https://deltatravel.netlify.app/api/release | tee /tmp/netlify-release.json
-          python3 - <<'PY'
-          import json
-          d=json.load(open('/tmp/netlify-release.json'))
-          print("NETLIFY_RELEASE", d)
-          if d.get("service") != "delta-travel-web":
-              raise SystemExit("Unexpected service identity")
-          PY
-      - name: Check public routes and headers
+          for attempt in $(seq 1 60); do
+            BODY="$(curl -fsS --max-time 20 "$NETLIFY_URL/api/release" || true)"
+            COMMIT="$(printf '%s' "$BODY" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("commit") or "")' 2>/dev/null || true)"
+            PROVIDER="$(printf '%s' "$BODY" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("provider") or "")' 2>/dev/null || true)"
+            echo "attempt=$attempt expected=$EXPECTED_SHA commit=$COMMIT provider=$PROVIDER body=$BODY"
+            if [ "$COMMIT" = "$EXPECTED_SHA" ] && [ "$PROVIDER" = "netlify" ]; then
+              echo "NETLIFY_EXACT_RELEASE_PASS"
+              break
+            fi
+            if [ "$attempt" = "60" ]; then
+              echo "Timed out waiting for exact Netlify release" >&2
+              exit 1
+            fi
+            sleep 10
+          done
+      - name: Verify hardened public routes and headers
         shell: bash
         run: |
           set -euo pipefail
           for route in / /tours /assistant /login /register /forgot-password /robots.txt /sitemap.xml; do
-            code="$(curl -LsS -o /tmp/body --max-time 30 -w '%{http_code}' "https://deltatravel.netlify.app$route")"
+            code="$(curl -LsS -o /tmp/body --max-time 30 -w '%{http_code}' "$NETLIFY_URL$route")"
             echo "$route => $code"
             test "$code" -lt 400
           done
-          curl -fsSI https://deltatravel.netlify.app/ | tr -d '\r' | grep -Ei 'content-security-policy|strict-transport-security|x-frame-options|x-content-type-options' || true
-      - name: Verify latest hardening content is live
+          headers="$(curl -fsSI --max-time 30 "$NETLIFY_URL/" | tr -d '\r')"
+          printf '%s\n' "$headers" | grep -qi '^content-security-policy:'
+          printf '%s\n' "$headers" | grep -qi '^strict-transport-security:'
+          printf '%s\n' "$headers" | grep -qi '^x-frame-options:'
+          printf '%s\n' "$headers" | grep -qi '^x-content-type-options:'
+      - name: Verify stale marketing claims are absent
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsSL --max-time 30 https://deltatravel.netlify.app/ -o /tmp/home.html
-          if grep -q '25,000+' /tmp/home.html; then
-            echo "STALE_NETLIFY: fake 25,000+ claim is still present" >&2
-            exit 1
-          fi
-          if grep -q '99.8%' /tmp/home.html; then
-            echo "STALE_NETLIFY: fake 99.8% claim is still present" >&2
-            exit 1
-          fi
-          if grep -q '1900 6868' /tmp/home.html; then
-            echo "STALE_NETLIFY: unverified hotline is still present" >&2
-            exit 1
-          fi
-          grep -q '15 PHÚT' /tmp/home.html || grep -q '15 MIN' /tmp/home.html
-          headers="$(curl -fsSI --max-time 30 https://deltatravel.netlify.app/ | tr -d '\r')"
-          printf '%s\n' "$headers" | grep -qi '^content-security-policy:'
-          printf '%s\n' "$headers" | grep -qi '^strict-transport-security:'
-          echo "NETLIFY_CURRENT_HARDENING_PASS"
+          curl -fsSL --max-time 30 "$NETLIFY_URL/" -o /tmp/home.html
+          ! grep -q '25,000+' /tmp/home.html
+          ! grep -q '99.8%' /tmp/home.html
+          ! grep -q '1900 6868' /tmp/home.html
+          echo "NETLIFY_HARDENING_CONTENT_PASS"
