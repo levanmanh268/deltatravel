@@ -24,13 +24,29 @@ function NavContent() {
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [isOver3D, setIsOver3D] = useState(pathname === '/');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollY = React.useRef(0);
   const userAvatar = user?.avatarUrl || '';
 
-  // Track hero 3D overlay state and scroll distance
+  // Keep the navigation available without letting it cover the page while reading.
+  // Scrolling down hides it; scrolling up or returning near the top reveals it again.
   useEffect(() => {
+    lastScrollY.current = window.scrollY;
+    setHeaderVisible(true);
+
     const checkScroll = () => {
       const scrollY = window.scrollY;
+      const delta = scrollY - lastScrollY.current;
       setIsScrolled(scrollY > 20);
+
+      if (scrollY <= 88) {
+        setHeaderVisible(true);
+      } else if (delta > 10) {
+        setHeaderVisible(false);
+      } else if (delta < -10) {
+        setHeaderVisible(true);
+      }
+      lastScrollY.current = scrollY;
 
       if (pathname === '/') {
         const heroEl = document.getElementById('hero-3d-section');
@@ -91,9 +107,9 @@ function NavContent() {
     <>
       {/* ─── Fixed Header Orchestrator with Crystal Liquid Glass System ─── */}
       <header
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 bg-transparent ${
-          isTransparent ? 'text-white' : 'text-black'
-        }`}
+        className={`fixed left-0 right-0 top-0 z-[100] bg-transparent will-change-transform transition-[transform,color] duration-300 ease-out focus-within:translate-y-0 ${
+          headerVisible || mobileMenuOpen || accountModalOpen ? 'translate-y-0' : '-translate-y-full'
+        } ${isTransparent ? 'text-white' : 'text-black'}`}
       >
         {/* Ambient Light Layer behind the glass */}
         <HeaderAmbientGlow isTransparent={isTransparent} isScrolled={isScrolled} />
