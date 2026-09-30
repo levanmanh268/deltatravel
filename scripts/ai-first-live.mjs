@@ -25,6 +25,14 @@ try {
   await page.goto(WEB + '/tours', { waitUntil: 'domcontentloaded', timeout: 120000 });
   const discovery = page.locator('[data-ai-surface="context-card"]').first();
   await discovery.waitFor({ state: 'visible' });
+
+  // Capture a real catalog destination before AI ranking reorders the cards.
+  const stableTourLink = page.locator('a.liquid-glass-card[href^="/tours/"]').first();
+  await stableTourLink.waitFor({ state: 'visible', timeout: 30000 });
+  const stableTourHref = await stableTourLink.getAttribute('href');
+  if (!stableTourHref) throw new Error('No stable production tour card link found');
+  console.log('LIVE_DETAIL_TARGET', stableTourHref);
+
   const discoveryInput = discovery.locator('textarea[aria-label="Yêu cầu cho DELTA AI"]');
   await discoveryInput.fill('Tìm tour phù hợp cho 2 người lớn, ngân sách khoảng 8 triệu.');
   await discovery.getByRole('button', { name: 'Hỏi AI' }).click();
@@ -41,12 +49,7 @@ try {
     throw new Error('AI discovery did not surface any TOUR source into catalog ranking');
   pass('AI-ranked tour catalog', `recommended=${recommended}`);
 
-  const firstCatalogTourLink = page.locator('a.liquid-glass-card[href^="/tours/"]').first();
-  await firstCatalogTourLink.waitFor({ state: 'visible', timeout: 30000 });
-  const catalogTourHref = await firstCatalogTourLink.getAttribute('href');
-  if (!catalogTourHref) throw new Error('No visible production tour card link found');
-
-  await page.goto(WEB + catalogTourHref, {
+  await page.goto(WEB + stableTourHref, {
     waitUntil: 'domcontentloaded',
     timeout: 120000,
   });
