@@ -181,10 +181,12 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
 
   const selectedSchedule = schedules.find((s) => s.id === selectedScheduleId);
   const displayTour = tour ? getLocalizedTour(tour, lang) : null;
-  const itinerary = tour ? getTourItinerary(tour, lang) : [];
-  const heroImage = tour ? getTourImage(tour) : '/tour-ha-long.jpg';
+  const effectiveDuration = selectedSchedule?.durationDays ?? displayTour?.durationDays ?? tour.durationDays;
+  const itinerary = tour ? getTourItinerary(tour, lang).slice(0, effectiveDuration) : [];
+  const heroImage = tour ? getTourImage(tour) : '/tour-placeholder.svg';
   const galleryImages = tour ? getTourGallery(tour) : [];
   const luxuryTag = tour ? getTourLuxuryTag(tour, lang) : '';
+  const commercial = tour.commercial;
 
   if (!displayTour) return null;
 
@@ -237,8 +239,11 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
               size="md"
               icon={<Calendar className="h-3.5 w-3.5 text-amber-300" />}
             >
-              {displayTour.durationDays} {t('days')} {Math.max(1, displayTour.durationDays - 1)}{' '}
-              {t('nights')}
+              {effectiveDuration === 1
+                ? lang === 'en'
+                  ? 'DAY TRIP'
+                  : 'TRONG NGÀY'
+                : `${effectiveDuration} ${t('days')} ${effectiveDuration - 1} ${t('nights')}`}
             </LiquidGlassBadge>
             <LiquidGlassBadge
               variant="luxury"
@@ -266,7 +271,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
         title="AI đã đọc tour này trước khi bạn phải tự cân nhắc"
         description="AI dùng dữ liệu tour production để giải thích độ phù hợp, lịch nên chọn và bước tiếp theo. Toàn bộ thiết kế chi tiết tour hiện tại vẫn được giữ nguyên."
         prompt={`Đánh giá tour “${displayTour.title}” ở ${displayTour.destination}. Hãy giải thích tour phù hợp với kiểu khách nào, điều gì cần chú ý và nên chọn lịch ra sao dựa trên dữ liệu hiện có.`}
-        context={`Tour ID ${tour.id}; điểm đến ${tour.destination}; thời lượng ${tour.durationDays} ngày; có ${schedules.length} lịch trong hệ thống.`}
+        context={`Tour ID ${tour.id}; điểm đến ${tour.destination}; thời lượng mặc định ${tour.durationDays} ngày; lịch đang chọn ${effectiveDuration} ngày; đánh giá xác thực ${tour.ratingCount && tour.ratingAverage !== null ? `${tour.ratingAverage?.toFixed(1)}/5 từ ${tour.ratingCount} lượt` : 'chưa có'}; phương tiện ${commercial?.transport?.join('; ') || 'chưa khai báo'}; giá bao gồm ${commercial?.included?.join('; ') || 'chưa khai báo'}; không bao gồm ${commercial?.notIncluded?.join('; ') || 'chưa khai báo'}; có ${schedules.length} lịch trong hệ thống.`}
         suggestions={[
           'Tour này có phù hợp với 2 người lớn không?',
           'Lịch nào đang hợp lý nhất về giá và số chỗ?',
@@ -347,6 +352,11 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                           <p className="text-sm font-black mt-0.5">
                             {formatDate(schedule.departureAt)}
                           </p>
+                          <p
+                            className={`mt-1 text-[11px] font-bold ${isSelected ? 'text-neutral-300' : 'text-neutral-500'}`}
+                          >
+                            {schedule.durationDays} {lang === 'en' ? 'days' : 'ngày'}
+                          </p>
                         </div>
                         {isSelected && (
                           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-black">
@@ -384,8 +394,8 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                 <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase text-amber-600 mb-1 tracking-wider">
                   <Compass className="h-4 w-4 text-amber-500" />
                   <span>
-                    {t('detail_itinerary_badge')} • {displayTour.durationDays}{' '}
-                    {lang === 'en' ? 'DAYS' : 'NGÀY'} {Math.max(1, displayTour.durationDays - 1)}{' '}
+                    {t('detail_itinerary_badge')} • {effectiveDuration}{' '}
+                    {lang === 'en' ? 'DAYS' : 'NGÀY'} {effectiveDuration === 1 ? 0 : effectiveDuration - 1}{' '}
                     {lang === 'en' ? 'NIGHTS' : 'ĐÊM'}
                   </span>
                 </div>
@@ -405,8 +415,19 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
               {itinerary.map((item) => (
                 <div
                   key={item.day}
-                  className="relative rounded-2xl border border-neutral-200/90 bg-neutral-50/50 p-5 sm:p-6 transition hover:shadow-md hover:border-black/40"
+                  className="relative overflow-hidden rounded-2xl border border-neutral-200/90 bg-neutral-50/50 p-5 sm:p-6 transition hover:shadow-md hover:border-black/40"
                 >
+                  {item.imageUrl && (
+                    <div className="relative -mx-5 -mt-5 mb-5 aspect-[16/7] sm:-mx-6 sm:-mt-6">
+                      <Image
+                        src={item.imageUrl}
+                        alt={`${displayTour.title} - ngày ${item.day}`}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 800px"
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
                   {/* Day header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-200">
                     <div className="flex items-center gap-3">
@@ -452,6 +473,107 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
               ))}
             </div>
+          </section>
+
+          <section className="rounded-2xl border-2 border-black bg-white p-6 sm:p-8">
+            <div className="border-b border-black/10 pb-5">
+              <p className="text-xs font-black uppercase tracking-wider text-amber-700">
+                GIÁ & DỊCH VỤ MINH BẠCH
+              </p>
+              <h2 className="mt-1 text-xl font-black uppercase">
+                Bao gồm, chưa bao gồm & chính sách
+              </h2>
+              <p className="mt-1 text-xs text-neutral-600">
+                Giá trên lịch khởi hành là giá tour cơ bản. Các khoản tùy chọn hoặc phát sinh chỉ
+                được tính khi được công bố rõ bên dưới.
+              </p>
+            </div>
+
+            {commercial ? (
+              <div className="mt-5 space-y-6 text-xs leading-relaxed">
+                <div>
+                  <h3 className="font-black uppercase">Điểm / cơ sở khởi hành</h3>
+                  <p className="mt-1 text-neutral-700">{commercial.departureBasis}</p>
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2">
+                  <div>
+                    <h3 className="font-black uppercase">Phương tiện</h3>
+                    <ul className="mt-2 space-y-1.5">
+                      {commercial.transport.map((item) => (
+                        <li key={item} className="flex gap-2">
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-black uppercase">Giá đã bao gồm</h3>
+                    <ul className="mt-2 space-y-1.5">
+                      {commercial.included.map((item) => (
+                        <li key={item} className="flex gap-2">
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-black uppercase">Chưa bao gồm</h3>
+                    {commercial.notIncluded.length ? (
+                      <ul className="mt-2 space-y-1.5">
+                        {commercial.notIncluded.map((item) => (
+                          <li key={item} className="flex gap-2">
+                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 text-neutral-500">Không có mục riêng được khai báo.</p>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-black uppercase">Chi phí tùy chọn / phát sinh</h3>
+                    {commercial.optionalCosts.length ? (
+                      <ul className="mt-2 space-y-1.5">
+                        {commercial.optionalCosts.map((item) => (
+                          <li key={item} className="flex gap-2">
+                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mt-2 text-neutral-500">Chưa có chi phí tùy chọn được khai báo.</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  {[
+                    ['Hủy tour', commercial.cancellationPolicy],
+                    ['Đổi ngày đi', commercial.dateChangePolicy],
+                    ['Hoàn tiền', commercial.refundPolicy],
+                    ['Phụ thu phòng đơn', commercial.singleRoomPolicy],
+                    ['Trẻ em', commercial.childPolicy],
+                    ['Thời tiết xấu / bất khả kháng', commercial.weatherPolicy],
+                    ['Chi phí phát sinh', commercial.incidentalCostPolicy],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-xl border border-neutral-200 p-4">
+                      <h3 className="font-black uppercase">{label}</h3>
+                      <p className="mt-1 text-neutral-700">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-5 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-xs text-neutral-600">
+                Bộ phận vận hành chưa lưu cấu phần dịch vụ cho tour này. Website không tự suy đoán
+                khoản nào đã nằm trong giá.
+              </div>
+            )}
           </section>
 
           {/* Guarantees */}
@@ -542,6 +664,11 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                         {formatVND(selectedSchedule.childPrice)}{' '}
                         {lang === 'en' ? '/ child' : '/ bé'}
                       </span>
+                      {commercial?.childPolicy && (
+                        <span className="mt-1 block max-w-[220px] text-[10px] leading-relaxed text-neutral-500">
+                          {commercial.childPolicy}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2.5">
                       <button
@@ -593,7 +720,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                   <div className="pt-2 border-t border-black flex items-baseline justify-between">
                     <div>
                       <span className="text-xs font-black uppercase text-black block">
-                        {t('total_estimate')}
+                        {lang === 'en' ? 'BASE TOUR PRICE' : 'GIÁ TOUR CƠ BẢN'}
                       </span>
                     </div>
                     <span className="text-xl font-black text-black">
