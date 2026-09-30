@@ -220,19 +220,31 @@ export const TOUR_GALLERIES: Record<string, TourGalleryImage[]> = {
 };
 
 export function getTourGallery(
-  tour: Tour | { slug?: string; destination?: string; imageUrl?: string },
+  tour:
+    | Tour
+    | {
+        slug?: string;
+        destination?: string;
+        imageUrl?: string | null;
+        galleryImages?: unknown;
+      },
 ): TourGalleryImage[] {
-  const gallery = tour.slug ? TOUR_GALLERIES[tour.slug] : undefined;
-  if (gallery?.length) return gallery;
+  if (
+    'galleryImages' in tour &&
+    Array.isArray(tour.galleryImages) &&
+    tour.galleryImages.length > 0
+  ) {
+    return tour.galleryImages
+      .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      .map((src, index) => ({
+        src,
+        altVi: `Ảnh chi tiết ${index + 1} của ${tour.destination || 'tour'}`,
+        altEn: `Tour detail image ${index + 1} for ${tour.destination || 'destination'}`,
+      }));
+  }
 
-  const hero = getTourImage(tour);
-  return [
-    {
-      src: hero,
-      altVi: `Hình ảnh ${tour.destination || 'điểm đến'}`,
-      altEn: `${tour.destination || 'Destination'} travel image`,
-    },
-  ];
+  const gallery = tour.slug ? TOUR_GALLERIES[tour.slug] : undefined;
+  return gallery?.length ? gallery : [];
 }
 
 // Luxury editorial taglines for each destination
@@ -264,8 +276,9 @@ export interface ItineraryDay {
   day: number;
   title: string;
   activities: string[];
-  meals?: string;
-  stay?: string;
+  meals?: string | null;
+  stay?: string | null;
+  imageUrl?: string | null;
 }
 
 export const TOUR_ITINERARIES: Record<string, ItineraryDay[]> = {
@@ -370,21 +383,21 @@ export const TOUR_ITINERARIES: Record<string, ItineraryDay[]> = {
       title: 'Chinh Phục Đỉnh Fansipan 3.143m – Thung Lũng Mường Hoa',
       activities: [
         'Khởi hành đi ga cáp treo Fansipan Legend, trải nghiệm tàu hỏa leo núi Mường Hoa băng qua thung lũng tuyệt đẹp.',
-        'Đi tuyến cáp treo 3 dây hiện đại nhất thế giới lên đỉnh Fansipan – Nóc nhà Đông Dương ở độ cao 3.143m.',
-        'Chiêm bái quần thể tâm linh Đại Tượng Phật A Di Đà bằng đồng lớn nhất Việt Nam trên đỉnh thiêng.',
-        'Chiều: Check-in Đèo Ô Quy Hồ – một trong tứ đại đỉnh đèo hiểm trở và kỳ vĩ bậc nhất miền Bắc.',
+        'Đi tuyến cáp treo 3 dây lên đỉnh Fansipan – Nóc nhà Đông Dương ở độ cao 3.143m.',
+        'Chiêm bái quần thể tâm linh trên khu vực đỉnh Fansipan.',
+        'Chiều: Trở về trung tâm Sa Pa nghỉ ngơi, không chạy lặp tuyến Quốc lộ 4D trong ngày này.',
       ],
       meals: 'Sáng, Trưa buffet trên Fansipan, Tối',
       stay: 'Khách sạn / Resort 4 sao Sa Pa',
     },
     {
       day: 3,
-      title: 'Cổng Trời Sa Pa – Thác Bạc – Mua Sắm Đặc Sản – Về Hà Nội',
+      title: 'Thác Bạc – Ô Quy Hồ – Cổng Trời – Về Hà Nội',
       activities: [
-        'Dạo bước ngắm bình minh mây bồng bềnh tại Cổng Trời và ngắm dòng Thác Bạc đổ trắng xóa giữa núi rừng.',
-        'Tự do mua sắm nông sản bản địa: mận tam hoa, đào Sa Pa, thịt trâu gác bếp, hạt dẻ nướng.',
-        'Dùng bữa trưa tại nhà hàng, sau đó lên xe trở về Hà Nội.',
-        'Về đến Hà Nội vào chiều tối. Kết thúc hành trình chinh phục non cao Tây Bắc.',
+        'Khởi hành theo cùng trục Quốc lộ 4D, tham quan Thác Bạc.',
+        'Tiếp tục đến đèo Ô Quy Hồ và khu vực Cổng Trời, hạn chế việc tách cùng một cung đường sang nhiều ngày.',
+        'Trở về Sa Pa dùng bữa trưa, mua đặc sản địa phương nếu còn thời gian.',
+        'Lên xe trở về Hà Nội, dự kiến đến nơi vào chiều tối tùy điều kiện giao thông.',
       ],
       meals: 'Sáng, Trưa',
       stay: 'Kết thúc chuyến hành trình',
@@ -394,14 +407,14 @@ export const TOUR_ITINERARIES: Record<string, ItineraryDay[]> = {
   'ninh-binh-trang-an-bai-dinh-hang-mua': [
     {
       day: 1,
-      title: 'Hà Nội – Quần Thể Tràng An – Chùa Bái Đính – Check-in Hang Múa',
+      title: 'Hà Nội – Tràng An – Hang Múa – Về Hà Nội',
       activities: [
-        '07:30: Xe Limousine đón Quý khách tại Hà Nội, khởi hành đi Ninh Bình – vùng đất địa linh nhân kiệt.',
-        'Viếng Chùa Bái Đính – ngôi chùa nắm giữ nhiều kỷ lục nhất Đông Nam Á: Tượng Phật bằng đồng dát vàng lớn nhất, Hành lang 500 vị La Hán.',
-        'Thưởng thức bữa trưa thịnh soạn với đặc sản Dê núi Ninh Bình, cơm cháy giòn rụm và ốc núi.',
-        'Xuôi thuyền nan trên dòng sông Sào Khê trong xanh khám phá Quần thể danh thắng Tràng An: luồn lách qua các hang Tối, hang Sáng, hang Nấu Rượu.',
-        'Chinh phục 486 bậc đá lên đỉnh Ngọa Long tại Hang Múa – ngắm trọn vẹn toàn cảnh dòng sông Ngô Đồng uốn lượn qua cánh đồng Tam Cốc.',
-        '17:30: Lên xe khởi hành về lại Hà Nội, kết thúc chuyến du ngoạn tuyệt vời trong ngày.',
+        '07:00–07:30: Đón khách tại Hà Nội, khởi hành đi Ninh Bình.',
+        'Buổi sáng: Đi thuyền tham quan Quần thể danh thắng Tràng An theo tuyến vận hành thực tế trong ngày.',
+        'Dùng bữa trưa và có thời gian nghỉ hợp lý trước điểm tham quan buổi chiều.',
+        'Buổi chiều: Tham quan Hang Múa, chủ động thời gian leo bậc và ngắm cảnh.',
+        'Khoảng cuối buổi chiều: Khởi hành về Hà Nội để tránh nhồi quá nhiều điểm vào tour một ngày.',
+        'Chùa Bái Đính được tách khỏi lịch trình tiêu chuẩn này; chỉ bổ sung khi vận hành một sản phẩm riêng có đủ thời gian.',
       ],
       meals: 'Trưa đặc sản dê núi Ninh Bình',
       stay: 'Tour 1 ngày trọn vẹn',
@@ -570,6 +583,33 @@ export const TOUR_ITINERARIES: Record<string, ItineraryDay[]> = {
       stay: 'Tour 1 ngày trọn vẹn',
     },
   ],
+
+  'phu-quy-hon-dao-nho-nen-tho': [
+    {
+      day: 1,
+      title: 'TP.HCM – Phan Thiết – Tàu Cao Tốc Ra Đảo Phú Quý',
+      activities: [
+        'Di chuyển bằng ô tô từ TP.HCM đến cảng Phan Thiết.',
+        'Làm thủ tục và đi tàu cao tốc Phan Thiết – Phú Quý; tuyệt đối không mô tả chặng ra đảo bằng ô tô.',
+        'Nhận phòng sau khi tàu cập đảo, nghỉ ngơi và tham quan các điểm gần theo điều kiện thực tế.',
+        'Giờ tàu có thể điều chỉnh hoặc chuyến có thể tạm ngừng khi thời tiết, sóng gió hoặc cơ quan vận hành không cho phép chạy.',
+      ],
+      meals: 'Theo gói dịch vụ đã công bố',
+      stay: 'Cơ sở lưu trú trên đảo Phú Quý',
+    },
+    {
+      day: 2,
+      title: 'Khám Phá Đảo Phú Quý – Tàu Cao Tốc Về Phan Thiết',
+      activities: [
+        'Tham quan các điểm phù hợp trên đảo theo khung giờ tàu về.',
+        'Trả phòng và có mặt tại cảng đúng thời gian làm thủ tục.',
+        'Đi tàu cao tốc Phú Quý – Phan Thiết.',
+        'Tiếp tục di chuyển bằng ô tô từ Phan Thiết về TP.HCM.',
+      ],
+      meals: 'Theo gói dịch vụ đã công bố',
+      stay: 'Kết thúc hành trình',
+    },
+  ],
 };
 
 export const TOUR_ITINERARIES_EN: Record<string, ItineraryDay[]> = {
@@ -664,23 +704,24 @@ export const TOUR_ITINERARIES_EN: Record<string, ItineraryDay[]> = {
     },
     {
       day: 2,
-      title: 'Fansipan Peak (3,143m) – Roof of Indochina – O Quy Ho Sky Gate',
+      title: 'Fansipan Peak (3,143m) – Roof of Indochina',
       activities: [
-        'Board Sun World Fansipan Legend cable car soaring above the picturesque Muong Hoa Valley.',
-        'Conquer the 3,143m summit "Roof of Indochina", paying respects at the grand Great Amitabha Buddha.',
-        'Visit O Quy Ho Mountain Pass and Glass Skywalk bridging rugged cloud-veiled ravines.',
-        'Evening: Savor a bubbling Sturgeon & Salmon hotpot paired with warm San Lung wine.',
+        'Board the Fansipan cable-car system above Muong Hoa Valley.',
+        'Visit the 3,143m Fansipan summit area and its spiritual complex.',
+        'Return to central Sa Pa in the afternoon instead of repeating the National Route 4D corridor.',
+        'Evening leisure in Sa Pa.',
       ],
       meals: 'Breakfast, Lunch, Dinner',
       stay: '4-5 Star Resort Sa Pa',
     },
     {
       day: 3,
-      title: 'Ham Rong Mountain Gardens – Highland Specialty Shopping – Departure',
+      title: 'Silver Waterfall – O Quy Ho Pass – Heaven Gate – Departure',
       activities: [
-        'Walk through orchid gardens and dragon-jaw rock formations on Mount Ham Rong with Sa Pa panoramic views.',
-        'Shop for highland herbs, Mac Khen wild pepper, and artisanal smoked dried buffalo meat.',
-        'Private transfer returning to Hanoi; concluding an exhilarating alpine retreat.',
+        'Follow one National Route 4D corridor to Silver Waterfall.',
+        'Continue to O Quy Ho Pass and the Heaven Gate viewpoint on the same excursion.',
+        'Return to Sa Pa for lunch and optional local shopping if time permits.',
+        'Depart for Hanoi in the afternoon; arrival time depends on traffic conditions.',
       ],
       meals: 'Breakfast, Lunch',
       stay: 'Tour concludes',
@@ -689,14 +730,14 @@ export const TOUR_ITINERARIES_EN: Record<string, ItineraryDay[]> = {
   'ninh-binh-trang-an-bai-dinh-hang-mua': [
     {
       day: 1,
-      title: 'Hanoi – Trang An Scenic Grotto Safari – Bai Dinh Pagoda – Hang Mua Peak',
+      title: 'Hanoi – Trang An – Hang Mua – Return to Hanoi',
       activities: [
-        'Depart Hanoi for Ninh Binh, the ancient imperial capital of Hoa Lu.',
-        'Traditional sampan boat voyage through Trang An karst grottoes and film site of Kong: Skull Island.',
-        'Savor crispy scorched rice and mountain goat specialties at a riverside garden restaurant.',
-        "Visit Bai Dinh Sanctuary, home to Southeast Asia's greatest bronze statues and 500 Arhat corridors.",
-        'Ascend 500 stone steps to Hang Mua dragon summit for a breathtaking panorama of Tam Coc valley.',
-        'Return to Hanoi in late afternoon.',
+        'Depart Hanoi around 07:00–07:30 for Ninh Binh.',
+        'Morning sampan excursion through the Trang An scenic complex.',
+        'Lunch and a reasonable rest period before the afternoon visit.',
+        'Visit Hang Mua with enough time for the staircase and panoramic viewpoint.',
+        'Leave Ninh Binh in the late afternoon for Hanoi.',
+        'Bai Dinh is intentionally excluded from this standard day trip and should be sold as a separate itinerary when enough time is allocated.',
       ],
       meals: 'Lunch',
       stay: 'Day trip concludes',
@@ -845,6 +886,32 @@ export const TOUR_ITINERARIES_EN: Record<string, ItineraryDay[]> = {
       stay: 'Day trip concludes',
     },
   ],
+  'phu-quy-hon-dao-nho-nen-tho': [
+    {
+      day: 1,
+      title: 'Ho Chi Minh City – Phan Thiet – High-Speed Ferry to Phu Quy',
+      activities: [
+        'Road transfer from Ho Chi Minh City to Phan Thiet port.',
+        'Board the high-speed ferry from Phan Thiet to Phu Quy; the sea crossing is not a road-transfer segment.',
+        'Check in after arrival and visit nearby island attractions according to actual operating conditions.',
+        'Ferry times may change or services may be suspended because of weather, sea state, or operator/authority restrictions.',
+      ],
+      meals: 'According to the published package',
+      stay: 'Accommodation on Phu Quy Island',
+    },
+    {
+      day: 2,
+      title: 'Phu Quy Island – High-Speed Ferry to Phan Thiet',
+      activities: [
+        'Visit suitable island attractions while preserving enough buffer for the return ferry.',
+        'Check out and arrive at the port in time for boarding procedures.',
+        'Take the high-speed ferry from Phu Quy back to Phan Thiet.',
+        'Continue by road from Phan Thiet to Ho Chi Minh City.',
+      ],
+      meals: 'According to the published package',
+      stay: 'Tour concludes',
+    },
+  ],
 };
 
 export function getTourImage(
@@ -879,7 +946,7 @@ export function getTourImage(
   if (slug.includes('can-tho') || dest.includes('cần thơ')) return '/tour-can-tho.jpg';
   if (slug.includes('tay-ninh') || dest.includes('tây ninh')) return '/tour-tay-ninh.jpg';
 
-  return '/tour-ha-long.jpg';
+  return '/tour-placeholder.svg';
 }
 
 export function getTourLuxuryTag(tour: Tour | { slug?: string }, lang: 'vi' | 'en' = 'vi'): string {
@@ -895,9 +962,19 @@ export function getTourLuxuryTag(tour: Tour | { slug?: string }, lang: 'vi' | 'e
 }
 
 export function getTourItinerary(
-  tour: Tour | { slug?: string; durationDays?: number; destination?: string },
+  tour:
+    | Tour
+    | {
+        slug?: string;
+        durationDays?: number;
+        destination?: string;
+        itinerary?: unknown;
+      },
   lang: 'vi' | 'en' = 'vi',
 ): ItineraryDay[] {
+  if ('itinerary' in tour && Array.isArray(tour.itinerary) && tour.itinerary.length > 0) {
+    return tour.itinerary as ItineraryDay[];
+  }
   const dict = lang === 'en' ? TOUR_ITINERARIES_EN : TOUR_ITINERARIES;
   if (tour.slug && dict[tour.slug]) {
     return dict[tour.slug];
@@ -911,88 +988,18 @@ export function getTourItinerary(
     }
   }
 
-  // Generative default itinerary if no preset match exists
-  const days = Math.max(1, tour.durationDays || 3);
-  const dest = tour.destination || (lang === 'en' ? 'Heritage Destination' : 'Điểm Đến Di Sản');
-  const defaultList: ItineraryDay[] = [];
-
-  for (let i = 1; i <= days; i++) {
-    if (i === 1) {
-      defaultList.push({
-        day: 1,
-        title:
-          lang === 'en'
-            ? `Arrival – Exploring ${dest}`
-            : `Đón khách – Khám phá danh lam thắng cảnh ${dest}`,
-        activities:
-          lang === 'en'
-            ? [
-                `Chauffeur and tour guide welcome you at meeting point, transfer to ${dest}.`,
-                `Check in to 4-5 star luxury hotel, enjoy regional gourmet lunch.`,
-                `Afternoon: Embark on scenic exploration of famous landmarks and landscapes.`,
-                `Evening: Taste local culinary specialties, evening leisure walk.`,
-              ]
-            : [
-                `Xe và Hướng dẫn viên đón Quý khách tại điểm hẹn, khởi hành đến ${dest}.`,
-                `Nhận phòng khách sạn tiêu chuẩn 4-5 sao, thưởng thức bữa trưa đặc sản vùng miền.`,
-                `Chiều: Bắt đầu hành trình tham quan các địa danh nổi tiếng và chiêm ngưỡng cảnh sắc đặc trưng.`,
-                `Tối: Thưởng thức ẩm thực địa phương, tự do dạo phố đêm và khám phá văn hóa bản địa.`,
-              ],
-        meals: lang === 'en' ? 'Lunch, Dinner' : 'Trưa, Tối',
-        stay: lang === 'en' ? `4-5 Star Luxury Hotel ${dest}` : `Khách sạn 4-5 sao ${dest}`,
-      });
-    } else if (i === days) {
-      defaultList.push({
-        day: i,
-        title:
-          lang === 'en'
-            ? `Cultural Shopping – Farewell`
-            : `Mua sắm đặc sản – Trải nghiệm văn hóa – Tiễn khách`,
-        activities:
-          lang === 'en'
-            ? [
-                `Buffet breakfast at hotel, unwind with picturesque sunrise views.`,
-                `Visit local craft village or traditional market for artisanal gifts and delicacies.`,
-                `Hotel check-out, transfer back to original departure hub.`,
-                `Concluding a memorable vacation with heartfelt appreciation.`,
-              ]
-            : [
-                `Dùng bữa sáng tại khách sạn, thư giãn và ngắm bình minh tuyệt đẹp.`,
-                `Ghé thăm chợ truyền thống hoặc làng nghề thủ công mua quà lưu niệm và đặc sản tươi ngon.`,
-                `Làm thủ tục trả phòng, xe đưa Quý khách về lại điểm xuất phát ban đầu.`,
-                `Kết thúc chuyến hành trình trọn vẹn, cảm ơn và hẹn gặp lại Quý khách.`,
-              ],
-        meals: lang === 'en' ? 'Breakfast, Lunch' : 'Sáng, Trưa',
-        stay: lang === 'en' ? 'Tour concludes' : 'Kết thúc chuyến hành trình',
-      });
-    } else {
-      defaultList.push({
-        day: i,
-        title:
-          lang === 'en'
-            ? `Wonder Odyssey – Day ${i} Experience`
-            : `Hành trình kỳ quan – Trải nghiệm độc bản ngày thứ ${i}`,
-        activities:
-          lang === 'en'
-            ? [
-                `International buffet breakfast at hotel dining room.`,
-                `Discover premier natural wonders and cultural historic sites in ${dest}.`,
-                `Eco-resort dining featuring exquisite seasonal dishes.`,
-                `Afternoon: Outdoor leisure activities (boating, photography, sightseeing).`,
-                `Evening: Festive group dinner, personal relaxation time.`,
-              ]
-            : [
-                `Ăn sáng buffet phong phú tại nhà hàng khách sạn.`,
-                `Khởi hành tham quan các kỳ quan thiên nhiên và di tích lịch sử hàng đầu tại ${dest}.`,
-                `Thưởng thức bữa trưa tại nhà hàng sinh thái với các món ngon tuyển chọn.`,
-                `Chiều: Tham gia các hoạt động ngoài trời độc đáo (chèo thuyền, ngắm cảnh, chụp ảnh kỷ niệm).`,
-                `Tối: Bữa tối ấm cúng cùng đoàn, tự do thư giãn nghỉ ngơi.`,
-              ],
-        meals: lang === 'en' ? 'Breakfast, Lunch, Dinner' : 'Sáng, Trưa, Tối',
-        stay: lang === 'en' ? `4-5 Star Luxury Hotel ${dest}` : `Khách sạn 4-5 sao ${dest}`,
-      });
-    }
-  }
-
-  return defaultList;
+  return [
+    {
+      day: 1,
+      title: lang === 'en' ? 'ITINERARY PENDING VERIFICATION' : 'LỊCH TRÌNH ĐANG CHỜ XÁC MINH',
+      activities: [
+        lang === 'en'
+          ? 'This tour does not yet have a verified itinerary in the backend. It will remain a draft until the operations team completes it.'
+          : 'Tour này chưa có lịch trình đã xác minh trong backend. Nội dung cần được bộ phận vận hành hoàn thiện trước khi mở bán.',
+      ],
+      meals: null,
+      stay: null,
+      imageUrl: null,
+    },
+  ];
 }

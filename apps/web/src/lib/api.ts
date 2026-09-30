@@ -44,6 +44,10 @@ import {
   CreateTourReviewSchema,
   TourReviewSchema,
   TourReviewListSchema,
+  TourMediaUploadRequestSchema,
+  TourMediaUploadTicketSchema,
+  TourMediaCompleteSchema,
+  TourMediaCompleteResultSchema,
 } from '@tour/shared';
 import { inferTourRegion } from './fallback-data';
 
@@ -468,6 +472,10 @@ function tourPayload(input: Partial<z.infer<typeof TourSchema>>) {
     destination: input.destination,
     countryCode: input.countryCode || 'VN',
     durationDays: input.durationDays,
+    imageUrl: input.imageUrl,
+    galleryImages: input.galleryImages,
+    itinerary: input.itinerary,
+    commercial: input.commercial,
     status: input.status,
   };
 }
@@ -476,6 +484,13 @@ export const adminApi = {
   summary: () => api('/admin/summary', SummarySchema),
 
   tours: () => api('/admin/tours?page=1&pageSize=100', PageSchema(TourSchema)),
+
+  tour: async (id: string) => {
+    const page = await adminApi.tours();
+    const tour = page.items.find((item) => item.id === id);
+    if (!tour) throw new ApiError(404, 'TOUR_NOT_FOUND', 'Không tìm thấy tour.');
+    return tour;
+  },
 
   createTour: (input: Partial<z.infer<typeof TourSchema>>) =>
     api('/admin/tours', TourSchema, {
@@ -522,6 +537,55 @@ export const adminApi = {
       method: 'PATCH',
       body: UpdateScheduleSchema.parse(input),
     }),
+
+  createTourMediaUpload: (tourId: string, input: z.input<typeof TourMediaUploadRequestSchema>) =>
+    api(`/admin/tours/${tourId}/media/upload-url`, TourMediaUploadTicketSchema, {
+      method: 'POST',
+      body: TourMediaUploadRequestSchema.parse(input),
+    }),
+
+  completeTourMediaUpload: (tourId: string, uploadId: string) =>
+    api(`/admin/tours/${tourId}/media/complete`, TourMediaCompleteResultSchema, {
+      method: 'POST',
+      body: TourMediaCompleteSchema.parse({ uploadId }),
+    }),
+
+  uploadTourImage: async (
+    tourId: string,
+    file: File,
+    slot: 'COVER' | 'GALLERY' | 'ITINERARY',
+    day?: number,
+  ) => {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      throw new ApiError(400, 'INVALID_TOUR_IMAGE_TYPE', 'Ảnh tour phải là JPEG, PNG hoặc WebP.');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new ApiError(400, 'TOUR_IMAGE_TOO_LARGE', 'Mỗi ảnh tour không được vượt quá 5 MB.');
+    }
+    const ticket = await adminApi.createTourMediaUpload(tourId, {
+      contentType: file.type as 'image/jpeg' | 'image/png' | 'image/webp',
+      sizeBytes: file.size,
+      slot,
+      day: day ?? null,
+    });
+    const form = new FormData();
+    form.append('cacheControl', '3600');
+    form.append('', file, file.name || 'tour-image');
+    const upload = await fetch(ticket.signedUrl, {
+      method: 'PUT',
+      headers: { 'x-upsert': 'false' },
+      body: form,
+    });
+    if (!upload.ok) {
+      throw new ApiError(
+        upload.status,
+        'TOUR_IMAGE_UPLOAD_FAILED',
+        'Không tải được ảnh tour lên Storage.',
+      );
+    }
+    const completed = await adminApi.completeTourMediaUpload(tourId, ticket.uploadId);
+    return completed.url;
+  },
 
   bookings: () => api('/admin/bookings?page=1&pageSize=100', PageSchema(BookingSchema)),
 

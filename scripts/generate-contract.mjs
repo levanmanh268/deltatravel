@@ -35,6 +35,7 @@ const schedule = {
   id: sid,
   tourId: id,
   departureAt: departure,
+  durationDays: 3,
   totalSeats: 30,
   reservedSeats: 8,
   availableSeats: 22,
@@ -54,6 +55,7 @@ const createBooking = {
 const booking = {
   id: bid,
   ...createBooking,
+  tourId: id,
   status: 'PENDING_PAYMENT',
   totalAmount: 10470000,
   currency: 'VND',

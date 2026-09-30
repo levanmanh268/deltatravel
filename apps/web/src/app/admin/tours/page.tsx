@@ -52,7 +52,7 @@ export default function AdminToursPage() {
   const [destination, setDestination] = useState('');
   const [durationDays, setDurationDays] = useState(3);
   const [description, setDescription] = useState('');
-  const [status, setStatus] = useState<TourStatus>('ACTIVE');
+  const [status, setStatus] = useState<TourStatus>('DRAFT');
 
   const notify = (message: string) => {
     setToast(message);
@@ -101,7 +101,7 @@ export default function AdminToursPage() {
     setDestination(tour?.destination ?? '');
     setDurationDays(tour?.durationDays ?? 3);
     setDescription(tour?.description ?? '');
-    setStatus(tour?.status ?? 'ACTIVE');
+    setStatus(tour?.status ?? 'DRAFT');
     setFormError(null);
     setShowModal(true);
   };
@@ -109,8 +109,20 @@ export default function AdminToursPage() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     const finalSlug = slugify(slug || title);
-    if (title.trim().length < 2 || destination.trim().length < 2 || finalSlug.length < 2) {
-      setFormError('Tên tour, slug và điểm đến phải có ít nhất 2 ký tự.');
+    if (title.trim().length < 3 || title.trim().length > 150) {
+      setFormError('Tên tour phải từ 3 đến 150 ký tự.');
+      return;
+    }
+    if (destination.trim().length < 2 || destination.trim().length > 100) {
+      setFormError('Điểm đến phải từ 2 đến 100 ký tự.');
+      return;
+    }
+    if (finalSlug.length < 1 || finalSlug.length > 150) {
+      setFormError('Slug không hợp lệ.');
+      return;
+    }
+    if (description.trim().length < 10 || description.trim().length > 10000) {
+      setFormError('Mô tả phải từ 10 đến 10.000 ký tự.');
       return;
     }
 
@@ -122,8 +134,8 @@ export default function AdminToursPage() {
       description: description.trim(),
       destination: destination.trim(),
       countryCode: 'VN' as const,
-      durationDays: Number(durationDays),
-      status,
+      durationDays: Math.max(1, Math.min(60, Math.trunc(Number(durationDays) || 1))),
+      status: editingTour ? status : ('DRAFT' as TourStatus),
     };
 
     try {
@@ -303,6 +315,9 @@ export default function AdminToursPage() {
                       >
                         <Edit3 className="mr-1 h-3.5 w-3.5" /> Sửa
                       </Button>
+                      <Button asChild size="sm" variant="outline" className="h-8 text-[11px]">
+                        <Link href={`/admin/tours/${tour.id}/content`}>Nội dung & ảnh</Link>
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
@@ -357,8 +372,8 @@ export default function AdminToursPage() {
                   <span>Tên tour *</span>
                   <input
                     required
-                    minLength={2}
-                    maxLength={160}
+                    minLength={3}
+                    maxLength={150}
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                   />
@@ -381,7 +396,7 @@ export default function AdminToursPage() {
                   <input
                     required
                     minLength={2}
-                    maxLength={120}
+                    maxLength={100}
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
                   />
@@ -404,7 +419,7 @@ export default function AdminToursPage() {
                 <textarea
                   required
                   minLength={10}
-                  maxLength={4000}
+                  maxLength={10000}
                   rows={5}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}

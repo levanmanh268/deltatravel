@@ -1,6 +1,10 @@
 import type { Tour } from '@tour/shared';
 
-export interface ExtendedTour extends Tour {
+export type ExtendedTour = Omit<Tour, 'imageUrl' | 'galleryImages' | 'itinerary' | 'commercial'> & {
+  imageUrl?: Tour['imageUrl'];
+  galleryImages?: Tour['galleryImages'];
+  itinerary?: Tour['itinerary'];
+  commercial?: Tour['commercial'];
   region: 'bac' | 'trung' | 'nam';
   regionName: string;
   regionNameEn?: string;
@@ -9,7 +13,7 @@ export interface ExtendedTour extends Tour {
   titleEn?: string;
   descriptionEn?: string;
   destinationEn?: string;
-}
+};
 
 export const FALLBACK_TOURS: ExtendedTour[] = [
   {
