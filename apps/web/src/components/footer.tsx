@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { ShieldCheck, Clock, Award, Phone, Mail, MapPin } from 'lucide-react';
+import { ShieldCheck, Clock, Award, Bot, ReceiptText, MapPin } from 'lucide-react';
 import { useLanguage } from '@/providers/language-provider';
 
 export function SiteFooter() {
@@ -125,12 +125,12 @@ export function SiteFooter() {
             </h3>
             <ul className="mt-4 space-y-2.5 text-sm font-medium text-black">
               <li className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-black shrink-0" />
+                <Bot className="w-4 h-4 text-black shrink-0" />
                 <span>{t('footer_hotline_text')}</span>
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-black shrink-0" />
-                <span>hotro@deltatravel.vn</span>
+                <ReceiptText className="w-4 h-4 text-black shrink-0" />
+                <span>{t('footer_payment_text')}</span>
               </li>
               <li className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-black shrink-0" />

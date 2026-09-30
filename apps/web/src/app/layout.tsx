@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: { default: 'DELTA TRAVEL | Du Lịch Việt Nam 3 Miền', template: '%s | DELTA TRAVEL' },
   description:
-    'DELTA TRAVEL — Đặt tour du lịch nội địa trọn gói khắp 3 miền Việt Nam. Lịch trình chu đáo, giá vé minh bạch, hỗ trợ tận tâm 24/7.',
+    'DELTA TRAVEL — Đặt tour du lịch nội địa khắp 3 miền Việt Nam với lịch trình, lịch khởi hành, giá cơ bản và điều kiện dịch vụ được công bố rõ.',
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
