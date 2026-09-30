@@ -581,7 +581,6 @@ export const TOUR_ITINERARIES: Record<string, ItineraryDay[]> = {
       stay: 'Tour 1 ngày trọn vẹn',
     },
   ],
-};
 
   'phu-quy-hon-dao-nho-nen-tho': [
     {
@@ -609,6 +608,7 @@ export const TOUR_ITINERARIES: Record<string, ItineraryDay[]> = {
       stay: 'Kết thúc hành trình',
     },
   ],
+};
 
 export const TOUR_ITINERARIES_EN: Record<string, ItineraryDay[]> = {
   'da-nang-hoi-an-ba-na-hills-cau-vang': [
