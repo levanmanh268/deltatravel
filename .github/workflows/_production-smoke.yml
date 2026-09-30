@@ -1,5 +1,7 @@
 name: Temporary Production Smoke
 
+# acceptance-rerun-prod-f7dd
+
 # production-rerun-after-a11y-fix
 # final-production-rerun-after-test-stabilization
 # rerun-after-catalog-navigation-fix
