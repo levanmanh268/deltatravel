@@ -9,6 +9,7 @@ const schema = z.object({
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url(),
   WEB_ORIGIN: z.string().url().default('http://localhost:3000'),
+  WEB_ORIGINS: optionalString(z.string().min(1)),
   API_PUBLIC_URL: z.string().url(),
   JWT_SECRET: z.string().min(32),
   CASH_HOLD_MINUTES: z.coerce.number().int().min(15).max(10080).default(1440),
@@ -36,6 +37,19 @@ const schema = z.object({
   SUPABASE_SECRET_KEY: optionalString(z.string().min(20)),
   SUPABASE_SERVICE_ROLE_KEY: optionalString(z.string().min(20)),
   SUPABASE_AVATAR_BUCKET: z.string().min(1).default('avatars'),
+
+  PAYMENT_RETURN_ORIGIN: optionalString(z.string().url()),
+  VNPAY_TMN_CODE: optionalString(z.string().min(2)),
+  VNPAY_HASH_SECRET: optionalString(z.string().min(8)),
+  VNPAY_URL: optionalString(z.string().url()),
+  MOMO_PARTNER_CODE: optionalString(z.string().min(2)),
+  MOMO_ACCESS_KEY: optionalString(z.string().min(2)),
+  MOMO_SECRET_KEY: optionalString(z.string().min(8)),
+  MOMO_URL: optionalString(z.string().url()),
+  ZALOPAY_APP_ID: optionalString(z.string().min(1)),
+  ZALOPAY_KEY1: optionalString(z.string().min(8)),
+  ZALOPAY_KEY2: optionalString(z.string().min(8)),
+  ZALOPAY_URL: optionalString(z.string().url()),
 });
 
 export function validateEnv(value: Record<string, unknown>) {
@@ -45,9 +59,19 @@ export function validateEnv(value: Record<string, unknown>) {
   };
   const e = schema.parse(normalized);
 
+  const webOrigins = (e.WEB_ORIGINS || e.WEB_ORIGIN)
+    .split(',')
+    .map((origin: string) => origin.trim())
+    .filter(Boolean);
+
   if (
     e.NODE_ENV === 'production' &&
-    (!e.WEB_ORIGIN.startsWith('https://') || !e.API_PUBLIC_URL.startsWith('https://'))
+    (!webOrigins.every((origin: string) => origin.startsWith('https://')) ||
+      !e.API_PUBLIC_URL.startsWith('https://') ||
+      (e.PAYMENT_RETURN_ORIGIN !== undefined && !e.PAYMENT_RETURN_ORIGIN.startsWith('https://')) ||
+      [e.VNPAY_URL, e.MOMO_URL, e.ZALOPAY_URL]
+        .filter((url): url is string => Boolean(url))
+        .some((url) => !url.startsWith('https://')))
   ) {
     throw new Error('Production requires HTTPS');
   }

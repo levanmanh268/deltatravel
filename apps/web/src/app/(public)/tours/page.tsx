@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -9,11 +9,12 @@ import type { Tour } from '@tour/shared';
 import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/providers/language-provider';
-import { FALLBACK_TOURS, getLocalizedTour } from '@/lib/fallback-data';
+import { getLocalizedTour } from '@/lib/fallback-data';
 import { getTourImage, getTourLuxuryTag } from '@/lib/tour-assets';
 import { GiantScrollTypography } from '@/components/giant-scroll-typography';
 import { formatVND } from '@/lib/format';
 import { LiquidGlassBadge } from '@/components/ui/liquid-glass-badge';
+import { AiContextCard } from '@/components/ai-context-card';
 import {
   MapPin,
   Calendar,
@@ -33,6 +34,7 @@ function ToursListContent() {
 
   const [activeRegion, setActiveRegion] = useState(initialRegion);
   const [tours, setTours] = useState<Tour[]>([]);
+  const [aiRecommendedIds, setAiRecommendedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +47,7 @@ function ToursListContent() {
 
   const fetchTours = (region: string) => {
     setLoading(true);
+    setAiRecommendedIds([]);
     setError(null);
     tourApi
       .list('', region)
@@ -85,18 +88,18 @@ function ToursListContent() {
     router.push(`/tours${regId ? `?region=${regId}` : ''}`);
   };
 
-  // Helper to get pricing from commercial tour data
-  const getTourPrice = (tour: Tour): number => {
-    if (
-      'adultPrice' in tour &&
-      typeof (tour as any).adultPrice === 'number' &&
-      (tour as any).adultPrice > 0
-    ) {
-      return (tour as any).adultPrice;
-    }
-    const match = FALLBACK_TOURS.find((f) => f.id === tour.id || f.slug === tour.slug);
-    return match ? match.adultPrice : 2450000;
-  };
+  const orderedTours = useMemo(() => {
+    if (!aiRecommendedIds.length) return tours;
+    const rank = new Map(aiRecommendedIds.map((id, index) => [id, index]));
+    return [...tours].sort((a, b) => {
+      const ar = rank.get(a.id);
+      const br = rank.get(b.id);
+      if (ar === undefined && br === undefined) return 0;
+      if (ar === undefined) return 1;
+      if (br === undefined) return -1;
+      return ar - br;
+    });
+  }, [tours, aiRecommendedIds]);
 
   return (
     <div className="relative space-y-12 text-black overflow-hidden pb-16">
@@ -109,6 +112,38 @@ function ToursListContent() {
           outline={true}
         />
       </div>
+
+      <AiContextCard
+        eyebrow="DELTA AI • TOUR DISCOVERY"
+        title="Nói nhu cầu, AI tìm tour trước khi bạn phải lọc thủ công"
+        description="AI đọc catalog production, lịch khởi hành và dữ liệu hiện có để gợi ý. Bộ lọc truyền thống của An vẫn giữ nguyên ngay bên dưới."
+        prompt={
+          activeRegion
+            ? `Tìm tour phù hợp nhất ở miền ${activeRegion === 'bac' ? 'Bắc' : activeRegion === 'trung' ? 'Trung' : 'Nam'} cho tôi. Hãy ưu tiên lịch còn chỗ, giá hợp lý và giải thích vì sao phù hợp.`
+            : 'Tìm giúp tôi một tour phù hợp nhất. Hãy hỏi hoặc suy luận từ nhu cầu tôi cung cấp, ưu tiên lịch còn chỗ và giá hợp lý.'
+        }
+        context={`Trang danh sách tour. Bộ lọc vùng hiện tại: ${activeRegion || 'tất cả'}. Catalog đang hiển thị ${tours.length} tour từ backend.`}
+        suggestions={[
+          'Tìm tour cho 2 người lớn, ngân sách khoảng 8 triệu.',
+          'Tôi muốn đi 3-4 ngày, ưu tiên biển và lịch còn nhiều chỗ.',
+          'Gợi ý chuyến đi tiết kiệm nhưng trải nghiệm tốt.',
+        ]}
+        agentHref={
+          '/assistant?prompt=' +
+          encodeURIComponent(
+            activeRegion
+              ? `Hãy lập kế hoạch một chuyến đi phù hợp ở miền ${activeRegion === 'bac' ? 'Bắc' : activeRegion === 'trung' ? 'Trung' : 'Nam'} cho tôi.`
+              : 'Hãy lập kế hoạch chuyến đi phù hợp nhất cho tôi.',
+          )
+        }
+        onResult={(result) => {
+          const ids = result.sources
+            .filter((source) => source.type === 'TOUR')
+            .map((source) => source.id);
+          setAiRecommendedIds([...new Set(ids)]);
+        }}
+        className="relative z-10"
+      />
 
       {/* Apple Liquid Glass Segmented Region Switcher (No Search Bar) */}
       <div className="relative z-10 flex flex-col items-center justify-center pt-2">
@@ -131,7 +166,7 @@ function ToursListContent() {
                   className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full transition-colors ${
                     isActive
                       ? 'bg-white/20 text-amber-200'
-                      : 'bg-black/5 text-neutral-500 group-hover:bg-black/10'
+                      : 'bg-black/5 text-neutral-700 group-hover:bg-black/10'
                   }`}
                 >
                   {tab.subtitle}
@@ -192,9 +227,9 @@ function ToursListContent() {
       ) : tours.length === 0 ? (
         <div className="liquid-glass-card rounded-3xl p-16 text-center max-w-xl mx-auto">
           <Compass className="mx-auto h-12 w-12 text-black/60 mb-4" />
-          <h3 className="text-xl font-black text-black uppercase tracking-tight">
+          <h2 className="text-xl font-black text-black uppercase tracking-tight">
             {lang === 'en' ? 'No Open Voyages in this Region' : 'Chưa có hành trình mở bán'}
-          </h3>
+          </h2>
           <p className="mt-2 text-xs font-medium text-neutral-600 max-w-md mx-auto leading-relaxed">
             {lang === 'en'
               ? 'This realm is currently undergoing high-season itinerary curation. Please select another realm.'
@@ -210,9 +245,9 @@ function ToursListContent() {
         </div>
       ) : (
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {tours.map((rawTour, index) => {
+          {orderedTours.map((rawTour, index) => {
             const tour = getLocalizedTour(rawTour, lang);
-            const price = getTourPrice(tour);
+            const price = rawTour.fromPrice ?? null;
             const luxuryTag = getTourLuxuryTag(tour, lang);
             const heroImage = getTourImage(tour);
 
@@ -286,9 +321,15 @@ function ToursListContent() {
                 {/* Card Editorial Content Body */}
                 <div className="flex flex-col flex-1 p-6 justify-between bg-white/95">
                   <div>
-                    <h3 className="text-[16px] font-black text-black leading-snug line-clamp-2 group-hover:text-amber-900 transition-colors duration-300 tracking-tight">
+                    {aiRecommendedIds.includes(tour.id) && (
+                      <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-amber-800 ring-1 ring-amber-200">
+                        <Sparkles className="h-3 w-3" />
+                        AI đề xuất
+                      </div>
+                    )}
+                    <h2 className="text-[16px] font-black text-black leading-snug line-clamp-2 group-hover:text-amber-900 transition-colors duration-300 tracking-tight">
                       {tour.title}
-                    </h3>
+                    </h2>
 
                     <p className="mt-3 text-xs leading-relaxed text-neutral-600 line-clamp-3 font-normal">
                       {tour.description}
@@ -302,10 +343,16 @@ function ToursListContent() {
                         {t('card_price_from')}
                       </span>
                       <span className="text-sm font-black text-black tracking-tight">
-                        {formatVND(price)}
-                        <span className="text-[10px] font-medium text-neutral-600 ml-1">
-                          {t('card_per_guest')}
-                        </span>
+                        {price !== null
+                          ? formatVND(price)
+                          : lang === 'en'
+                            ? 'See live schedules'
+                            : 'Xem lịch & giá thật'}
+                        {price !== null && (
+                          <span className="text-[10px] font-medium text-neutral-600 ml-1">
+                            {t('card_per_guest')}
+                          </span>
+                        )}
                       </span>
                     </div>
 

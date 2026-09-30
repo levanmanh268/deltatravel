@@ -20,60 +20,74 @@ export class CatalogAgent {
     private readonly schedules: SchedulesService,
   ) {}
 
+  private dateFloor(value?: string) {
+    return value ? new Date(value + 'T00:00:00+07:00').getTime() : null;
+  }
+
+  private dateCeil(value?: string) {
+    return value ? new Date(value + 'T23:59:59.999+07:00').getTime() : null;
+  }
+
   async run(intent: AgentIntent): Promise<AgentPayload> {
-    const q = [intent.destination, intent.query].filter(Boolean).join(' ').trim();
+    const explicitDestination = intent.destination?.trim();
+    const searchQuery = explicitDestination || intent.query.trim();
     let page = await this.tours.list({
-      q: q || undefined,
+      q: searchQuery || undefined,
       page: 1,
-      pageSize: 5,
+      pageSize: 20,
     });
 
-    if (!page.items.length && q) {
-      page = await this.tours.list({ page: 1, pageSize: 5 });
+    // A free-form query may not match catalog text exactly. An explicit destination is a hard
+    // constraint, so never silently broaden it to unrelated tours.
+    if (!page.items.length && searchQuery && !explicitDestination) {
+      page = await this.tours.list({ page: 1, pageSize: 20 });
     }
 
     const adults = intent.adults || 1;
     const children = intent.children || 0;
+    const partySize = adults + children;
+    const departureFrom = this.dateFloor(intent.departureFrom);
+    const departureTo = this.dateCeil(intent.departureTo);
     const candidates: Array<{
       tourId: string;
       title: string;
       destination: string;
       durationDays: number;
-      scheduleId?: string;
-      departureAt?: Date;
-      availableSeats?: number;
-      adultPrice?: number;
-      childPrice?: number;
-      partyTotal?: number;
+      scheduleId: string;
+      departureAt: Date;
+      availableSeats: number;
+      adultPrice: number;
+      childPrice: number;
+      partyTotal: number;
     }> = [];
 
     for (const tour of page.items) {
-      const schedules = await this.schedules.list(tour.id, 1, 3);
-      if (!schedules.items.length) {
-        candidates.push({
-          tourId: tour.id,
-          title: tour.title,
-          destination: tour.destination,
-          durationDays: tour.durationDays,
-        });
-        continue;
-      }
+      if (intent.durationDays !== undefined && tour.durationDays !== intent.durationDays) continue;
 
-      const ranked = schedules.items
+      const schedules = await this.schedules.list(tour.id, 1, 100);
+      const eligible = schedules.items
         .map((schedule) => ({
           schedule,
           total: adults * schedule.adultPrice + children * schedule.childPrice,
         }))
+        .filter(({ schedule, total }) => {
+          if (schedule.availableSeats < partySize) return false;
+          const departureAt = new Date(schedule.departureAt).getTime();
+          if (departureFrom !== null && departureAt < departureFrom) return false;
+          if (departureTo !== null && departureAt > departureTo) return false;
+          if (intent.budgetVnd !== undefined && total > intent.budgetVnd) return false;
+          return true;
+        })
         .sort((a, b) => {
-          if (intent.budgetVnd !== undefined) {
-            const aOver = Math.max(0, a.total - intent.budgetVnd);
-            const bOver = Math.max(0, b.total - intent.budgetVnd);
-            if (aOver !== bOver) return aOver - bOver;
-          }
+          const dateDiff =
+            new Date(a.schedule.departureAt).getTime() - new Date(b.schedule.departureAt).getTime();
+          if (dateDiff !== 0) return dateDiff;
           return a.total - b.total;
         });
 
-      const best = ranked[0];
+      const best = eligible[0];
+      if (!best) continue;
+
       candidates.push({
         tourId: tour.id,
         title: tour.title,
@@ -89,40 +103,29 @@ export class CatalogAgent {
     }
 
     candidates.sort((a, b) => {
-      const aTotal = a.partyTotal ?? Number.MAX_SAFE_INTEGER;
-      const bTotal = b.partyTotal ?? Number.MAX_SAFE_INTEGER;
-      if (intent.budgetVnd !== undefined) {
-        const aOver = Math.max(0, aTotal - intent.budgetVnd);
-        const bOver = Math.max(0, bTotal - intent.budgetVnd);
-        if (aOver !== bOver) return aOver - bOver;
-      }
-      return aTotal - bTotal;
+      const priceDiff = a.partyTotal - b.partyTotal;
+      if (priceDiff !== 0) return priceDiff;
+      return new Date(a.departureAt).getTime() - new Date(b.departureAt).getTime();
     });
 
     const top = candidates.slice(0, 5);
     const reply = top.length
       ? top
-          .map((item) => {
-            const price =
-              item.partyTotal !== undefined
-                ? ', tổng cho nhóm hiện tại ' + item.partyTotal.toLocaleString('vi-VN') + ' VND'
-                : '';
-            const seats =
-              item.availableSeats !== undefined ? ', còn ' + item.availableSeats + ' chỗ' : '';
-            return (
+          .map(
+            (item) =>
               item.title +
               ' tại ' +
               item.destination +
               ', ' +
               item.durationDays +
-              ' ngày' +
-              price +
-              seats +
-              '.'
-            );
-          })
+              ' ngày, tổng cho nhóm hiện tại ' +
+              item.partyTotal.toLocaleString('vi-VN') +
+              ' VND, còn ' +
+              item.availableSeats +
+              ' chỗ.',
+          )
           .join('\n')
-      : 'Chưa tìm thấy tour phù hợp trong dữ liệu hiện tại.';
+      : 'Chưa tìm thấy tour đáp ứng đồng thời điểm đến, thời lượng, ngày đi, ngân sách và số chỗ trong dữ liệu hiện tại.';
 
     return {
       reply,
@@ -143,18 +146,19 @@ export class CatalogAgent {
           budgetVnd: intent.budgetVnd,
           durationDays: intent.durationDays,
           destination: intent.destination,
+          departureFrom: intent.departureFrom,
+          departureTo: intent.departureTo,
         },
         candidates: top,
       },
     };
   }
 }
-
 @Injectable()
 export class CustomerAgent {
   constructor(private readonly bookings: BookingsService) {}
 
-  async myBookings(user: AppRequest['user']): Promise<AgentPayload> {
+  async myBookings(user: AppRequest['user'], bookingId?: string): Promise<AgentPayload> {
     if (!user) {
       return {
         reply: 'Bạn cần đăng nhập để xem các đơn đặt tour của mình.',
@@ -163,10 +167,32 @@ export class CustomerAgent {
       };
     }
 
-    const rows = await this.bookings.list({ page: 1, pageSize: 5 }, user.id);
+    const items = bookingId
+      ? [await this.bookings.get(bookingId, user.id)]
+      : (await this.bookings.list({ page: 1, pageSize: 5 }, user.id)).items;
+
+    const safeFacts = items.map((booking) => ({
+      id: booking.id,
+      scheduleId: booking.scheduleId,
+      status: booking.status,
+      adults: booking.adults,
+      children: booking.children,
+      totalAmount: booking.totalAmount,
+      currency: booking.currency,
+      expiresAt: booking.expiresAt,
+      paidAt: booking.paidAt,
+      cashDueAt: booking.cashDueAt,
+      cancelledAt: booking.cancelledAt,
+      cancelReason: booking.cancelReason,
+      tourTitle: booking.tourTitle,
+      departureAt: booking.departureAt,
+      details: booking.details,
+      serverTime: booking.serverTime,
+    }));
+
     return {
-      reply: rows.items.length
-        ? rows.items
+      reply: items.length
+        ? items
             .map(
               (b) =>
                 b.tourTitle +
@@ -174,25 +200,26 @@ export class CustomerAgent {
                 BOOKING_LABELS[b.status] +
                 ', ' +
                 b.totalAmount.toLocaleString('vi-VN') +
-                ' VND.',
+                ' VND, khởi hành ' +
+                new Date(b.departureAt).toLocaleString('vi-VN') +
+                '.',
             )
             .join('\n')
         : 'Bạn chưa có đơn đặt tour.',
-      actions: rows.items.map((b) => ({
+      actions: items.map((b) => ({
         label: 'Xem ' + b.tourTitle,
         href: '/bookings/' + b.id,
         requiresConfirmation: false,
       })),
-      sources: rows.items.map((b) => ({
+      sources: items.map((b) => ({
         type: 'BOOKING' as const,
         id: b.id,
         label: b.tourTitle,
       })),
-      facts: rows.items,
+      facts: safeFacts,
     };
   }
 }
-
 @Injectable()
 export class PolicyAgent {
   run(intent: AgentIntent): AgentPayload {
@@ -234,7 +261,14 @@ export class OperationsAgent {
     if (!user || !['ADMIN', 'OPERATIONS'].includes(user.role)) {
       fail(403, 'FORBIDDEN', 'Chỉ bộ phận vận hành được xem dữ liệu quản trị');
     }
-    const summary = await this.admin.summary();
+    const overview = await this.admin.operationsOverview();
+    const summary = overview.summary;
+    const statusLine = Object.entries(overview.bookingStatusCounts)
+      .map(([status, count]) => status + ': ' + count)
+      .join(', ');
+    const lowInventory = overview.lowInventorySchedules.length
+      ? ' Có ' + overview.lowInventorySchedules.length + ' lịch sắp hết chỗ cần theo dõi.'
+      : '';
     return {
       reply:
         'Có ' +
@@ -243,7 +277,10 @@ export class OperationsAgent {
         summary.bookings +
         ' đơn và ' +
         summary.pendingRefunds +
-        ' giao dịch cần xử lý hoàn tiền.',
+        ' giao dịch cần xử lý hoàn tiền. Trạng thái booking: ' +
+        statusLine +
+        '.' +
+        lowInventory,
       actions: [
         { label: 'Quản lý tour', href: '/admin/tours', requiresConfirmation: false },
         {
@@ -263,7 +300,7 @@ export class OperationsAgent {
         },
       ],
       sources: [{ type: 'OPERATIONS', id: 'summary', label: 'Thống kê vận hành' }],
-      facts: summary,
+      facts: overview,
     };
   }
 }

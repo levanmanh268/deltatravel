@@ -10,6 +10,8 @@ import {
   ScheduleSchema,
   BookingSchema,
   PaymentSchema,
+  PaymentProviderStatusSchema,
+  IntegrationStatusSchema,
   PageSchema,
   QuoteResultSchema,
   AssistantResultSchema,
@@ -34,9 +36,20 @@ import {
   AvatarUploadTicketSchema,
   AvatarCompleteSchema,
   AssistantProviderStatusSchema,
+  AgentPlanSchema,
+  AgentPlanRequestSchema,
+  AgentPlanUpdateSchema,
+  AgentApprovalSchema,
+  AgentDeclineSchema,
+  CreateTourReviewSchema,
+  TourReviewSchema,
+  TourReviewListSchema,
+  TourMediaUploadRequestSchema,
+  TourMediaUploadTicketSchema,
+  TourMediaCompleteSchema,
+  TourMediaCompleteResultSchema,
 } from '@tour/shared';
-import type { CommercialTour } from './commercial-store';
-import { FALLBACK_TOURS } from './fallback-data';
+import { inferTourRegion } from './fallback-data';
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'https://delta-travel-api.onrender.com/api/v1';
 const REQUEST_TIMEOUT_MS = 65000;
@@ -235,11 +248,7 @@ export const authApi = {
 };
 
 function belongsToRegion(tour: z.infer<typeof TourSchema>, region: string) {
-  if (!region) return true;
-  const metadata = FALLBACK_TOURS.find(
-    (candidate) => candidate.id === tour.id || candidate.slug === tour.slug,
-  );
-  return metadata?.region === region;
+  return !region || inferTourRegion(tour) === region;
 }
 
 export const tourApi = {
@@ -267,6 +276,25 @@ export const tourApi = {
     api(`/tours/${id}/schedules?page=1&pageSize=100`, PageSchema(ScheduleSchema), {
       retryAuth: false,
       anonymous: true,
+    }),
+};
+
+export const reviewApi = {
+  list: (tourId: string) =>
+    api(`/tours/${tourId}/reviews`, TourReviewListSchema, {
+      retryAuth: false,
+      anonymous: true,
+    }),
+
+  upsert: (tourId: string, input: z.input<typeof CreateTourReviewSchema>) =>
+    api(`/tours/${tourId}/reviews`, TourReviewSchema, {
+      method: 'POST',
+      body: CreateTourReviewSchema.parse(input),
+    }),
+
+  removeMine: (tourId: string) =>
+    api(`/tours/${tourId}/reviews/mine`, AckSchema, {
+      method: 'DELETE',
     }),
 };
 
@@ -315,6 +343,12 @@ export const bookingApi = {
 };
 
 export const paymentApi = {
+  providers: () =>
+    api('/payments/providers/status', PaymentProviderStatusSchema, {
+      retryAuth: false,
+      anonymous: true,
+    }),
+
   create: (input: z.input<typeof CreatePaymentSchema>) =>
     api('/payments', PaymentSchema, {
       method: 'POST',
@@ -322,6 +356,16 @@ export const paymentApi = {
     }),
 
   get: (id: string) => api(`/payments/${id}`, PaymentSchema),
+
+  byBooking: (bookingId: string) => api(`/payments/booking/${bookingId}`, PaymentSchema.nullable()),
+};
+
+export const systemApi = {
+  integrations: () =>
+    api('/health/integrations', IntegrationStatusSchema, {
+      retryAuth: false,
+      anonymous: true,
+    }),
 };
 
 export const assistantApi = {
@@ -337,6 +381,32 @@ export const assistantApi = {
     api('/assistant/provider-status', AssistantProviderStatusSchema, {
       retryAuth: false,
       anonymous: true,
+    }),
+
+  createPlan: (input: z.input<typeof AgentPlanRequestSchema>) =>
+    api('/assistant/agent/plans', AgentPlanSchema, {
+      method: 'POST',
+      body: AgentPlanRequestSchema.parse(input),
+    }),
+
+  getPlan: (id: string) => api(`/assistant/agent/plans/${id}`, AgentPlanSchema),
+
+  updatePlan: (id: string, input: z.input<typeof AgentPlanUpdateSchema>) =>
+    api(`/assistant/agent/plans/${id}`, AgentPlanSchema, {
+      method: 'PATCH',
+      body: AgentPlanUpdateSchema.parse(input),
+    }),
+
+  approvePlan: (id: string, version: number) =>
+    api(`/assistant/agent/plans/${id}/approve`, AgentPlanSchema, {
+      method: 'POST',
+      body: AgentApprovalSchema.parse({ approved: true, version }),
+    }),
+
+  declinePlan: (id: string, reason?: string) =>
+    api(`/assistant/agent/plans/${id}/decline`, AgentPlanSchema, {
+      method: 'POST',
+      body: AgentDeclineSchema.parse(reason ? { reason } : {}),
     }),
 };
 
@@ -394,7 +464,7 @@ export const profileApi = {
   },
 };
 
-function tourPayload(input: Partial<CommercialTour>) {
+function tourPayload(input: Partial<z.infer<typeof TourSchema>>) {
   return {
     title: input.title,
     slug: input.slug,
@@ -402,6 +472,10 @@ function tourPayload(input: Partial<CommercialTour>) {
     destination: input.destination,
     countryCode: input.countryCode || 'VN',
     durationDays: input.durationDays,
+    imageUrl: input.imageUrl,
+    galleryImages: input.galleryImages,
+    itinerary: input.itinerary,
+    commercial: input.commercial,
     status: input.status,
   };
 }
@@ -411,13 +485,20 @@ export const adminApi = {
 
   tours: () => api('/admin/tours?page=1&pageSize=100', PageSchema(TourSchema)),
 
-  createTour: (input: Partial<CommercialTour>) =>
+  tour: async (id: string) => {
+    const page = await adminApi.tours();
+    const tour = page.items.find((item) => item.id === id);
+    if (!tour) throw new ApiError(404, 'TOUR_NOT_FOUND', 'Không tìm thấy tour.');
+    return tour;
+  },
+
+  createTour: (input: Partial<z.infer<typeof TourSchema>>) =>
     api('/admin/tours', TourSchema, {
       method: 'POST',
       body: CreateTourSchema.parse(tourPayload(input)),
     }),
 
-  updateTour: (id: string, input: Partial<CommercialTour>) => {
+  updateTour: (id: string, input: Partial<z.infer<typeof TourSchema>>) => {
     const candidate = Object.fromEntries(
       Object.entries(tourPayload(input)).filter(([, value]) => value !== undefined),
     );
@@ -456,6 +537,55 @@ export const adminApi = {
       method: 'PATCH',
       body: UpdateScheduleSchema.parse(input),
     }),
+
+  createTourMediaUpload: (tourId: string, input: z.input<typeof TourMediaUploadRequestSchema>) =>
+    api(`/admin/tours/${tourId}/media/upload-url`, TourMediaUploadTicketSchema, {
+      method: 'POST',
+      body: TourMediaUploadRequestSchema.parse(input),
+    }),
+
+  completeTourMediaUpload: (tourId: string, uploadId: string) =>
+    api(`/admin/tours/${tourId}/media/complete`, TourMediaCompleteResultSchema, {
+      method: 'POST',
+      body: TourMediaCompleteSchema.parse({ uploadId }),
+    }),
+
+  uploadTourImage: async (
+    tourId: string,
+    file: File,
+    slot: 'COVER' | 'GALLERY' | 'ITINERARY',
+    day?: number,
+  ) => {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      throw new ApiError(400, 'INVALID_TOUR_IMAGE_TYPE', 'Ảnh tour phải là JPEG, PNG hoặc WebP.');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new ApiError(400, 'TOUR_IMAGE_TOO_LARGE', 'Mỗi ảnh tour không được vượt quá 5 MB.');
+    }
+    const ticket = await adminApi.createTourMediaUpload(tourId, {
+      contentType: file.type as 'image/jpeg' | 'image/png' | 'image/webp',
+      sizeBytes: file.size,
+      slot,
+      day: day ?? null,
+    });
+    const form = new FormData();
+    form.append('cacheControl', '3600');
+    form.append('', file, file.name || 'tour-image');
+    const upload = await fetch(ticket.signedUrl, {
+      method: 'PUT',
+      headers: { 'x-upsert': 'false' },
+      body: form,
+    });
+    if (!upload.ok) {
+      throw new ApiError(
+        upload.status,
+        'TOUR_IMAGE_UPLOAD_FAILED',
+        'Không tải được ảnh tour lên Storage.',
+      );
+    }
+    const completed = await adminApi.completeTourMediaUpload(tourId, ticket.uploadId);
+    return completed.url;
+  },
 
   bookings: () => api('/admin/bookings?page=1&pageSize=100', PageSchema(BookingSchema)),
 

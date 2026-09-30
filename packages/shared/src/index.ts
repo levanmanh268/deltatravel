@@ -14,6 +14,15 @@ export const BookingStatusSchema = z.enum([
 export const TourStatusSchema = z.enum(['DRAFT', 'ACTIVE', 'INACTIVE']);
 export const ScheduleStatusSchema = z.enum(['OPEN', 'CLOSED']);
 export const ProviderSchema = z.enum(['VNPAY', 'MOMO', 'ZALOPAY', 'CASH']);
+export const PaymentChannelSchema = z.enum([
+  'VNPAY_DEFAULT',
+  'VNPAY_QR',
+  'VNPAY_DOMESTIC',
+  'VNPAY_INTERNATIONAL',
+  'MOMO_WALLET',
+  'MOMO_ATM',
+  'MOMO_CARD',
+]);
 export const PaymentStatusSchema = z.enum([
   'INITIATED',
   'SUCCEEDED',
@@ -24,6 +33,7 @@ export const PaymentStatusSchema = z.enum([
 export type Role = z.infer<typeof RoleSchema>;
 export type BookingStatus = z.infer<typeof BookingStatusSchema>;
 export type Provider = z.infer<typeof ProviderSchema>;
+export type PaymentChannel = z.infer<typeof PaymentChannelSchema>;
 export const BOOKING_LABELS: Record<BookingStatus, string> = {
   PENDING_PAYMENT: 'CHỜ THANH TOÁN',
   AWAITING_CASH: 'CHỜ THANH TOÁN TIỀN MẶT',
@@ -71,6 +81,34 @@ export const TourQuerySchema = PaginationSchema.extend({
   q: z.string().trim().max(100).optional(),
   destination: z.string().trim().max(100).optional(),
 });
+export const TourItineraryDaySchema = z
+  .object({
+    day: z.number().int().min(1).max(60),
+    title: z.string().trim().min(3).max(200),
+    activities: z.array(z.string().trim().min(2).max(500)).min(1).max(20),
+    meals: z.string().trim().max(200).nullable().default(null),
+    stay: z.string().trim().max(200).nullable().default(null),
+    imageUrl: z.string().url().max(2000).nullable().default(null),
+  })
+  .strict();
+
+export const TourCommercialSchema = z
+  .object({
+    departureBasis: z.string().trim().min(3).max(300),
+    transport: z.array(z.string().trim().min(2).max(300)).min(1).max(20),
+    included: z.array(z.string().trim().min(2).max(500)).min(1).max(30),
+    notIncluded: z.array(z.string().trim().min(2).max(500)).max(30).default([]),
+    optionalCosts: z.array(z.string().trim().min(2).max(500)).max(30).default([]),
+    cancellationPolicy: z.string().trim().min(5).max(2000),
+    dateChangePolicy: z.string().trim().min(5).max(2000),
+    refundPolicy: z.string().trim().min(5).max(2000),
+    singleRoomPolicy: z.string().trim().min(5).max(2000),
+    childPolicy: z.string().trim().min(5).max(2000),
+    weatherPolicy: z.string().trim().min(5).max(2000),
+    incidentalCostPolicy: z.string().trim().min(5).max(2000),
+  })
+  .strict();
+
 export const CreateTourSchema = z
   .object({
     title: z.string().trim().min(3).max(150),
@@ -82,6 +120,10 @@ export const CreateTourSchema = z
     destination: z.string().trim().min(2).max(100),
     countryCode: z.literal('VN').default('VN'),
     durationDays: z.number().int().min(1).max(60),
+    imageUrl: z.string().url().max(2000).nullable().default(null),
+    galleryImages: z.array(z.string().url().max(2000)).max(20).default([]),
+    itinerary: z.array(TourItineraryDaySchema).max(60).default([]),
+    commercial: TourCommercialSchema.nullable().default(null),
     status: TourStatusSchema.default('DRAFT'),
   })
   .strict();
@@ -90,6 +132,7 @@ export const CreateScheduleSchema = z
   .object({
     tourId: IdSchema,
     departureAt: IsoDateSchema,
+    durationDays: z.number().int().min(1).max(60).optional(),
     totalSeats: z.number().int().min(1).max(10000),
     adultPrice: MoneySchema.max(99_999_999),
     childPrice: MoneySchema.max(99_999_999),
@@ -114,8 +157,25 @@ export const AssistantBookingProposalSchema = CreateBookingSchema.extend({
 export const CancelSchema = z.object({ reason: z.string().trim().min(3).max(500) }).strict();
 export const TransitionSchema = z.object({ status: z.enum(['CONFIRMED', 'COMPLETED']) }).strict();
 export const CreatePaymentSchema = z
-  .object({ bookingId: IdSchema, provider: ProviderSchema })
-  .strict();
+  .object({
+    bookingId: IdSchema,
+    provider: ProviderSchema,
+    channel: PaymentChannelSchema.optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (!value.channel) return;
+    const matches =
+      (value.provider === 'VNPAY' && value.channel.startsWith('VNPAY_')) ||
+      (value.provider === 'MOMO' && value.channel.startsWith('MOMO_'));
+    if (!matches) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['channel'],
+        message: 'Kênh thanh toán không thuộc cổng đã chọn',
+      });
+    }
+  });
 export const RefundRecordSchema = z
   .object({ reference: z.string().trim().min(3).max(100), note: z.string().trim().min(3).max(500) })
   .strict();
@@ -126,10 +186,27 @@ export const CashReceiptSchema = z
   })
   .strict();
 export const IdempotencyKeySchema = z.string().uuid();
+export const AssistantPageContextSchema = z
+  .object({
+    kind: z.enum([
+      'GENERAL',
+      'TOUR_LIST',
+      'TOUR_DETAIL',
+      'CHECKOUT',
+      'BOOKING_LIST',
+      'BOOKING_DETAIL',
+      'PAYMENT_RETURN',
+      'ACCOUNT',
+    ]),
+    entityId: IdSchema.optional(),
+  })
+  .strict();
+
 export const AssistantRequestSchema = z
   .object({
     message: z.string().trim().min(1).max(2000),
     lang: z.enum(['vi', 'en']).optional(),
+    pageContext: AssistantPageContextSchema.optional(),
     history: z
       .array(
         z.object({ role: z.enum(['user', 'assistant']), content: z.string().max(2000) }).strict(),
@@ -138,6 +215,39 @@ export const AssistantRequestSchema = z
       .default([]),
   })
   .strict();
+
+export const CreateTourReviewSchema = z
+  .object({
+    rating: z.number().int().min(1).max(5),
+    comment: z.string().trim().min(3).max(1200),
+  })
+  .strict();
+
+export const TourReviewSchema = z.object({
+  id: IdSchema,
+  tourId: IdSchema,
+  rating: z.number().int().min(1).max(5),
+  comment: z.string(),
+  authorName: z.string(),
+  authorAvatarUrl: z.string().url().nullable(),
+  verifiedPurchase: z.boolean(),
+  createdAt: IsoDateSchema,
+  updatedAt: IsoDateSchema,
+});
+
+export const TourReviewListSchema = z.object({
+  summary: z.object({
+    average: z.number().min(0).max(5),
+    count: z.number().int().min(0),
+    breakdown: z.array(
+      z.object({
+        rating: z.number().int().min(1).max(5),
+        count: z.number().int().min(0),
+      }),
+    ),
+  }),
+  items: z.array(TourReviewSchema),
+});
 
 // Public DTOs never expose database entities, credential hashes or provider secrets.
 export const UserSchema = z.object({
@@ -157,8 +267,12 @@ export const TourSchema = CreateTourSchema.extend({
   id: IdSchema,
   createdAt: IsoDateSchema,
   updatedAt: IsoDateSchema,
+  fromPrice: MoneySchema.nullable().optional(),
+  ratingAverage: z.number().min(0).max(5).nullable().optional(),
+  ratingCount: z.number().int().nonnegative().optional(),
 });
 export const ScheduleSchema = CreateScheduleSchema.extend({
+  durationDays: z.number().int().min(1).max(60),
   id: IdSchema,
   reservedSeats: z.number().int(),
   availableSeats: z.number().int(),
@@ -173,6 +287,7 @@ export const BookingDetailSchema = z.object({
 export const BookingSchema = z.object({
   id: IdSchema,
   scheduleId: IdSchema,
+  tourId: IdSchema,
   status: BookingStatusSchema,
   adults: z.number().int(),
   children: z.number().int(),
@@ -213,6 +328,175 @@ export const PaymentSchema = z.object({
   checkoutUrl: z.string().url().nullable(),
   createdAt: IsoDateSchema,
 });
+export const PaymentProviderCapabilitySchema = z.object({
+  provider: ProviderSchema,
+  available: z.boolean(),
+  label: z.string(),
+  kind: z.enum(['OFFLINE', 'WALLET', 'GATEWAY']),
+  requiresExternalAuthorization: z.boolean(),
+  environment: z.enum(['INTERNAL', 'SANDBOX', 'PRODUCTION', 'UNCONFIGURED']),
+  reason: z.string().nullable(),
+  channels: z.array(PaymentChannelSchema).default([]),
+});
+export const PaymentProviderStatusSchema = z.object({
+  providers: z.array(PaymentProviderCapabilitySchema),
+  returnOrigin: z.string().url(),
+});
+export const IntegrationStatusSchema = z.object({
+  mailProvider: z.string(),
+  aiProvider: z.string().nullable(),
+  aiConfigured: z.boolean(),
+  avatarStorageConfigured: z.boolean(),
+  payments: z.object({
+    cashConfigured: z.boolean(),
+    vnpayConfigured: z.boolean(),
+    momoConfigured: z.boolean(),
+    zalopayConfigured: z.boolean(),
+  }),
+});
+export const AgentPlanStatusSchema = z.enum([
+  'NEEDS_INPUT',
+  'NO_MATCH',
+  'READY_FOR_APPROVAL',
+  'REAPPROVAL_REQUIRED',
+  'EXECUTING',
+  'PAYMENT_RETRY_REQUIRED',
+  'ACTION_REQUIRED',
+  'COMPLETED',
+  'DECLINED',
+]);
+export const AgentStepStateSchema = z.enum([
+  'DONE',
+  'READY',
+  'WAITING_APPROVAL',
+  'BLOCKED',
+  'ACTION_REQUIRED',
+]);
+export const AgentMissingFieldSchema = z.enum([
+  'PARTY',
+  'CONTACT_PHONE',
+  'PAYMENT_METHOD',
+  'TOUR_OR_SCHEDULE',
+]);
+export const AgentPlanRequestSchema = z
+  .object({
+    message: z.string().trim().min(1).max(2000),
+    lang: z.enum(['vi', 'en']).default('vi'),
+    adults: z.number().int().min(1).max(100).optional(),
+    children: z.number().int().min(0).max(100).optional(),
+    budgetVnd: MoneySchema.optional(),
+    destination: z.string().trim().min(2).max(100).optional(),
+    durationDays: z.number().int().min(1).max(60).optional(),
+    departureFrom: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    departureTo: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    contactPhone: z
+      .string()
+      .regex(/^(?:\+84|0)[0-9]{9,10}$/)
+      .optional(),
+    provider: ProviderSchema.optional(),
+    scheduleId: IdSchema.optional(),
+  })
+  .strict();
+export const AgentPlanUpdateSchema = AgentPlanRequestSchema.omit({ message: true, lang: true })
+  .partial()
+  .strict();
+export const AgentApprovalSchema = z
+  .object({
+    approved: z.literal(true),
+    version: z.number().int().positive(),
+  })
+  .strict();
+export const AgentDeclineSchema = z
+  .object({ reason: z.string().trim().min(3).max(500).optional() })
+  .strict();
+
+export const AgentCandidateSchema = z.object({
+  tourId: IdSchema,
+  tourTitle: z.string(),
+  destination: z.string(),
+  durationDays: z.number().int(),
+  scheduleId: IdSchema,
+  departureAt: IsoDateSchema,
+  availableSeats: z.number().int().min(0),
+  adultPrice: MoneySchema,
+  childPrice: MoneySchema,
+  totalAmount: MoneySchema,
+  currency: z.literal('VND'),
+});
+export const AgentPlanStepSchema = z.object({
+  id: z.enum([
+    'UNDERSTAND',
+    'SEARCH',
+    'VERIFY',
+    'APPROVAL',
+    'CREATE_BOOKING',
+    'CREATE_PAYMENT',
+    'VERIFY_RESULT',
+  ]),
+  label: z.string(),
+  state: AgentStepStateSchema,
+  detail: z.string().optional(),
+});
+export const AgentPaymentOptionSchema = z.object({
+  provider: ProviderSchema,
+  available: z.boolean(),
+  label: z.string(),
+  requiresExternalAuthorization: z.boolean(),
+});
+export const AgentCheckpointSchema = z.object({
+  title: z.string(),
+  summary: z.string(),
+  effects: z.array(z.string()).max(8),
+  requiresExplicitApproval: z.literal(true),
+  version: z.number().int().positive(),
+});
+export const AgentNextActionSchema = z
+  .object({
+    type: z.enum(['OPEN_PAYMENT', 'OPEN_BOOKING']),
+    label: z.string(),
+    href: z.string(),
+  })
+  .nullable();
+export const AgentPlanSchema = z.object({
+  id: IdSchema,
+  version: z.number().int().positive(),
+  status: AgentPlanStatusSchema,
+  mode: z.enum(['GROQ', 'GEMINI', 'RULE_BASED']),
+  createdAt: IsoDateSchema,
+  expiresAt: IsoDateSchema,
+  summary: z.string(),
+  rationale: z.string(),
+  constraints: z.object({
+    destination: z.string().nullable(),
+    adults: z.number().int().min(1).max(100).nullable(),
+    children: z.number().int().min(0).max(100),
+    budgetVnd: MoneySchema.nullable(),
+    durationDays: z.number().int().min(1).max(60).nullable(),
+    departureFrom: z.string().nullable(),
+    departureTo: z.string().nullable(),
+    contactName: z.string(),
+    contactEmail: z.string().email(),
+    contactPhone: z.string().nullable(),
+    provider: ProviderSchema.nullable(),
+  }),
+  missingFields: z.array(AgentMissingFieldSchema),
+  candidates: z.array(AgentCandidateSchema).max(5),
+  selectedScheduleId: IdSchema.nullable(),
+  paymentOptions: z.array(AgentPaymentOptionSchema),
+  steps: z.array(AgentPlanStepSchema),
+  checkpoint: AgentCheckpointSchema.nullable(),
+  booking: BookingSchema.nullable(),
+  payment: PaymentSchema.nullable(),
+  nextAction: AgentNextActionSchema,
+  lastError: z.string().nullable(),
+});
+
 export const AssistantBookingProposalResultSchema = z.object({
   proposalId: IdSchema,
   kind: z.literal('CREATE_BOOKING'),
@@ -246,6 +530,36 @@ export const AvatarUploadTicketSchema = z.object({
   expiresIn: z.literal(7200),
 });
 export const AvatarCompleteSchema = z.object({ uploadId: IdSchema }).strict();
+export const TourMediaSlotSchema = z.enum(['COVER', 'GALLERY', 'ITINERARY']);
+export const TourMediaUploadRequestSchema = z
+  .object({
+    contentType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+    sizeBytes: z
+      .number()
+      .int()
+      .positive()
+      .max(5 * 1024 * 1024),
+    slot: TourMediaSlotSchema,
+    day: z.number().int().min(1).max(60).nullable().optional(),
+  })
+  .strict()
+  .refine(
+    (value) => value.slot !== 'ITINERARY' || (value.day !== null && value.day !== undefined),
+    {
+      message: 'Ảnh lịch trình phải chỉ rõ số ngày',
+      path: ['day'],
+    },
+  );
+export const TourMediaUploadTicketSchema = AvatarUploadTicketSchema.extend({
+  slot: TourMediaSlotSchema,
+  day: z.number().int().min(1).max(60).nullable(),
+});
+export const TourMediaCompleteSchema = z.object({ uploadId: IdSchema }).strict();
+export const TourMediaCompleteResultSchema = z.object({
+  url: z.string().url(),
+  slot: TourMediaSlotSchema,
+  day: z.number().int().min(1).max(60).nullable(),
+});
 export const AssistantProviderStatusSchema = z.object({
   preferredProvider: z.enum(['GROQ', 'GEMINI']).nullable(),
   groqConfigured: z.boolean(),
@@ -305,11 +619,21 @@ export const ErrorSchema = z.object({
 });
 export type User = z.infer<typeof UserSchema>;
 export type Tour = z.infer<typeof TourSchema>;
+export type TourItineraryDay = z.infer<typeof TourItineraryDaySchema>;
+export type TourCommercial = z.infer<typeof TourCommercialSchema>;
 export type Schedule = z.infer<typeof ScheduleSchema>;
 export type Booking = z.infer<typeof BookingSchema>;
 export type Payment = z.infer<typeof PaymentSchema>;
+export type PaymentProviderCapability = z.infer<typeof PaymentProviderCapabilitySchema>;
+export type IntegrationStatus = z.infer<typeof IntegrationStatusSchema>;
 export type AuthResult = z.infer<typeof AuthResultSchema>;
 export type AssistantResult = z.infer<typeof AssistantResultSchema>;
+export type AssistantPageContext = z.infer<typeof AssistantPageContextSchema>;
+export type TourReview = z.infer<typeof TourReviewSchema>;
+export type TourReviewList = z.infer<typeof TourReviewListSchema>;
+export type AgentPlan = z.infer<typeof AgentPlanSchema>;
+export type AgentPlanRequest = z.infer<typeof AgentPlanRequestSchema>;
+export type AgentPlanUpdate = z.infer<typeof AgentPlanUpdateSchema>;
 export type CreateBookingInput = z.infer<typeof CreateBookingSchema>;
 export type QuoteInput = z.infer<typeof QuoteSchema>;
 export type Page<T> = { items: T[]; page: number; pageSize: number; total: number };

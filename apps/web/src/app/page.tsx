@@ -9,11 +9,12 @@ import type { Tour } from '@tour/shared';
 import { Scroll3DHero } from '@/components/scroll-3d-hero';
 import { formatVND } from '@/lib/format';
 import { useLanguage } from '@/providers/language-provider';
-import { FALLBACK_TOURS, filterFallbackTours, getLocalizedTour } from '@/lib/fallback-data';
+import { getLocalizedTour, inferTourRegion } from '@/lib/fallback-data';
 import { getTourImage, getTourLuxuryTag } from '@/lib/tour-assets';
 import { GiantScrollTypography } from '@/components/giant-scroll-typography';
 import { LuxuryPreloader } from '@/components/luxury-preloader';
 import { LiquidGlassBadge } from '@/components/ui/liquid-glass-badge';
+import { AiContextCard } from '@/components/ai-context-card';
 import {
   MapPin,
   Calendar,
@@ -25,6 +26,7 @@ import {
   Star,
   Crown,
   Compass,
+  Bot,
 } from 'lucide-react';
 
 // Apple-Grade Liquid Glass Tour Cards
@@ -37,23 +39,11 @@ function TourCardsGrid({
   t: (k: string) => string;
   lang: 'vi' | 'en';
 }) {
-  const getTourPrice = (tour: Tour): number => {
-    if (
-      'adultPrice' in tour &&
-      typeof (tour as any).adultPrice === 'number' &&
-      (tour as any).adultPrice > 0
-    ) {
-      return (tour as any).adultPrice;
-    }
-    const match = FALLBACK_TOURS.find((f) => f.id === tour.id || f.slug === tour.slug);
-    return match ? match.adultPrice : 2450000;
-  };
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {tours.map((rawTour, i) => {
         const tour = getLocalizedTour(rawTour, lang);
-        const price = getTourPrice(tour);
+        const price = rawTour.fromPrice ?? null;
         const luxuryTag = getTourLuxuryTag(tour, lang);
         const heroImage = getTourImage(tour);
 
@@ -138,10 +128,16 @@ function TourCardsGrid({
                     {t('card_price_from')}
                   </span>
                   <span className="text-sm font-black text-black tracking-tight">
-                    {formatVND(price)}
-                    <span className="text-[10px] font-medium text-neutral-600 ml-1">
-                      {t('card_per_guest')}
-                    </span>
+                    {price !== null
+                      ? formatVND(price)
+                      : lang === 'en'
+                        ? 'View live schedules'
+                        : 'Xem lịch & giá thật'}
+                    {price !== null && (
+                      <span className="text-[10px] font-medium text-neutral-600 ml-1">
+                        {t('card_per_guest')}
+                      </span>
+                    )}
                   </span>
                 </div>
 
@@ -165,8 +161,9 @@ function HomeContent() {
   const urlRegion = searchParams.get('region') || '';
 
   const [activeTab, setActiveTab] = useState<string>(urlRegion);
-  const [allTours, setAllTours] = useState<Tour[]>(() => FALLBACK_TOURS);
-  const [loading, setLoading] = useState(false);
+  const [allTours, setAllTours] = useState<Tour[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tourLoadError, setTourLoadError] = useState('');
 
   // Sync state with URL query parameter
   useEffect(() => {
@@ -206,14 +203,27 @@ function HomeContent() {
   useEffect(() => {
     let active = true;
     const fetchTours = () => {
+      if (active) {
+        setLoading(true);
+        setTourLoadError('');
+      }
       tourApi
         .list()
         .then((res) => {
-          if (active) {
-            setAllTours(res.items);
-          }
+          if (active) setAllTours(res.items);
         })
-        .catch(() => {});
+        .catch((error) => {
+          if (!active) return;
+          setAllTours([]);
+          setTourLoadError(
+            error instanceof Error
+              ? error.message
+              : 'Không thể tải catalog production. Vui lòng thử lại.',
+          );
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
     };
 
     fetchTours();
@@ -241,13 +251,7 @@ function HomeContent() {
   };
 
   const displayedTours = activeTab
-    ? allTours.filter((tour) => {
-        if ('region' in tour && (tour as any).region) {
-          return (tour as any).region === activeTab;
-        }
-        const fb = FALLBACK_TOURS.find((f) => f.id === tour.id || f.slug === tour.slug);
-        return fb ? fb.region === activeTab : true;
-      })
+    ? allTours.filter((tour) => inferTourRegion(tour) === activeTab)
     : allTours;
 
   return (
@@ -257,6 +261,81 @@ function HomeContent() {
 
       {/* High-Performance 3D Scroll Scrubber */}
       <Scroll3DHero />
+
+      {/* AI-first primary journey */}
+      <section className="relative z-20 mx-auto -mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="overflow-hidden rounded-[32px] border border-white/50 bg-black text-white shadow-[0_35px_100px_-45px_rgba(0,0,0,0.75)]">
+          <div className="grid gap-0 lg:grid-cols-[1.35fr_.65fr]">
+            <div className="p-7 sm:p-9 lg:p-10">
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-amber-300">
+                <Sparkles className="h-4 w-4" />
+                DELTA AI AGENT • PRIMARY EXPERIENCE
+              </div>
+              <h1 className="mt-4 max-w-3xl text-2xl font-black tracking-tight text-white sm:text-4xl">
+                Nói chuyến đi bạn muốn. AI tự tìm, lập kế hoạch và đặt tour cùng bạn.
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/75">
+                AI kiểm tra tour, ngày khởi hành, ngân sách và số chỗ thật. Trước mọi hành động tạo
+                booking hoặc thanh toán, hệ thống dừng ở checkpoint để bạn quyết định Cho phép hoặc
+                Không cho phép.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/assistant"
+                  className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-6 py-3 text-xs font-black text-black transition hover:bg-amber-300"
+                >
+                  <Bot className="h-4 w-4" />
+                  Để AI đặt tour cho tôi
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+                <Link
+                  href="/tours"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3 text-xs font-black text-white transition hover:bg-white/15"
+                >
+                  Tôi muốn tự chọn tour
+                </Link>
+              </div>
+            </div>
+            <div className="border-t border-white/10 bg-white/[0.06] p-7 lg:border-l lg:border-t-0 lg:p-8">
+              <div className="flex h-full flex-col justify-center gap-4">
+                {[
+                  ['01', 'Hiểu yêu cầu tự nhiên'],
+                  ['02', 'Kiểm tra dữ liệu production'],
+                  ['03', 'Đề xuất phương án phù hợp'],
+                  ['04', 'Xin duyệt trước hành động thật'],
+                  ['05', 'Đặt tour & chuẩn bị thanh toán'],
+                ].map(([number, label]) => (
+                  <div key={number} className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-300/40 bg-amber-300/10 text-[10px] font-black text-amber-300">
+                      {number}
+                    </span>
+                    <span className="text-xs font-bold text-white/85">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative z-20 mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <AiContextCard
+          eyebrow="DELTA AI • LIVE PLANNER"
+          title="Bắt đầu chuyến đi bằng một câu nói, không phải bằng bộ lọc"
+          description="AI đang kết nối với catalog thật. Bạn vẫn có thể dùng toàn bộ giao diện thủ công của An ở phía dưới, nhưng luồng mặc định bây giờ bắt đầu từ AI."
+          prompt="Tôi muốn đi du lịch trong nước. Hãy giúp tôi tìm chuyến đi phù hợp nhất theo ngân sách, thời gian và số người."
+          context={`Homepage production; hiện có ${allTours.length} tour được tải từ backend.`}
+          suggestions={[
+            '2 người lớn, ngân sách 8 triệu, đi 3 ngày.',
+            'Tôi thích biển, muốn lịch còn nhiều chỗ.',
+            'Gợi ý chuyến đi miền Bắc cho cuối tuần.',
+          ]}
+          agentHref={
+            '/assistant?prompt=' +
+            encodeURIComponent('Hãy lập kế hoạch chuyến đi phù hợp nhất cho tôi.')
+          }
+        />
+      </section>
 
       {/* Content wrapper with overflow-hidden to protect parallax typography without breaking sticky */}
       <div className="relative overflow-hidden">
@@ -419,6 +498,24 @@ function HomeContent() {
                 </div>
               ))}
             </div>
+          ) : tourLoadError ? (
+            <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center">
+              <p className="text-sm font-bold text-red-900">
+                Không thể tải catalog tour production
+              </p>
+              <p className="mt-2 text-xs text-red-700">{tourLoadError}</p>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new Event('delta_tours_updated'))}
+                className="mt-4 rounded-full bg-black px-5 py-2 text-xs font-black text-white"
+              >
+                Thử tải lại
+              </button>
+            </div>
+          ) : displayedTours.length === 0 ? (
+            <div className="rounded-3xl border border-stone-200 bg-stone-50 p-8 text-center text-sm text-stone-600">
+              Chưa có tour production phù hợp với bộ lọc hiện tại.
+            </div>
           ) : (
             <TourCardsGrid tours={displayedTours} t={t} lang={lang} />
           )}
@@ -437,7 +534,7 @@ function HomeContent() {
         {/* ─── Iconic Destinations Showcase Section ─── */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-neutral-100">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 mb-2">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-800 mb-2">
               <Compass className="h-3.5 w-3.5 text-amber-500" />
               {t('dest_showcase_tag')}
             </span>
@@ -529,7 +626,7 @@ function HomeContent() {
         {/* ─── Signature Experiences & Activities Section ─── */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-neutral-100">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 mb-2">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-800 mb-2">
               <Sparkles className="h-3.5 w-3.5 text-amber-500" />
               {t('exp_tag')}
             </span>
@@ -606,7 +703,7 @@ function HomeContent() {
         {/* ─── Brand Guarantees — Apple Liquid Glass Prism Cards ─── */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 mb-2">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-800 mb-2">
               <Crown className="h-3 w-3 text-amber-500" />
               {t('phil_tag')}
             </span>
@@ -666,7 +763,7 @@ function HomeContent() {
         {/* ─── 4-Step Seamless Booking Process Section ─── */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-neutral-100">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 mb-2">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-800 mb-2">
               <Clock className="h-3.5 w-3.5 text-amber-500" />
               {t('proc_tag')}
             </span>
@@ -706,7 +803,7 @@ function HomeContent() {
                 className="relative liquid-glass-card rounded-[26px] p-7 transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between"
               >
                 <div>
-                  <span className="text-3xl font-black text-amber-400/90 font-mono block mb-4">
+                  <span className="text-3xl font-black text-amber-700 font-mono block mb-4">
                     {item.step}
                   </span>
                   <h3 className="text-base font-black text-black leading-snug tracking-tight">
@@ -757,7 +854,7 @@ function HomeContent() {
         {/* ─── Guest Testimonials & Reviews Section ─── */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-neutral-100">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 mb-2">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-800 mb-2">
               <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
               {t('rev_tag')}
             </span>
@@ -808,7 +905,7 @@ function HomeContent() {
                 </div>
 
                 <div className="mt-6 pt-5 border-t border-neutral-100">
-                  <h4 className="text-sm font-black text-black">{rev.name}</h4>
+                  <h3 className="text-sm font-black text-black">{rev.name}</h3>
                   <p className="text-[11px] text-neutral-500 font-medium">{rev.role}</p>
                   <span className="inline-block mt-1 text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
                     {rev.tour}
@@ -827,7 +924,7 @@ function HomeContent() {
 
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
               <div className="max-w-2xl">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 mb-2">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-amber-800 mb-2">
                   <Sparkles className="h-3.5 w-3.5 text-amber-500" />
                   {t('bespoke_tag')}
                 </span>
@@ -865,7 +962,18 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-white">
+          <h1 className="sr-only">
+            Delta Travel, nền tảng quảng bá và đặt tour du lịch nội địa Việt Nam
+          </h1>
+          <p className="sr-only" role="status" aria-live="polite">
+            Đang tải trải nghiệm Delta Travel.
+          </p>
+        </main>
+      }
+    >
       <HomeContent />
     </Suspense>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, FormEvent } from 'react';
+import { useEffect, useState, useMemo, useRef, FormEvent } from 'react';
 import Link from 'next/link';
 import { adminApi } from '@/lib/api';
 import type { Booking } from '@tour/shared';
@@ -57,25 +57,41 @@ export default function AdminBookingsPage() {
 
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const knownBookingIds = useRef<Set<string> | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const fetchBookings = () => {
-    setLoading(true);
+  const fetchBookings = (silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
     adminApi
       .bookings()
       .then((res) => {
+        if (silent && knownBookingIds.current) {
+          const newlyReceived = res.items.filter(
+            (booking) => !knownBookingIds.current!.has(booking.id),
+          );
+          if (newlyReceived.length > 0) {
+            showToast(
+              newlyReceived.length === 1
+                ? `Có đơn mới từ ${newlyReceived[0].contactName}. Mở danh sách để tiếp nhận.`
+                : `Có ${newlyReceived.length} đơn mới vừa gửi từ trang khách.`,
+            );
+          }
+        }
+        knownBookingIds.current = new Set(res.items.map((booking) => booking.id));
         setBookings(res.items);
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Không thể tải danh sách đơn đặt.');
+        if (!silent) {
+          setError(err instanceof Error ? err.message : 'Không thể tải danh sách đơn đặt.');
+        }
       })
       .finally(() => {
-        setLoading(false);
+        if (!silent) setLoading(false);
       });
   };
 
@@ -83,10 +99,22 @@ export default function AdminBookingsPage() {
     fetchBookings();
 
     const handleUpdate = () => {
-      fetchBookings();
+      fetchBookings(true);
     };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') fetchBookings(true);
+    };
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') fetchBookings(true);
+    }, 15000);
+
     window.addEventListener('delta_bookings_updated', handleUpdate);
-    return () => window.removeEventListener('delta_bookings_updated', handleUpdate);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('delta_bookings_updated', handleUpdate);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
   }, []);
 
   // Filter Bookings in real time
@@ -248,7 +276,14 @@ export default function AdminBookingsPage() {
       description="Giám sát đơn đặt tour thời gian thực, quản lý đối soát giao dịch, cập nhật tiến trình thanh toán và xuất sao kê tài chính chuẩn thương mại."
       action={
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={fetchBookings} className="text-xs gap-1.5 shadow-sm">
+          <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-[10px] font-bold text-emerald-800 sm:inline-flex">
+            Tự đồng bộ mỗi 15 giây
+          </span>
+          <Button
+            variant="outline"
+            onClick={() => fetchBookings()}
+            className="text-xs gap-1.5 shadow-sm"
+          >
             <RefreshCcw className="h-3.5 w-3.5" />
             <span>Tải lại</span>
           </Button>
@@ -429,7 +464,7 @@ export default function AdminBookingsPage() {
         <div className="rounded-2xl border border-stone-200 bg-white p-10 text-center shadow-sm">
           <p className="text-sm font-bold text-stone-800 mb-1">Lỗi tải danh sách đơn</p>
           <p className="text-xs text-stone-500 mb-4">{error}</p>
-          <Button variant="outline" onClick={fetchBookings}>
+          <Button variant="outline" onClick={() => fetchBookings()}>
             Thử lại
           </Button>
         </div>
@@ -496,7 +531,7 @@ export default function AdminBookingsPage() {
                   <tr key={booking.id} className="hover:bg-stone-50/70 transition">
                     <td className="py-4 px-4 sm:px-6 max-w-xs">
                       <Link
-                        href={`/bookings/${booking.id}`}
+                        href={`/admin/bookings/${booking.id}`}
                         className="font-bold text-stone-900 hover:text-amber-800 transition block truncate text-xs"
                       >
                         {booking.tourTitle}

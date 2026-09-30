@@ -3,11 +3,12 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { bookingApi, paymentApi } from '@/lib/api';
-import type { Booking, Provider } from '@tour/shared';
+import type { Booking, PaymentChannel, Provider } from '@tour/shared';
 import { BOOKING_LABELS } from '@tour/shared';
 import { formatVND, formatDate, formatDateTime } from '@/lib/format';
 import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
+import { AiContextCard } from '@/components/ai-context-card';
 import {
   Calendar,
   Clock,
@@ -30,10 +31,20 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/providers/language-provider';
 
-type PaymentMethod = Provider | 'DIRECT';
+type PaymentMethod =
+  | 'DIRECT'
+  | 'VNPAY_QR'
+  | 'VNPAY_DOMESTIC'
+  | 'VNPAY_INTERNATIONAL'
+  | 'MOMO_WALLET'
+  | 'MOMO_ATM'
+  | 'MOMO_CARD'
+  | 'ZALOPAY';
 
 interface PaymentOption {
   id: PaymentMethod;
+  provider: Provider;
+  channel?: PaymentChannel;
   label: string;
   badge?: string;
   desc: string;
@@ -49,28 +60,86 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Zero-cost sandbox-ready channels stay explicit so the UI never implies a gateway is live.
   const paymentOptions: PaymentOption[] = [
     {
       id: 'DIRECT',
+      provider: 'CASH',
       label: t('bk_pay_direct_label'),
       desc: t('bk_pay_direct_desc'),
       icon: <Banknote className="h-5 w-5 text-emerald-600" />,
     },
     {
-      id: 'VNPAY',
-      label: t('bk_pay_vnpay_label'),
-      desc: t('bk_pay_vnpay_desc'),
+      id: 'VNPAY_QR',
+      provider: 'VNPAY',
+      channel: 'VNPAY_QR',
+      label: 'VNPay QR',
+      desc:
+        lang === 'en'
+          ? 'Scan a VNPay QR code in the official gateway.'
+          : 'Quét mã VNPay QR trên cổng thanh toán chính thức.',
       icon: <CreditCard className="h-5 w-5 text-blue-600" />,
     },
     {
-      id: 'MOMO',
-      label: t('bk_pay_momo_label'),
-      desc: t('bk_pay_momo_desc'),
+      id: 'VNPAY_DOMESTIC',
+      provider: 'VNPAY',
+      channel: 'VNPAY_DOMESTIC',
+      label: lang === 'en' ? 'VNPay · Domestic ATM / Bank' : 'VNPay · ATM / Ngân hàng nội địa',
+      desc:
+        lang === 'en'
+          ? 'Domestic ATM card or Vietnamese bank account via VNPay.'
+          : 'Thẻ ATM hoặc tài khoản ngân hàng nội địa qua VNPay.',
+      icon: <Building2 className="h-5 w-5 text-blue-700" />,
+    },
+    {
+      id: 'VNPAY_INTERNATIONAL',
+      provider: 'VNPAY',
+      channel: 'VNPAY_INTERNATIONAL',
+      label: lang === 'en' ? 'VNPay · International Card' : 'VNPay · Thẻ quốc tế',
+      desc:
+        lang === 'en'
+          ? 'International card checkout through VNPay.'
+          : 'Thanh toán thẻ quốc tế qua cổng VNPay.',
+      icon: <CreditCard className="h-5 w-5 text-indigo-600" />,
+    },
+    {
+      id: 'MOMO_WALLET',
+      provider: 'MOMO',
+      channel: 'MOMO_WALLET',
+      label: lang === 'en' ? 'MoMo Wallet' : 'Ví MoMo',
+      desc:
+        lang === 'en'
+          ? 'One-time checkout with the MoMo wallet.'
+          : 'Thanh toán một lần bằng ví MoMo.',
       icon: <Wallet className="h-5 w-5 text-pink-600" />,
     },
     {
+      id: 'MOMO_ATM',
+      provider: 'MOMO',
+      channel: 'MOMO_ATM',
+      label: lang === 'en' ? 'MoMo · Domestic ATM' : 'MoMo · Thẻ ATM nội địa',
+      desc:
+        lang === 'en'
+          ? 'Domestic ATM card through the MoMo payment gateway.'
+          : 'Thanh toán thẻ ATM nội địa qua cổng MoMo.',
+      icon: <Building2 className="h-5 w-5 text-pink-700" />,
+    },
+    {
+      id: 'MOMO_CARD',
+      provider: 'MOMO',
+      channel: 'MOMO_CARD',
+      label: lang === 'en' ? 'MoMo · International Card' : 'MoMo · Thẻ quốc tế',
+      desc:
+        lang === 'en'
+          ? 'International credit/debit card through MoMo.'
+          : 'Thanh toán thẻ quốc tế qua cổng MoMo.',
+      icon: <CreditCard className="h-5 w-5 text-fuchsia-700" />,
+    },
+    {
       id: 'ZALOPAY',
+      provider: 'ZALOPAY',
       label: t('bk_pay_zalopay_label'),
+      badge: 'SANDBOX · 0₫',
       desc: t('bk_pay_zalopay_desc'),
       icon: <Coins className="h-5 w-5 text-cyan-600" />,
     },
@@ -101,6 +170,10 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const [paying, setPaying] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [directPaymentSuccess, setDirectPaymentSuccess] = useState(false);
+  const [paymentCapabilities, setPaymentCapabilities] = useState<Awaited<
+    ReturnType<typeof paymentApi.providers>
+  > | null>(null);
+  const [paymentCapabilitiesLoading, setPaymentCapabilitiesLoading] = useState(true);
 
   // Cancel booking modal
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -127,6 +200,25 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   useEffect(() => {
     fetchBooking();
   }, [bookingId]);
+
+  useEffect(() => {
+    let active = true;
+    setPaymentCapabilitiesLoading(true);
+    paymentApi
+      .providers()
+      .then((data) => {
+        if (active) setPaymentCapabilities(data);
+      })
+      .catch(() => {
+        if (active) setPaymentCapabilities(null);
+      })
+      .finally(() => {
+        if (active) setPaymentCapabilitiesLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Accurate countdown based on expiresAt and serverTime
   useEffect(() => {
@@ -157,6 +249,20 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
 
   const handlePay = async () => {
     if (!booking) return;
+
+    const selected = paymentOptions.find((option) => option.id === selectedMethod);
+    if (!selected) return;
+    const provider = selected.provider;
+    const capability = paymentCapabilities?.providers.find((item) => item.provider === provider);
+
+    if (provider !== 'CASH' && (!capability || !capability.available)) {
+      setPaymentError(
+        capability?.reason ||
+          'Cổng thanh toán này chưa được cấu hình trên server. Hãy chọn phương thức khác.',
+      );
+      return;
+    }
+
     setPaying(true);
     setPaymentError(null);
 
@@ -165,7 +271,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       try {
         await paymentApi.create({
           bookingId: booking.id,
-          provider: 'CASH',
+          provider,
         });
         const updated = await bookingApi.get(booking.id);
         setBooking(updated);
@@ -186,7 +292,8 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
     try {
       const payment = await paymentApi.create({
         bookingId: booking.id,
-        provider: selectedMethod,
+        provider,
+        ...(selected.channel ? { channel: selected.channel } : {}),
       });
 
       if (payment.checkoutUrl) {
@@ -265,6 +372,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const isPending = booking.status === 'PENDING_PAYMENT';
+  const isAwaitingCash = booking.status === 'AWAITING_CASH';
   const isPaid = booking.status === 'PAID';
   const isConfirmed = booking.status === 'CONFIRMED';
   const isCancelled = booking.status === 'CANCELLED';
@@ -272,6 +380,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
 
   const statusKeyMap: Record<string, string> = {
     PENDING_PAYMENT: 'bk_status_pending_label',
+    AWAITING_CASH: 'bk_status_cash_label',
     PAID: 'bk_status_paid_label',
     CONFIRMED: 'bk_status_confirmed_label',
     COMPLETED: 'bk_status_completed_label',
@@ -315,6 +424,21 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
         </div>
       }
     >
+      <AiContextCard
+        eyebrow="DELTA AI • BOOKING CONCIERGE"
+        title="AI giải thích đơn này và chủ động chỉ ra bước tiếp theo"
+        description="AI chỉ đọc dữ liệu mà tài khoản của bạn được phép thấy. Hủy hoặc thanh toán vẫn đi qua quy tắc backend và thao tác xác nhận riêng."
+        prompt={`Tóm tắt booking ${booking.id}: trạng thái ${booking.status}, tour ${booking.tourTitle}, khởi hành ${booking.departureAt}, tổng tiền ${booking.totalAmount.toLocaleString('vi-VN')} VND. Tôi cần làm gì tiếp theo và có điều gì cần chú ý?`}
+        context={`Booking detail ${booking.id}; status ${booking.status}; customer đang xem chính đơn của mình.`}
+        suggestions={[
+          'Đơn này có thể hủy không?',
+          'Giải thích trạng thái thanh toán hiện tại.',
+          'Tôi cần chuẩn bị gì trước ngày khởi hành?',
+        ]}
+        autoRun
+        className="mb-8"
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Left Column: Booking Details & Contact Info */}
         <div className="lg:col-span-2 space-y-8">
@@ -343,6 +467,36 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                     </span>
                     <span className="font-mono text-2xl font-black text-amber-600">
                       {formatCountdown(timeLeftMs)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {isAwaitingCash && (
+            <div className="rounded-2xl border-2 border-blue-600 bg-blue-50/80 p-6 shadow-sm">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
+                    <Banknote className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black uppercase text-blue-950">
+                      {t('bk_status_cash_title')}
+                    </h3>
+                    <p className="mt-1 max-w-2xl text-xs leading-relaxed text-blue-800">
+                      {t('bk_status_cash_sub')}
+                    </p>
+                  </div>
+                </div>
+                {booking.cashDueAt && (
+                  <div className="shrink-0 rounded-xl border border-blue-200 bg-white/80 px-4 py-3 text-right">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-blue-500">
+                      {t('bk_status_cash_due')}
+                    </span>
+                    <span className="mt-1 block text-xs font-bold text-blue-950">
+                      {formatDateTime(booking.cashDueAt)}
                     </span>
                   </div>
                 )}
@@ -522,19 +676,40 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                 <label className="text-xs font-black uppercase tracking-wider text-stone-700 block">
                   {t('bk_payment_method_label')}
                 </label>
+                <p className="text-[11px] leading-relaxed text-stone-500">
+                  Cổng có nhãn SANDBOX chỉ dùng giao dịch thử nghiệm và không trừ tiền thật.
+                </p>
 
                 <div className="space-y-3">
                   {paymentOptions.map((opt) => {
                     const isSelected = selectedMethod === opt.id;
+                    const provider = opt.provider;
+                    const capability = paymentCapabilities?.providers.find(
+                      (item) => item.provider === provider,
+                    );
+                    const channelSupported =
+                      !opt.channel || Boolean(capability?.channels.includes(opt.channel));
+                    const available =
+                      provider === 'CASH'
+                        ? true
+                        : Boolean(capability?.available && channelSupported);
+                    const environment = capability?.environment;
 
                     return (
                       <div
                         key={opt.id}
-                        onClick={() => setSelectedMethod(opt.id)}
-                        className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+                        onClick={() => {
+                          if (available) setSelectedMethod(opt.id);
+                        }}
+                        aria-disabled={!available}
+                        className={`p-4 rounded-2xl border-2 transition-all ${
+                          available ? 'cursor-pointer' : 'cursor-not-allowed opacity-55'
+                        } ${
                           isSelected
                             ? 'border-black bg-stone-50 shadow-sm ring-1 ring-black'
-                            : 'border-stone-200 hover:border-stone-400 bg-white'
+                            : available
+                              ? 'border-stone-200 hover:border-stone-400 bg-white'
+                              : 'border-stone-200 bg-stone-50'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -548,8 +723,11 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                             type="radio"
                             name="paymentMethod"
                             checked={isSelected}
-                            onChange={() => setSelectedMethod(opt.id)}
-                            className="w-4 h-4 text-black cursor-pointer"
+                            disabled={!available}
+                            onChange={() => {
+                              if (available) setSelectedMethod(opt.id);
+                            }}
+                            className="w-4 h-4 text-black cursor-pointer disabled:cursor-not-allowed"
                           />
                         </div>
                         {opt.badge && (
@@ -558,8 +736,32 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                           </span>
                         )}
                         <p className="text-[11px] text-stone-500 mt-1.5 leading-relaxed">
-                          {opt.desc}
+                          {environment === 'SANDBOX'
+                            ? 'Môi trường thử nghiệm của cổng thanh toán. Không trừ tiền thật.'
+                            : opt.desc}
                         </p>
+                        {provider !== 'CASH' && (
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ${
+                                available
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-stone-200 text-stone-600'
+                              }`}
+                            >
+                              {paymentCapabilitiesLoading
+                                ? 'Đang kiểm tra'
+                                : available
+                                  ? 'Sẵn sàng'
+                                  : 'Chưa cấu hình'}
+                            </span>
+                            {available && environment && environment !== 'UNCONFIGURED' && (
+                              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-bold uppercase text-blue-700">
+                                {environment}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -577,7 +779,22 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
 
                 <Button
                   onClick={handlePay}
-                  disabled={paying}
+                  disabled={
+                    paying ||
+                    (() => {
+                      const selected = paymentOptions.find(
+                        (option) => option.id === selectedMethod,
+                      );
+                      if (!selected || selected.provider === 'CASH') return false;
+                      const capability = paymentCapabilities?.providers.find(
+                        (item) => item.provider === selected.provider,
+                      );
+                      return (
+                        !capability?.available ||
+                        Boolean(selected.channel && !capability.channels.includes(selected.channel))
+                      );
+                    })()
+                  }
                   className={`w-full py-4 rounded-full shadow-lg text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
                     selectedMethod === 'DIRECT'
                       ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
@@ -595,7 +812,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                       <span>
                         {paying
                           ? t('bk_connecting_gateway')
-                          : `${t('bk_pay_via')} ${selectedMethod}`}
+                          : `${t('bk_pay_via')} ${paymentOptions.find((option) => option.id === selectedMethod)?.label || selectedMethod}`}
                       </span>
                     </>
                   )}
