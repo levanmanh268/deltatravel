@@ -1,4 +1,4 @@
-name: Temporary Netlify Production Check
+name: Temporary Netlify Introspection
 
 on:
   push:
@@ -6,15 +6,18 @@ on:
       - manh/final-hardening-v3-20260930
 
 jobs:
-  check:
+  inspect:
     runs-on: ubuntu-latest
     steps:
-      - name: Check Netlify public deployment
+      - name: Inspect Netlify public site metadata
         shell: bash
         run: |
           set -euo pipefail
-          echo "ROOT_STATUS=$(curl -L -sS -o /tmp/root.html -w '%{http_code}' --max-time 30 https://deltatravel.netlify.app/)"
-          echo "ROOT_BYTES=$(wc -c < /tmp/root.html)"
-          echo "RELEASE_STATUS=$(curl -L -sS -o /tmp/release.json -w '%{http_code}' --max-time 30 https://deltatravel.netlify.app/api/release || true)"
-          echo "RELEASE_BODY=$(cat /tmp/release.json 2>/dev/null || true)"
-          grep -q "DELTA" /tmp/root.html && echo "NETLIFY_ROOT_CONTENT_PASS"
+          echo "=== SITE METADATA BY NAME ==="
+          curl -i -sS --max-time 30 https://api.netlify.com/api/v1/sites/deltatravel.netlify.app || true
+          echo
+          echo "=== PUBLIC HEADERS ==="
+          curl -I -sS --max-time 30 https://deltatravel.netlify.app/ || true
+          echo
+          echo "=== RELEASE ==="
+          curl -sS --max-time 30 https://deltatravel.netlify.app/api/release || true
