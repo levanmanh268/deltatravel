@@ -49,9 +49,11 @@ try {
   if (!tourListResponse.ok) {
     throw new Error(`Live tour API returned ${tourListResponse.status}`);
   }
-  const tourList = await tourListResponse.json();
-  const liveTourId = tourList?.items?.find((item) => typeof item?.id === 'string')?.id;
-  if (!liveTourId) throw new Error('No live tour ID returned by production API');
+  const tourEnvelope = await tourListResponse.json();
+  const liveTourId = tourEnvelope?.data?.items?.find(
+    (item) => typeof item?.id === 'string',
+  )?.id;
+  if (!liveTourId) throw new Error('No live tour ID returned by production API envelope');
 
   await page.getByTestId('ai-command-center-launcher').click();
   const center = page.getByTestId('ai-command-center');
