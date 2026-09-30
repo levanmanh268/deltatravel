@@ -7,10 +7,7 @@ export function GET() {
     {
       service: 'delta-travel-web',
       commit:
-        process.env.RENDER_GIT_COMMIT ??
-        process.env.COMMIT_REF ??
-        process.env.GITHUB_SHA ??
-        null,
+        process.env.RENDER_GIT_COMMIT ?? process.env.COMMIT_REF ?? process.env.GITHUB_SHA ?? null,
       provider: process.env.RENDER_GIT_COMMIT
         ? 'render'
         : process.env.COMMIT_REF
