@@ -1,0 +1,41 @@
+name: Temporary Main Landmark Diagnostic
+
+on:
+  push:
+    branches:
+      - manh/final-hardening-v3-20260930
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: manh/integrate-production-api
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm install --no-save playwright
+      - run: npx playwright install --with-deps chromium
+      - name: Inspect homepage landmarks
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({headless:true});
+          const page = await browser.newPage({viewport:{width:1440,height:900}});
+          await page.addInitScript(() => sessionStorage.setItem('delta_intro_played','true'));
+          await page.goto('https://delta-travel-web.onrender.com/', {waitUntil:'networkidle', timeout:120000});
+          await page.waitForTimeout(1500);
+          const mains = await page.locator('main').evaluateAll((els) => els.map((el, i) => ({
+            i,
+            className: el.className,
+            id: el.id,
+            role: el.getAttribute('role'),
+            parentTag: el.parentElement?.tagName,
+            parentClass: el.parentElement?.className,
+            text: (el.textContent || '').trim().slice(0,500)
+          })));
+          console.log(JSON.stringify(mains,null,2));
+          await browser.close();
+          JS
