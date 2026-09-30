@@ -475,6 +475,7 @@ function tourPayload(input: Partial<z.infer<typeof TourSchema>>) {
     imageUrl: input.imageUrl,
     galleryImages: input.galleryImages,
     itinerary: input.itinerary,
+    commercial: input.commercial,
     status: input.status,
   };
 }
