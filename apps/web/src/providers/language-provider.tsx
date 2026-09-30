@@ -291,15 +291,15 @@ export const DICTIONARY: Translations = {
     en: 'An anthology of premier travel and luxury resort masterpieces across Vietnam. Elite standards, exclusive itineraries, and fully tailored experiences.',
   },
   tours_tab_all: { vi: 'Tất Cả Hành Trình', en: 'All Itineraries' },
-  tours_tab_all_sub: { vi: '9 Điểm Đến', en: '9 Destinations' },
+  tours_tab_all_sub: { vi: 'Tour đang mở bán', en: 'Currently available tours' },
   tours_tab_bac_sub: { vi: 'Kỳ Quan & Di Sản', en: 'Wonders & Heritage' },
   tours_tab_trung_sub: { vi: 'Hoàng Cung & Biển Xanh', en: 'Imperial & Azure Seas' },
   tours_tab_nam_sub: { vi: 'Đảo Ngọc & Sông Nước', en: 'Emerald Isle & Rivers' },
   tours_counter_prefix: { vi: 'BỘ SƯU TẬP', en: 'COLLECTION' },
   tours_counter_suffix: { vi: 'HÀNH TRÌNH TINH HOA', en: 'SIGNATURE JOURNEYS' },
   tours_counter_all: {
-    vi: 'BỘ SƯU TẬP KIỆT TÁC • 09 HÀNH TRÌNH ĐỘC BẢN',
-    en: 'MASTERPIECE COLLECTION • 09 BESPOKE JOURNEYS',
+    vi: 'BỘ SƯU TẬP • CẬP NHẬT TỪ HỆ THỐNG',
+    en: 'COLLECTION • LIVE FROM THE SYSTEM',
   },
   tours_guarantee_text: {
     vi: 'Lịch, giá và điều kiện dịch vụ được công bố theo từng tour',
@@ -398,8 +398,8 @@ export const DICTIONARY: Translations = {
   },
   proc_1_title: { vi: '1. Chọn Tuyệt Tác Hành Trình', en: '1. Select Your Itinerary' },
   proc_1_desc: {
-    vi: 'Khám phá bộ sưu tập 09 hành trình độc bản hoặc trò chuyện với Trợ lý AI để chọn tour phù hợp.',
-    en: 'Explore our curated collection of 09 signature voyages or consult our AI Assistant.',
+    vi: 'Khám phá các tour đang mở bán hoặc trò chuyện với Trợ lý AI để chọn hành trình phù hợp.',
+    en: 'Explore currently available tours or consult the AI Assistant for a suitable journey.',
   },
   proc_2_title: { vi: '2. Kiểm Tra Lịch & Giá Minh Bạch', en: '2. Check Live Dates & Pricing' },
   proc_2_desc: {
@@ -476,6 +476,10 @@ export const DICTIONARY: Translations = {
   footer_col_services: { vi: 'Dịch Vụ & Đơn Hàng', en: 'Services & Orders' },
   footer_col_contact: { vi: 'Liên Hệ Hỗ Trợ', en: 'Contact & Support' },
   footer_hotline_text: { vi: 'Hỗ trợ: trong tài khoản & DELTA AI', en: 'Support: account area & DELTA AI' },
+  footer_payment_text: {
+    vi: 'Thanh toán: theo phương thức đang được hệ thống mở',
+    en: 'Payments: according to currently enabled methods',
+  },
   footer_cities_text: { vi: 'Phạm vi: tour nội địa Việt Nam', en: 'Scope: domestic Vietnam tours' },
   footer_rights_text: {
     vi: '© 2026 DELTA TRAVEL. Bảo lưu mọi quyền.',
