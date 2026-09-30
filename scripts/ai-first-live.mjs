@@ -63,7 +63,9 @@ try {
   pass('tour detail AI fit advisor');
 
   await page.goto(WEB + '/tours', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.getByTestId('ai-command-center-launcher').waitFor({ state: 'visible', timeout: 30000 });
+  await page
+    .getByTestId('ai-command-center-launcher')
+    .waitFor({ state: 'visible', timeout: 30000 });
   await page.getByTestId('ai-command-center-launcher').click();
   const center = page.getByTestId('ai-command-center');
   await center.waitFor({ state: 'visible' });
