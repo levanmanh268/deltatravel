@@ -130,7 +130,7 @@ export function SiteFooter() {
               </li>
               <li className="flex items-center gap-2">
                 <ReceiptText className="w-4 h-4 text-black shrink-0" />
-                <span>{t('bk_status_cash_sub')}</span>
+                <span>{t('footer_payment_text')}</span>
               </li>
               <li className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-black shrink-0" />
