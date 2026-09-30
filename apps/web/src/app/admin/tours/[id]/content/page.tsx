@@ -32,7 +32,10 @@ function emptyCommercial(): TourCommercial {
 }
 
 function splitLines(value: string) {
-  return value.split('\n').map((item) => item.trim()).filter(Boolean);
+  return value
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 export default function TourContentPage({ params }: { params: Promise<{ id: string }> }) {
@@ -71,12 +74,10 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
           preset.length === 1 && preset[0]?.title.toLowerCase().includes('chờ xác minh');
         const existing = backend.length ? backend : presetIsPlaceholder ? [] : preset;
         const count = Math.max(required, existing.length);
-        setItinerary(
-          Array.from({ length: count }, (_, i) => existing[i] ?? emptyDay(i + 1)),
-        );
+        setItinerary(Array.from({ length: count }, (_, i) => existing[i] ?? emptyDay(i + 1)));
       })
-      .catch((e) =>
-        active && setError(e instanceof Error ? e.message : 'Không tải được nội dung tour.'),
+      .catch(
+        (e) => active && setError(e instanceof Error ? e.message : 'Không tải được nội dung tour.'),
       )
       .finally(() => active && setLoading(false));
 
@@ -89,16 +90,13 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
     () =>
       itinerary.filter(
         (day) =>
-          day.title.trim().length >= 3 &&
-          day.activities.some((item) => item.trim().length >= 2),
+          day.title.trim().length >= 3 && day.activities.some((item) => item.trim().length >= 2),
       ).length,
     [itinerary],
   );
 
   const setDay = (index: number, patch: Partial<TourItineraryDay>) => {
-    setItinerary((items) =>
-      items.map((item, i) => (i === index ? { ...item, ...patch } : item)),
-    );
+    setItinerary((items) => items.map((item, i) => (i === index ? { ...item, ...patch } : item)));
   };
 
   const save = async () => {
@@ -262,9 +260,7 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
                 />
               </label>
             </div>
-            {coverFile && (
-              <p className="mt-2 text-xs text-stone-600">Đã chọn: {coverFile.name}</p>
-            )}
+            {coverFile && <p className="mt-2 text-xs text-stone-600">Đã chọn: {coverFile.name}</p>}
           </section>
 
           <section className="rounded-3xl border bg-white p-6 shadow-sm">
@@ -279,12 +275,15 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
                     key={url + index}
                     className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-stone-100"
                   >
-                    <Image src={url} alt={`Ảnh chi tiết ${index + 1}`} fill className="object-cover" />
+                    <Image
+                      src={url}
+                      alt={`Ảnh chi tiết ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
                     <button
                       type="button"
-                      onClick={() =>
-                        setGallery((items) => items.filter((_, i) => i !== index))
-                      }
+                      onClick={() => setGallery((items) => items.filter((_, i) => i !== index))}
                       className="absolute right-2 top-2 rounded-full bg-black/75 p-2 text-white"
                       aria-label={`Xóa ảnh ${index + 1}`}
                     >
@@ -329,9 +328,7 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
                   type="button"
                   variant="outline"
                   disabled={itinerary.length >= 60}
-                  onClick={() =>
-                    setItinerary((items) => [...items, emptyDay(items.length + 1)])
-                  }
+                  onClick={() => setItinerary((items) => [...items, emptyDay(items.length + 1)])}
                 >
                   <Plus className="mr-1 h-4 w-4" />
                   Thêm ngày
@@ -448,7 +445,10 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
                   rows={5}
                   value={commercial.transport.join('\n')}
                   onChange={(e) =>
-                    setCommercial((current) => ({ ...current, transport: e.target.value.split('\n') }))
+                    setCommercial((current) => ({
+                      ...current,
+                      transport: e.target.value.split('\n'),
+                    }))
                   }
                   placeholder="Xe Limousine Hà Nội – Ninh Bình&#10;Thuyền Tràng An"
                 />
@@ -460,7 +460,10 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
                   rows={5}
                   value={commercial.included.join('\n')}
                   onChange={(e) =>
-                    setCommercial((current) => ({ ...current, included: e.target.value.split('\n') }))
+                    setCommercial((current) => ({
+                      ...current,
+                      included: e.target.value.split('\n'),
+                    }))
                   }
                   placeholder="Xe di chuyển&#10;Vé tham quan...&#10;Bữa ăn..."
                 />
@@ -519,8 +522,8 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
             </div>
 
             <p className="mt-4 rounded-xl bg-amber-50 p-3 text-[11px] font-semibold text-amber-900">
-              Tour mới chỉ được mở bán khi có ảnh bìa, lịch trình đủ số ngày, ít nhất một lịch
-              khởi hành OPEN và bộ chính sách này đã hoàn thiện.
+              Tour mới chỉ được mở bán khi có ảnh bìa, lịch trình đủ số ngày, ít nhất một lịch khởi
+              hành OPEN và bộ chính sách này đã hoàn thiện.
             </p>
           </section>
         </div>

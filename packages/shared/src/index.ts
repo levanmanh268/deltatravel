@@ -534,15 +534,22 @@ export const TourMediaSlotSchema = z.enum(['COVER', 'GALLERY', 'ITINERARY']);
 export const TourMediaUploadRequestSchema = z
   .object({
     contentType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
-    sizeBytes: z.number().int().positive().max(5 * 1024 * 1024),
+    sizeBytes: z
+      .number()
+      .int()
+      .positive()
+      .max(5 * 1024 * 1024),
     slot: TourMediaSlotSchema,
     day: z.number().int().min(1).max(60).nullable().optional(),
   })
   .strict()
-  .refine((value) => value.slot !== 'ITINERARY' || (value.day !== null && value.day !== undefined), {
-    message: 'Ảnh lịch trình phải chỉ rõ số ngày',
-    path: ['day'],
-  });
+  .refine(
+    (value) => value.slot !== 'ITINERARY' || (value.day !== null && value.day !== undefined),
+    {
+      message: 'Ảnh lịch trình phải chỉ rõ số ngày',
+      path: ['day'],
+    },
+  );
 export const TourMediaUploadTicketSchema = AvatarUploadTicketSchema.extend({
   slot: TourMediaSlotSchema,
   day: z.number().int().min(1).max(60).nullable(),

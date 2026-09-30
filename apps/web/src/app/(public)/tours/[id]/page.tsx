@@ -181,7 +181,8 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
 
   const selectedSchedule = schedules.find((s) => s.id === selectedScheduleId);
   const displayTour = tour ? getLocalizedTour(tour, lang) : null;
-  const effectiveDuration = selectedSchedule?.durationDays ?? displayTour?.durationDays ?? tour.durationDays;
+  const effectiveDuration =
+    selectedSchedule?.durationDays ?? displayTour?.durationDays ?? tour.durationDays;
   const itinerary = tour ? getTourItinerary(tour, lang).slice(0, effectiveDuration) : [];
   const heroImage = tour ? getTourImage(tour) : '/tour-placeholder.svg';
   const galleryImages = tour ? getTourGallery(tour) : [];
@@ -395,7 +396,8 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                   <Compass className="h-4 w-4 text-amber-500" />
                   <span>
                     {t('detail_itinerary_badge')} • {effectiveDuration}{' '}
-                    {lang === 'en' ? 'DAYS' : 'NGÀY'} {effectiveDuration === 1 ? 0 : effectiveDuration - 1}{' '}
+                    {lang === 'en' ? 'DAYS' : 'NGÀY'}{' '}
+                    {effectiveDuration === 1 ? 0 : effectiveDuration - 1}{' '}
                     {lang === 'en' ? 'NIGHTS' : 'ĐÊM'}
                   </span>
                 </div>
@@ -546,7 +548,9 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                         ))}
                       </ul>
                     ) : (
-                      <p className="mt-2 text-neutral-500">Chưa có chi phí tùy chọn được khai báo.</p>
+                      <p className="mt-2 text-neutral-500">
+                        Chưa có chi phí tùy chọn được khai báo.
+                      </p>
                     )}
                   </div>
                 </div>

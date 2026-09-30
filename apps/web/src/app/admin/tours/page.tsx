@@ -135,7 +135,7 @@ export default function AdminToursPage() {
       destination: destination.trim(),
       countryCode: 'VN' as const,
       durationDays: Math.max(1, Math.min(60, Math.trunc(Number(durationDays) || 1))),
-      status: editingTour ? status : 'DRAFT' as TourStatus,
+      status: editingTour ? status : ('DRAFT' as TourStatus),
     };
 
     try {

@@ -220,12 +220,14 @@ export const TOUR_GALLERIES: Record<string, TourGalleryImage[]> = {
 };
 
 export function getTourGallery(
-  tour: Tour | {
-    slug?: string;
-    destination?: string;
-    imageUrl?: string | null;
-    galleryImages?: unknown;
-  },
+  tour:
+    | Tour
+    | {
+        slug?: string;
+        destination?: string;
+        imageUrl?: string | null;
+        galleryImages?: unknown;
+      },
 ): TourGalleryImage[] {
   if (
     'galleryImages' in tour &&
@@ -960,12 +962,14 @@ export function getTourLuxuryTag(tour: Tour | { slug?: string }, lang: 'vi' | 'e
 }
 
 export function getTourItinerary(
-  tour: Tour | {
-    slug?: string;
-    durationDays?: number;
-    destination?: string;
-    itinerary?: unknown;
-  },
+  tour:
+    | Tour
+    | {
+        slug?: string;
+        durationDays?: number;
+        destination?: string;
+        itinerary?: unknown;
+      },
   lang: 'vi' | 'en' = 'vi',
 ): ItineraryDay[] {
   if ('itinerary' in tour && Array.isArray(tour.itinerary) && tour.itinerary.length > 0) {
