@@ -81,6 +81,17 @@ export const TourQuerySchema = PaginationSchema.extend({
   q: z.string().trim().max(100).optional(),
   destination: z.string().trim().max(100).optional(),
 });
+export const TourItineraryDaySchema = z
+  .object({
+    day: z.number().int().min(1).max(60),
+    title: z.string().trim().min(3).max(200),
+    activities: z.array(z.string().trim().min(2).max(500)).min(1).max(20),
+    meals: z.string().trim().max(200).nullable().default(null),
+    stay: z.string().trim().max(200).nullable().default(null),
+    imageUrl: z.string().url().max(2000).nullable().default(null),
+  })
+  .strict();
+
 export const CreateTourSchema = z
   .object({
     title: z.string().trim().min(3).max(150),
@@ -92,6 +103,9 @@ export const CreateTourSchema = z
     destination: z.string().trim().min(2).max(100),
     countryCode: z.literal('VN').default('VN'),
     durationDays: z.number().int().min(1).max(60),
+    imageUrl: z.string().url().max(2000).nullable().default(null),
+    galleryImages: z.array(z.string().url().max(2000)).max(20).default([]),
+    itinerary: z.array(TourItineraryDaySchema).max(60).default([]),
     status: TourStatusSchema.default('DRAFT'),
   })
   .strict();
@@ -100,6 +114,7 @@ export const CreateScheduleSchema = z
   .object({
     tourId: IdSchema,
     departureAt: IsoDateSchema,
+    durationDays: z.number().int().min(1).max(60).optional(),
     totalSeats: z.number().int().min(1).max(10000),
     adultPrice: MoneySchema.max(99_999_999),
     childPrice: MoneySchema.max(99_999_999),
@@ -234,8 +249,12 @@ export const TourSchema = CreateTourSchema.extend({
   id: IdSchema,
   createdAt: IsoDateSchema,
   updatedAt: IsoDateSchema,
+  fromPrice: MoneySchema.nullable().optional(),
+  ratingAverage: z.number().min(0).max(5).nullable().optional(),
+  ratingCount: z.number().int().nonnegative().optional(),
 });
 export const ScheduleSchema = CreateScheduleSchema.extend({
+  durationDays: z.number().int().min(1).max(60),
   id: IdSchema,
   reservedSeats: z.number().int(),
   availableSeats: z.number().int(),
@@ -250,6 +269,7 @@ export const BookingDetailSchema = z.object({
 export const BookingSchema = z.object({
   id: IdSchema,
   scheduleId: IdSchema,
+  tourId: IdSchema,
   status: BookingStatusSchema,
   adults: z.number().int(),
   children: z.number().int(),
@@ -492,6 +512,29 @@ export const AvatarUploadTicketSchema = z.object({
   expiresIn: z.literal(7200),
 });
 export const AvatarCompleteSchema = z.object({ uploadId: IdSchema }).strict();
+export const TourMediaSlotSchema = z.enum(['COVER', 'GALLERY', 'ITINERARY']);
+export const TourMediaUploadRequestSchema = z
+  .object({
+    contentType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+    sizeBytes: z.number().int().positive().max(5 * 1024 * 1024),
+    slot: TourMediaSlotSchema,
+    day: z.number().int().min(1).max(60).nullable().optional(),
+  })
+  .strict()
+  .refine((value) => value.slot !== 'ITINERARY' || (value.day !== null && value.day !== undefined), {
+    message: 'Ảnh lịch trình phải chỉ rõ số ngày',
+    path: ['day'],
+  });
+export const TourMediaUploadTicketSchema = AvatarUploadTicketSchema.extend({
+  slot: TourMediaSlotSchema,
+  day: z.number().int().min(1).max(60).nullable(),
+});
+export const TourMediaCompleteSchema = z.object({ uploadId: IdSchema }).strict();
+export const TourMediaCompleteResultSchema = z.object({
+  url: z.string().url(),
+  slot: TourMediaSlotSchema,
+  day: z.number().int().min(1).max(60).nullable(),
+});
 export const AssistantProviderStatusSchema = z.object({
   preferredProvider: z.enum(['GROQ', 'GEMINI']).nullable(),
   groqConfigured: z.boolean(),
@@ -551,6 +594,7 @@ export const ErrorSchema = z.object({
 });
 export type User = z.infer<typeof UserSchema>;
 export type Tour = z.infer<typeof TourSchema>;
+export type TourItineraryDay = z.infer<typeof TourItineraryDaySchema>;
 export type Schedule = z.infer<typeof ScheduleSchema>;
 export type Booking = z.infer<typeof BookingSchema>;
 export type Payment = z.infer<typeof PaymentSchema>;
