@@ -34,20 +34,17 @@ function TourCardsGrid({
   tours,
   t,
   lang,
-  livePrices,
 }: {
   tours: Tour[];
   t: (k: string) => string;
   lang: 'vi' | 'en';
-  livePrices: Record<string, number | null>;
 }) {
-  const getTourPrice = (tour: Tour): number | null => livePrices[tour.id] ?? null;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {tours.map((rawTour, i) => {
         const tour = getLocalizedTour(rawTour, lang);
-        const price = getTourPrice(tour);
+        const price = rawTour.fromPrice ?? null;
         const luxuryTag = getTourLuxuryTag(tour, lang);
         const heroImage = getTourImage(tour);
 
@@ -166,7 +163,6 @@ function HomeContent() {
 
   const [activeTab, setActiveTab] = useState<string>(urlRegion);
   const [allTours, setAllTours] = useState<Tour[]>([]);
-  const [livePrices, setLivePrices] = useState<Record<string, number | null>>({});
   const [loading, setLoading] = useState(true);
   const [tourLoadError, setTourLoadError] = useState('');
 
@@ -239,36 +235,6 @@ function HomeContent() {
       window.removeEventListener('delta_tours_updated', fetchTours);
     };
   }, []);
-
-  useEffect(() => {
-    let active = true;
-    if (!allTours.length) {
-      setLivePrices({});
-      return () => {
-        active = false;
-      };
-    }
-
-    void Promise.all(
-      allTours.map(async (tour) => {
-        try {
-          const page = await tourApi.schedules(tour.id);
-          const prices = page.items
-            .filter((schedule) => schedule.status === 'OPEN' && schedule.availableSeats > 0)
-            .map((schedule) => schedule.adultPrice);
-          return [tour.id, prices.length ? Math.min(...prices) : null] as const;
-        } catch {
-          return [tour.id, null] as const;
-        }
-      }),
-    ).then((entries) => {
-      if (active) setLivePrices(Object.fromEntries(entries));
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [allTours]);
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
@@ -552,7 +518,7 @@ function HomeContent() {
               Chưa có tour production phù hợp với bộ lọc hiện tại.
             </div>
           ) : (
-            <TourCardsGrid tours={displayedTours} t={t} lang={lang} livePrices={livePrices} />
+            <TourCardsGrid tours={displayedTours} t={t} lang={lang} />
           )}
 
           <div className="mt-12 text-center">
