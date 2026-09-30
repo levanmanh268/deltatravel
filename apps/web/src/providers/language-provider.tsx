@@ -475,7 +475,10 @@ export const DICTIONARY: Translations = {
   footer_col_regions: { vi: 'Khám Phá 3 Miền', en: 'Explore 3 Regions' },
   footer_col_services: { vi: 'Dịch Vụ & Đơn Hàng', en: 'Services & Orders' },
   footer_col_contact: { vi: 'Liên Hệ Hỗ Trợ', en: 'Contact & Support' },
-  footer_hotline_text: { vi: 'Hỗ trợ: trong tài khoản & DELTA AI', en: 'Support: account area & DELTA AI' },
+  footer_hotline_text: {
+    vi: 'Hỗ trợ: trong tài khoản & DELTA AI',
+    en: 'Support: account area & DELTA AI',
+  },
   footer_payment_text: {
     vi: 'Thanh toán: theo phương thức đang được hệ thống mở',
     en: 'Payments: according to currently enabled methods',
@@ -771,8 +774,14 @@ export const DICTIONARY: Translations = {
   },
   chk_summary_section: { vi: 'Tóm Tắt Giữ Chỗ', en: 'Reservation Summary' },
   chk_departure_prefix: { vi: 'Khởi hành:', en: 'Departure:' },
-  chk_dep_location: { vi: 'Điểm khởi hành: theo lịch tour', en: 'Departure point: per tour schedule' },
-  chk_tax_included: { vi: 'Giá tour cơ bản • xem mục bao gồm/chưa bao gồm', en: 'Base tour price • review inclusions/exclusions' },
+  chk_dep_location: {
+    vi: 'Điểm khởi hành: theo lịch tour',
+    en: 'Departure point: per tour schedule',
+  },
+  chk_tax_included: {
+    vi: 'Giá tour cơ bản • xem mục bao gồm/chưa bao gồm',
+    en: 'Base tour price • review inclusions/exclusions',
+  },
   chk_calculating: { vi: 'Đang tính...', en: 'Calculating...' },
   chk_hold_rule_title: { vi: 'Quy định giữ chỗ 15 phút', en: '15-minute seat hold policy' },
   chk_hold_rule_desc: {

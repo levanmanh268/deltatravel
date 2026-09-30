@@ -11,7 +11,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'unsafe-inline'",
   "connect-src 'self' https://delta-travel-api.onrender.com https://*.supabase.co",
-  "upgrade-insecure-requests",
+  'upgrade-insecure-requests',
 ].join('; ');
 
 const securityHeaders = [
