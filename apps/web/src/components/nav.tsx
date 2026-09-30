@@ -108,7 +108,9 @@ function NavContent() {
       {/* ─── Fixed Header Orchestrator with Crystal Liquid Glass System ─── */}
       <header
         className={`fixed left-0 right-0 top-0 z-[100] bg-transparent will-change-transform transition-[transform,color] duration-300 ease-out focus-within:translate-y-0 ${
-          headerVisible || mobileMenuOpen || accountModalOpen ? 'translate-y-0' : '-translate-y-full'
+          headerVisible || mobileMenuOpen || accountModalOpen
+            ? 'translate-y-0'
+            : '-translate-y-full'
         } ${isTransparent ? 'text-white' : 'text-black'}`}
       >
         {/* Ambient Light Layer behind the glass */}
