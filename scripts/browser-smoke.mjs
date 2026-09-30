@@ -52,23 +52,48 @@ async function assertBasicAccessibility(page, name, route) {
   }
 }
 
-async function openRoute(page, name, viewport, route) {
-  const response = await page.goto(WEB + route, {
-    waitUntil: 'domcontentloaded',
-    timeout: 120000,
-  });
-  if (!response || response.status() >= 400) {
-    throw new Error(`${name} ${route} returned HTTP ${response?.status() ?? 'no-response'}`);
-  }
-  await page.waitForTimeout(500);
-  const body = (await page.locator('body').innerText()).trim();
-  if (body.length < 20) throw new Error(`${name} ${route} rendered unexpectedly little content`);
-  await assertBasicAccessibility(page, name, route);
-  console.log(`PASS  ${name} ${viewport.width}x${viewport.height} ${route}`);
+function isTransientChunkError(message) {
+  return /ChunkLoadError|Loading chunk \d+ failed/i.test(message);
 }
 
-async function assertAuthGate(page, name, viewport, route) {
-  await openRoute(page, name, viewport, route);
+async function openRoute(page, name, viewport, route, pageErrors) {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const errorStart = pageErrors.length;
+    const response = await page.goto(WEB + route, {
+      waitUntil: 'domcontentloaded',
+      timeout: 120000,
+    });
+    if (!response || response.status() >= 400) {
+      throw new Error(`${name} ${route} returned HTTP ${response?.status() ?? 'no-response'}`);
+    }
+    await page.waitForTimeout(800);
+
+    const routeErrors = pageErrors.slice(errorStart);
+    if (
+      attempt === 1 &&
+      routeErrors.length > 0 &&
+      routeErrors.every((message) => isTransientChunkError(message))
+    ) {
+      pageErrors.splice(errorStart, routeErrors.length);
+      console.log(`RETRY ${name} ${route} after transient chunk load error`);
+      continue;
+    }
+    if (routeErrors.length) {
+      throw new Error(`${name} ${route} page errors: ${routeErrors.join(' | ')}`);
+    }
+
+    const body = (await page.locator('body').innerText()).trim();
+    if (body.length < 20) throw new Error(`${name} ${route} rendered unexpectedly little content`);
+    await assertBasicAccessibility(page, name, route);
+    console.log(`PASS  ${name} ${viewport.width}x${viewport.height} ${route}`);
+    return;
+  }
+
+  throw new Error(`${name} ${route} kept failing to load its current deployment chunks`);
+}
+
+async function assertAuthGate(page, name, viewport, route, pageErrors) {
+  await openRoute(page, name, viewport, route, pageErrors);
   await page.locator('a[href="/login"]').first().waitFor({ state: 'visible', timeout: 30000 });
   const leakedDashboard = await page
     .getByText('Trung Tâm Điều Hành Delta Travel', { exact: true })
@@ -122,11 +147,11 @@ async function runEngine(name, engine, viewport) {
     page.on('pageerror', (error) => pageErrors.push(String(error)));
 
     for (const route of publicRoutes) {
-      await openRoute(page, name, viewport, route);
+      await openRoute(page, name, viewport, route, pageErrors);
     }
 
-    await assertAuthGate(page, name, viewport, '/bookings');
-    await assertAuthGate(page, name, viewport, '/admin');
+    await assertAuthGate(page, name, viewport, '/bookings', pageErrors);
+    await assertAuthGate(page, name, viewport, '/admin', pageErrors);
 
     if (name === 'chromium-desktop') {
       await assertInternalLinks(page);
