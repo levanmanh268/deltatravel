@@ -3,7 +3,7 @@
 import { use, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { Tour, TourItineraryDay } from '@tour/shared';
+import type { Tour, TourCommercial, TourItineraryDay } from '@tour/shared';
 import { adminApi } from '@/lib/api';
 import { getTourImage, getTourItinerary } from '@/lib/tour-assets';
 import { PageShell } from '@/components/page-shell';
@@ -12,6 +12,27 @@ import { AlertTriangle, ArrowLeft, ImagePlus, Plus, Save, Trash2 } from 'lucide-
 
 function emptyDay(day: number): TourItineraryDay {
   return { day, title: `Ngày ${day}`, activities: [''], meals: null, stay: null, imageUrl: null };
+}
+
+function emptyCommercial(): TourCommercial {
+  return {
+    departureBasis: '',
+    transport: [''],
+    included: [''],
+    notIncluded: [],
+    optionalCosts: [],
+    cancellationPolicy: '',
+    dateChangePolicy: '',
+    refundPolicy: '',
+    singleRoomPolicy: '',
+    childPolicy: '',
+    weatherPolicy: '',
+    incidentalCostPolicy: '',
+  };
+}
+
+function splitLines(value: string) {
+  return value.split('\n').map((item) => item.trim()).filter(Boolean);
 }
 
 export default function TourContentPage({ params }: { params: Promise<{ id: string }> }) {
@@ -28,6 +49,7 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [dayFiles, setDayFiles] = useState<Record<number, File | null>>({});
+  const [commercial, setCommercial] = useState<TourCommercial>(emptyCommercial());
 
   useEffect(() => {
     let active = true;
@@ -37,6 +59,7 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
         setTour(found);
         setImageUrl(found.imageUrl ?? null);
         setGallery(found.galleryImages ?? []);
+        setCommercial(found.commercial ?? emptyCommercial());
         const scheduleDurations = schedulePage.items
           .filter((schedule) => schedule.tourId === found.id)
           .map((schedule) => schedule.durationDays);
@@ -118,15 +141,45 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
         });
       }
 
+      const commercialReady =
+        commercial.departureBasis.trim().length >= 3 &&
+        commercial.transport.some((item) => item.trim().length >= 2) &&
+        commercial.included.some((item) => item.trim().length >= 2) &&
+        commercial.cancellationPolicy.trim().length >= 5 &&
+        commercial.dateChangePolicy.trim().length >= 5 &&
+        commercial.refundPolicy.trim().length >= 5 &&
+        commercial.singleRoomPolicy.trim().length >= 5 &&
+        commercial.childPolicy.trim().length >= 5 &&
+        commercial.weatherPolicy.trim().length >= 5 &&
+        commercial.incidentalCostPolicy.trim().length >= 5;
+
       const updated = await adminApi.updateTour(tour.id, {
         imageUrl: nextCover,
         galleryImages: nextGallery,
         itinerary: nextItinerary,
+        commercial: commercialReady
+          ? {
+              ...commercial,
+              departureBasis: commercial.departureBasis.trim(),
+              transport: commercial.transport.map((item) => item.trim()).filter(Boolean),
+              included: commercial.included.map((item) => item.trim()).filter(Boolean),
+              notIncluded: commercial.notIncluded.map((item) => item.trim()).filter(Boolean),
+              optionalCosts: commercial.optionalCosts.map((item) => item.trim()).filter(Boolean),
+              cancellationPolicy: commercial.cancellationPolicy.trim(),
+              dateChangePolicy: commercial.dateChangePolicy.trim(),
+              refundPolicy: commercial.refundPolicy.trim(),
+              singleRoomPolicy: commercial.singleRoomPolicy.trim(),
+              childPolicy: commercial.childPolicy.trim(),
+              weatherPolicy: commercial.weatherPolicy.trim(),
+              incidentalCostPolicy: commercial.incidentalCostPolicy.trim(),
+            }
+          : null,
       });
       setTour(updated);
       setImageUrl(updated.imageUrl ?? null);
       setGallery(updated.galleryImages ?? []);
       setItinerary(updated.itinerary ?? []);
+      setCommercial(updated.commercial ?? emptyCommercial());
       setCoverFile(null);
       setGalleryFiles([]);
       setDayFiles({});
@@ -368,6 +421,107 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
                 </article>
               ))}
             </div>
+          </section>
+
+          <section className="rounded-3xl border bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-black">4. Giá, dịch vụ & chính sách</h2>
+            <p className="mt-1 text-xs text-stone-500">
+              Đây là nguồn sự thật cho phương tiện, hạng mục đã bao gồm, chưa bao gồm và chính sách
+              vận hành. Mỗi mục danh sách nhập một dòng.
+            </p>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <label className="block text-xs font-bold lg:col-span-2">
+                Điểm / cơ sở khởi hành
+                <input
+                  value={commercial.departureBasis}
+                  onChange={(e) =>
+                    setCommercial((current) => ({ ...current, departureBasis: e.target.value }))
+                  }
+                  placeholder="Ví dụ: 07:00 tại Nhà hát Lớn Hà Nội, theo lịch mở bán"
+                />
+              </label>
+
+              <label className="block text-xs font-bold">
+                Phương tiện
+                <textarea
+                  rows={5}
+                  value={commercial.transport.join('\n')}
+                  onChange={(e) =>
+                    setCommercial((current) => ({ ...current, transport: e.target.value.split('\n') }))
+                  }
+                  placeholder="Xe Limousine Hà Nội – Ninh Bình&#10;Thuyền Tràng An"
+                />
+              </label>
+
+              <label className="block text-xs font-bold">
+                Giá đã bao gồm
+                <textarea
+                  rows={5}
+                  value={commercial.included.join('\n')}
+                  onChange={(e) =>
+                    setCommercial((current) => ({ ...current, included: e.target.value.split('\n') }))
+                  }
+                  placeholder="Xe di chuyển&#10;Vé tham quan...&#10;Bữa ăn..."
+                />
+              </label>
+
+              <label className="block text-xs font-bold">
+                Chưa bao gồm
+                <textarea
+                  rows={5}
+                  value={commercial.notIncluded.join('\n')}
+                  onChange={(e) =>
+                    setCommercial((current) => ({
+                      ...current,
+                      notIncluded: e.target.value.split('\n'),
+                    }))
+                  }
+                />
+              </label>
+
+              <label className="block text-xs font-bold">
+                Chi phí tùy chọn / phát sinh
+                <textarea
+                  rows={5}
+                  value={commercial.optionalCosts.join('\n')}
+                  onChange={(e) =>
+                    setCommercial((current) => ({
+                      ...current,
+                      optionalCosts: e.target.value.split('\n'),
+                    }))
+                  }
+                />
+              </label>
+            </div>
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              {[
+                ['cancellationPolicy', 'Chính sách hủy tour'],
+                ['dateChangePolicy', 'Đổi ngày đi'],
+                ['refundPolicy', 'Hoàn tiền'],
+                ['singleRoomPolicy', 'Phụ thu phòng đơn'],
+                ['childPolicy', 'Chính sách trẻ em'],
+                ['weatherPolicy', 'Thời tiết xấu / bất khả kháng'],
+                ['incidentalCostPolicy', 'Chi phí phát sinh'],
+              ].map(([key, label]) => (
+                <label key={key} className="block text-xs font-bold">
+                  {label}
+                  <textarea
+                    rows={4}
+                    value={commercial[key as keyof TourCommercial] as string}
+                    onChange={(e) =>
+                      setCommercial((current) => ({ ...current, [key]: e.target.value }))
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+
+            <p className="mt-4 rounded-xl bg-amber-50 p-3 text-[11px] font-semibold text-amber-900">
+              Tour mới chỉ được mở bán khi có ảnh bìa, lịch trình đủ số ngày, ít nhất một lịch
+              khởi hành OPEN và bộ chính sách này đã hoàn thiện.
+            </p>
           </section>
         </div>
       )}
