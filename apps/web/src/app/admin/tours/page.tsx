@@ -419,7 +419,6 @@ export default function AdminToursPage() {
                 <textarea
                   required
                   minLength={10}
-                  minLength={10}
                   maxLength={10000}
                   rows={5}
                   value={description}
