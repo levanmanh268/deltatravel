@@ -25,6 +25,7 @@ export default function AdminSchedulesPage() {
 
   const [tourId, setTourId] = useState('');
   const [departureDate, setDepartureDate] = useState('');
+  const [durationDays, setDurationDays] = useState(1);
   const [totalSeats, setTotalSeats] = useState(25);
   const [adultPrice, setAdultPrice] = useState(3_990_000);
   const [childPrice, setChildPrice] = useState(2_490_000);
@@ -66,6 +67,7 @@ export default function AdminSchedulesPage() {
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
     tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
     setDepartureDate(tomorrow.toISOString().slice(0, 16));
+    setDurationDays(tours[0]?.durationDays ?? 1);
     setTotalSeats(25);
     setAdultPrice(3_990_000);
     setChildPrice(2_490_000);
@@ -80,6 +82,7 @@ export default function AdminSchedulesPage() {
     const date = new Date(schedule.departureAt);
     date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
     setDepartureDate(date.toISOString().slice(0, 16));
+    setDurationDays(schedule.durationDays);
     setTotalSeats(schedule.totalSeats);
     setAdultPrice(schedule.adultPrice);
     setChildPrice(schedule.childPrice);
@@ -99,6 +102,7 @@ export default function AdminSchedulesPage() {
         await adminApi.createSchedule({
           tourId,
           departureAt: new Date(departureDate).toISOString(),
+          durationDays: Number(durationDays),
           totalSeats: Number(totalSeats),
           adultPrice: Number(adultPrice),
           childPrice: Number(childPrice),
@@ -106,6 +110,7 @@ export default function AdminSchedulesPage() {
         });
       } else if (modal === 'edit' && editing) {
         await adminApi.updateSchedule(editing.id, {
+          durationDays: Number(durationDays),
           totalSeats: Number(totalSeats),
           adultPrice: Number(adultPrice),
           childPrice: Number(childPrice),
@@ -195,6 +200,7 @@ export default function AdminSchedulesPage() {
               <tr>
                 <th className="px-5 py-4">Tour</th>
                 <th className="px-5 py-4">Khởi hành</th>
+                <th className="px-5 py-4">Số ngày</th>
                 <th className="px-5 py-4">Kho chỗ</th>
                 <th className="px-5 py-4">Giá người lớn</th>
                 <th className="px-5 py-4">Giá trẻ em</th>
@@ -214,6 +220,7 @@ export default function AdminSchedulesPage() {
                   <td className="px-5 py-4 font-semibold">
                     {formatDateTime(schedule.departureAt)}
                   </td>
+                  <td className="px-5 py-4 font-black">{schedule.durationDays} ngày</td>
                   <td className="px-5 py-4">
                     <span className="font-black text-emerald-800">
                       {schedule.availableSeats} trống
@@ -277,7 +284,11 @@ export default function AdminSchedulesPage() {
                   disabled={modal === 'edit'}
                   required
                   value={tourId}
-                  onChange={(e) => setTourId(e.target.value)}
+                  onChange={(e) => {
+                    const nextId = e.target.value;
+                    setTourId(nextId);
+                    setDurationDays(tours.find((tour) => tour.id === nextId)?.durationDays ?? 1);
+                  }}
                 >
                   {tours.map((tour) => (
                     <option key={tour.id} value={tour.id}>
@@ -299,6 +310,24 @@ export default function AdminSchedulesPage() {
               </label>
 
               <div className="grid gap-4 sm:grid-cols-2">
+                <label className="space-y-1 font-semibold">
+                  <span>Số ngày của lịch này *</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={60}
+                    required
+                    value={durationDays}
+                    onChange={(e) =>
+                      setDurationDays(
+                        Math.max(1, Math.min(60, Math.trunc(Number(e.target.value) || 1))),
+                      )
+                    }
+                  />
+                  <span className="block text-[10px] font-normal text-stone-500">
+                    Mỗi lịch có thể có thời lượng riêng khi vận hành thực tế thay đổi.
+                  </span>
+                </label>
                 <label className="space-y-1 font-semibold">
                   <span>Tổng số chỗ *</span>
                   <input
