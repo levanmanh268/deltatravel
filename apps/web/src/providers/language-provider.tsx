@@ -245,23 +245,23 @@ export const DICTIONARY: Translations = {
   phil_tag: { vi: 'CHUẨN MỰC PHỤC VỤ HOÀNG GIA', en: 'ROYAL SERVICE STANDARD' },
   phil_title: { vi: 'Triết Lý Dịch Vụ DELTA PRIVÉ', en: 'DELTA PRIVÉ Service Philosophy' },
   phil_desc: {
-    vi: 'Mỗi chi tiết đều được tinh chỉnh nhằm mang lại sự an tâm tuyệt đối và đặc quyền cao cấp nhất cho Quý khách.',
-    en: 'Every detail is tailored to deliver absolute peace of mind and peerless luxury privileges.',
+    vi: 'Mỗi chi tiết được trình bày rõ để khách có thể kiểm tra lịch trình, lịch khởi hành, giá cơ bản và điều kiện dịch vụ trước khi đặt.',
+    en: 'Each journey presents its itinerary, live departure data, base price, and service conditions so travelers can review them before booking.',
   },
   phil_1_title: { vi: 'Minh Bạch & Đặc Quyền Cao Cấp', en: 'Transparent & Royal Privileges' },
   phil_1_desc: {
-    vi: '100% giá vé trọn gói minh bạch, không phí ẩn. Bao gồm dịch vụ đón tiễn hạng thương gia và bảo hiểm du lịch quốc tế tối đa.',
-    en: '100% transparent all-inclusive fares with no hidden costs. Includes business-class transfers and full international travel insurance.',
+    vi: 'Giá theo từng lịch khởi hành được hiển thị bằng VND; các mục đã bao gồm, chưa bao gồm và chi phí tùy chọn được công bố riêng theo từng tour.',
+    en: 'Departure prices are shown in VND, while inclusions, exclusions, and optional costs are disclosed separately for each tour.',
   },
-  phil_2_title: { vi: 'Quản Gia Lữ Hành Riêng 24/7', en: '24/7 Dedicated Travel Butler' },
+  phil_2_title: { vi: 'Hỗ Trợ Theo Hành Trình', en: 'Journey Support' },
   phil_2_desc: {
-    vi: 'Đội ngũ chuyên viên túc trực hỗ trợ tức thì mọi nhu cầu riêng biệt, từ yêu cầu ẩm thực đặc biệt đến sắp xếp nhiếp ảnh gia cá nhân.',
-    en: 'Our elite concierge team is on standby 24/7 for all personalized requests, from dietary preferences to private photographers.',
+    vi: 'Thông tin hỗ trợ được gắn với hành trình và booking; các yêu cầu đặc biệt chỉ được xác nhận khi bộ phận vận hành chấp thuận.',
+    en: 'Support information is tied to the itinerary and booking; special requests are confirmed only after operations approval.',
   },
-  phil_3_title: { vi: 'Kiểm Tuyển Chuẩn 5 Sao', en: '5-Star Curated Quality' },
+  phil_3_title: { vi: 'Kiểm Tra Dữ Liệu Trước Mở Bán', en: 'Pre-Publish Data Checks' },
   phil_3_desc: {
-    vi: 'Đối tác hàng không cao cấp, resort và du thuyền được kiểm định khắt khe nhất để đảm bảo chất lượng hoàn mỹ trong từng khoảnh khắc.',
-    en: 'Premier airlines, luxury resorts, and boutique cruises rigorously vetted to guarantee perfection throughout every moment.',
+    vi: 'Tour mới chỉ được mở bán khi đã có lịch khởi hành, ảnh, lịch trình và bộ thông tin dịch vụ cần thiết trong hệ thống.',
+    en: 'New tours can be published only after required departures, imagery, itinerary, and service information exist in the system.',
   },
 
   // Bespoke Banner
@@ -278,7 +278,7 @@ export const DICTIONARY: Translations = {
   bespoke_btn_all: { vi: 'Xem Tất Cả Tuyệt Tác', en: 'View All Masterpieces' },
 
   // Card Badges & Pricing
-  card_badge_luxury: { vi: '5.0 Thượng Lưu', en: '5.0 Luxury' },
+  card_badge_luxury: { vi: 'Chưa có đánh giá', en: 'No verified rating yet' },
   card_price_from: { vi: 'Đặc Quyền Từ', en: 'Starting From' },
   card_per_guest: { vi: '/ khách', en: '/ guest' },
   card_view_action: { vi: 'Chiêm Ngưỡng', en: 'Explore' },
@@ -302,8 +302,8 @@ export const DICTIONARY: Translations = {
     en: 'MASTERPIECE COLLECTION • 09 BESPOKE JOURNEYS',
   },
   tours_guarantee_text: {
-    vi: 'Cam kết dịch vụ 5 sao & bảo hiểm du lịch trọn gói',
-    en: '5-Star service guarantee & comprehensive insurance',
+    vi: 'Lịch, giá và điều kiện dịch vụ được công bố theo từng tour',
+    en: 'Schedules, prices, and service conditions are disclosed per tour',
   },
 
   // Tour Details & Itinerary
@@ -331,16 +331,16 @@ export const DICTIONARY: Translations = {
     en: 'Pristine, elegant, and rigorously inspected hotel and resort accommodations.',
   },
   detail_commit_2: {
-    vi: 'Bảo hiểm du lịch trọn gói đầy đủ theo quy định cho mọi thành viên.',
-    en: 'Comprehensive travel insurance included for every passenger.',
+    vi: 'Các hạng mục bảo hiểm, nếu có, phải được ghi rõ trong phần giá đã bao gồm của từng tour.',
+    en: 'Insurance, when included, must be explicitly listed in the tour inclusions.',
   },
   detail_commit_3: {
     vi: 'Hướng dẫn viên tận tình, am hiểu văn hóa và phong tục từng vùng miền.',
     en: 'Dedicated, knowledgeable tour guides fluent in local culture and traditions.',
   },
   detail_commit_4: {
-    vi: 'Hỗ trợ chu đáo 24/7 trước, trong và sau suốt hành trình của bạn.',
-    en: '24/7 attentive concierge assistance before, during, and after your trip.',
+    vi: 'Thông tin hỗ trợ trước, trong và sau chuyến đi được cung cấp theo booking và lịch vận hành.',
+    en: 'Support before, during, and after the trip is provided according to the booking and operating schedule.',
   },
   detail_person_unit: { vi: 'khách', en: 'guest' },
   detail_child_unit: { vi: 'bé', en: 'child' },
@@ -357,8 +357,8 @@ export const DICTIONARY: Translations = {
   dest_showcase_tag: { vi: 'DANH THẮNG TRỌNG ĐIỂM', en: 'ICONIC DESTINATIONS' },
   dest_showcase_title: { vi: 'Điểm Đến Di Sản & Nghỉ Dưỡng', en: 'Heritage & Luxury Destinations' },
   dest_showcase_desc: {
-    vi: 'Khám phá những vùng đất đẹp nhất hình chữ S được tuyển chọn khắt khe theo tiêu chuẩn cảnh quan và dịch vụ 5 sao.',
-    en: 'Explore the most breathtaking destinations across Vietnam curated under strict 5-star landscape and hospitality standards.',
+    vi: 'Khám phá các điểm đến nội địa Việt Nam với lịch trình và dữ liệu mở bán được quản lý trong hệ thống.',
+    en: 'Explore Vietnam destinations with itineraries and sellable departure data managed in the system.',
   },
 
   // Signature Experiences
@@ -373,15 +373,15 @@ export const DICTIONARY: Translations = {
     vi: 'Thưởng ngoạn vịnh kỳ quan trên du thuyền 5 sao chuẩn quốc tế với phòng ban công riêng.',
     en: 'Sail across UNESCO heritage bays on luxury suites with private ocean-view balconies.',
   },
-  exp_2_title: { vi: 'Bay Trực Thăng / Cáp Treo Mây', en: 'Helicopter & Cloud Cable Cars' },
+  exp_2_title: { vi: 'Cáp Treo & Góc Nhìn Trên Cao', en: 'Cable Cars & Elevated Views' },
   exp_2_desc: {
-    vi: 'Chiêm ngưỡng toàn cảnh núi rừng Tây Bắc và biển đảo từ độ cao ngoạn mục.',
-    en: 'Gaze over panoramic mountain ranges and turquoise islands from breathtaking heights.',
+    vi: 'Các trải nghiệm trên cao chỉ được hiển thị khi có trong lịch trình hoặc dịch vụ của tour tương ứng.',
+    en: 'Elevated experiences are shown only when they are part of the corresponding tour itinerary or services.',
   },
   exp_3_title: { vi: 'Ẩm Thực Tinh Hoa Di Sản', en: 'Royal Gastronomy' },
   exp_3_desc: {
-    vi: 'Thưởng thức thực đơn cung đình Huế và hải sản tươi sống được bếp trưởng 5 sao chế biến riêng.',
-    en: 'Savor imperial banquets and fresh seafood curated by renowned 5-star executive chefs.',
+    vi: 'Ẩm thực đặc trưng được mô tả theo từng tour; bữa ăn nào nằm trong giá sẽ được ghi ở mục bao gồm.',
+    en: 'Regional cuisine is described per tour, and included meals are explicitly listed in the inclusions.',
   },
   exp_4_title: { vi: 'Văn Hóa & Làng Nghề Nghìn Năm', en: 'Living Heritage' },
   exp_4_desc: {
@@ -403,8 +403,8 @@ export const DICTIONARY: Translations = {
   },
   proc_2_title: { vi: '2. Kiểm Tra Lịch & Giá Minh Bạch', en: '2. Check Live Dates & Pricing' },
   proc_2_desc: {
-    vi: 'Xem số chỗ trống thực tế theo thời gian thực và tổng chi phí rõ ràng, không phụ phí phát sinh.',
-    en: 'View real-time seat availability and clear all-inclusive pricing with zero hidden fees.',
+    vi: 'Xem số chỗ khả dụng và giá tour cơ bản theo lịch; các khoản chưa bao gồm hoặc tùy chọn được ghi riêng.',
+    en: 'View available seats and the base tour price by departure, with exclusions and optional costs disclosed separately.',
   },
   proc_3_title: { vi: '3. Khóa Chỗ An Toàn 15 Phút', en: '3. 15-Minute Secure Slot Lock' },
   proc_3_desc: {
@@ -413,61 +413,61 @@ export const DICTIONARY: Translations = {
   },
   proc_4_title: { vi: '4. Tận Hưởng Kỳ Nghỉ Hoàn Mỹ', en: '4. Embark on Your Journey' },
   proc_4_desc: {
-    vi: 'Quản gia lữ hành riêng đón tiếp chu đáo và đồng hành cùng Quý khách suốt chuyến đi.',
-    en: 'Your dedicated travel butler welcomes and escorts you throughout the royal journey.',
+    vi: 'Theo dõi booking, lịch khởi hành và thông tin vận hành đã được xác nhận cho chuyến đi.',
+    en: 'Track the booking, departure schedule, and confirmed operating information for the trip.',
   },
 
   // Key Statistics
-  stats_1_num: { vi: '25,000+', en: '25,000+' },
-  stats_1_label: { vi: 'Du khách thượng lưu hài lòng', en: 'Satisfied Luxury Travelers' },
-  stats_2_num: { vi: '99.8%', en: '99.8%' },
-  stats_2_label: { vi: 'Đánh giá 5 sao xuất sắc', en: '5-Star Excellence Rating' },
-  stats_3_num: { vi: '100%', en: '100%' },
-  stats_3_label: { vi: 'Bảo hiểm du lịch trọn gói', en: 'All-Inclusive Travel Insurance' },
-  stats_4_num: { vi: '24/7', en: '24/7' },
-  stats_4_label: { vi: 'Quản gia lữ hành riêng', en: 'Dedicated Concierge Butler' },
+  stats_1_num: { vi: '15 PHÚT', en: '15 MIN' },
+  stats_1_label: { vi: 'Thời gian giữ chỗ', en: 'Seat hold window' },
+  stats_2_num: { vi: 'VND', en: 'VND' },
+  stats_2_label: { vi: 'Giá theo lịch khởi hành', en: 'Departure-based pricing' },
+  stats_3_num: { vi: 'LIVE', en: 'LIVE' },
+  stats_3_label: { vi: 'Kho chỗ được kiểm tra khi đặt', en: 'Inventory rechecked at booking' },
+  stats_4_num: { vi: 'AI', en: 'AI' },
+  stats_4_label: { vi: 'Tư vấn dựa trên catalog', en: 'Catalog-grounded assistance' },
 
   // Reviews & Feedback
-  rev_tag: { vi: 'TRẢI NGHIỆM THỰC TẾ', en: 'GUEST EXPERIENCES' },
-  rev_title: { vi: 'Cảm Nhận Từ Quý Khách Hàng', en: 'Testimonials From Our Guests' },
+  rev_tag: { vi: 'ĐÁNH GIÁ XÁC THỰC', en: 'VERIFIED REVIEWS' },
+  rev_title: { vi: 'Nguyên Tắc Phản Hồi Khách Hàng', en: 'Traveler Review Principles' },
   rev_desc: {
-    vi: 'Những chia sẻ chân thực từ các gia đình và doanh nhân đã đồng hành cùng DELTA TRAVEL.',
-    en: 'Authentic reflections from families and entrepreneurs who traveled with DELTA PRIVÉ.',
+    vi: 'Website chỉ coi feedback là xác thực khi gắn với booking đã hoàn thành; nội dung chi tiết được hiển thị tại từng tour.',
+    en: 'A review is verified only when linked to a completed booking; detailed feedback appears on each tour page.',
   },
-  rev_1_name: { vi: 'Doanh nhân Trần Minh Đức', en: 'Mr. Tran Minh Duc' },
-  rev_1_role: { vi: 'Hà Nội • Khách hàng VIP', en: 'Hanoi • VIP Guest' },
-  rev_1_tour: { vi: 'Tour Vịnh Hạ Long — Du Thuyền 5 Sao', en: 'Ha Long Bay 5-Star Cruise' },
+  rev_1_name: { vi: 'Booking đã hoàn thành', en: 'Completed booking' },
+  rev_1_role: { vi: 'Điều kiện xác thực', en: 'Verification rule' },
+  rev_1_tour: { vi: 'Không tạo review giả', en: 'No fabricated reviews' },
   rev_1_content: {
-    vi: 'Chuyến đi Hạ Long cùng gia đình thực sự đẳng cấp. Du thuyền riêng sang trọng, ẩm thực hải sản xuất sắc và đội ngũ quản gia chăm sóc chu đáo đến từng chi tiết nhỏ.',
-    en: 'The Ha Long voyage with my family was truly sublime. Luxury private yacht, exquisite seafood, and our butler attended to every fine detail.',
+    vi: 'Chỉ tài khoản có booking ở trạng thái HOÀN THÀNH mới có thể gửi số sao và feedback xác thực cho tour đã đi.',
+    en: 'Only an account with a COMPLETED booking may submit a verified rating and feedback for that tour.',
   },
-  rev_2_name: { vi: 'Chị Lê Hoài An', en: 'Ms. Le Hoai An' },
-  rev_2_role: { vi: 'TP. Hồ Chí Minh • Gia đình 3 thế hệ', en: 'HCMC • 3-Generation Family' },
-  rev_2_tour: { vi: 'Tour Đà Nẵng — Hội An — Cầu Vàng', en: 'Da Nang — Hoi An — Golden Bridge' },
+  rev_2_name: { vi: 'Quyền riêng tư', en: 'Privacy' },
+  rev_2_role: { vi: 'Tên được rút gọn', en: 'Masked display name' },
+  rev_2_tour: { vi: 'Không lộ thông tin booking', en: 'No booking data exposure' },
   rev_2_content: {
-    vi: 'Lịch trình rất thong thả và hợp lý cho cả bố mẹ lớn tuổi lẫn các bé. Khách sạn 5 sao tiện nghi, xe đưa đón riêng sạch sẽ và hướng dẫn viên cực kỳ am hiểu lịch sử.',
-    en: 'The itinerary was gentle and perfectly paced for both elderly parents and kids. Splendid 5-star lodging, clean private transport, and very knowledgeable guides.',
+    vi: 'Tên người đánh giá được rút gọn trên trang công khai và không hiển thị mã booking hoặc thông tin liên hệ.',
+    en: 'Reviewer names are masked publicly and booking identifiers or contact details are not exposed.',
   },
-  rev_3_name: { vi: 'Anh Nguyễn Hoàng Nam', en: 'Mr. Nguyen Hoang Nam' },
-  rev_3_role: { vi: 'Đà Nẵng • Cặp đôi kỳ nghỉ', en: 'Da Nang • Couple Vacation' },
-  rev_3_tour: { vi: 'Tour Phú Quốc — Sunset Sanato & Cáp Treo', en: 'Phu Quoc Sunset & Cable Car' },
+  rev_3_name: { vi: 'Nguồn dữ liệu', en: 'Data source' },
+  rev_3_role: { vi: 'Tổng hợp từ backend', en: 'Backend aggregated' },
+  rev_3_tour: { vi: 'Số sao theo tour', en: 'Per-tour ratings' },
   rev_3_content: {
-    vi: 'Giao diện đặt tour hiện đại, khóa chỗ nhanh chóng và giá vé rất minh bạch. Trợ lý du lịch AI tư vấn lịch trình rất thông minh. Chắc chắn sẽ tiếp tục chọn DELTA!',
-    en: 'Ultra-modern booking UI, fast seat lock, and transparent pricing. The AI travel assistant was surprisingly insightful. Will definitely return to DELTA!',
+    vi: 'Điểm trung bình và số lượt đánh giá được tổng hợp từ các review xác thực trong backend, không hard-code trên giao diện.',
+    en: 'Average rating and review count are aggregated from verified backend reviews rather than hard-coded in the UI.',
   },
 
   // Footer
   footer_trust_1_title: { vi: 'Chất Lượng Đảm Bảo', en: 'Verified Quality' },
   footer_trust_1_desc: {
-    vi: '100% Tour tuyển chọn chu đáo, hướng dẫn tận tình',
-    en: '100% Handpicked luxury tours with dedicated guidance',
+    vi: 'Tour mở bán có dữ liệu lịch và nội dung vận hành',
+    en: 'Published tours include schedule and operating data',
   },
   footer_trust_2_title: { vi: 'Giữ Chỗ Tiện Lợi', en: 'Seamless Booking' },
   footer_trust_2_desc: {
     vi: 'Khóa chỗ trực tuyến an toàn trong 15 phút',
     en: 'Instant online slot reservation held safely for 15 minutes',
   },
-  footer_trust_3_title: { vi: 'Hỗ Trợ Tận Tâm 24/7', en: '24/7 Concierge Support' },
+  footer_trust_3_title: { vi: 'Thông Tin Hỗ Trợ', en: 'Support Information' },
   footer_trust_3_desc: {
     vi: 'Đồng hành cùng bạn trên mọi nẻo đường quê hương',
     en: 'Accompanying you across every journey across Vietnam',
@@ -475,8 +475,8 @@ export const DICTIONARY: Translations = {
   footer_col_regions: { vi: 'Khám Phá 3 Miền', en: 'Explore 3 Regions' },
   footer_col_services: { vi: 'Dịch Vụ & Đơn Hàng', en: 'Services & Orders' },
   footer_col_contact: { vi: 'Liên Hệ Hỗ Trợ', en: 'Contact & Support' },
-  footer_hotline_text: { vi: 'Tổng đài: 1900 6868', en: 'Hotline: 1900 6868' },
-  footer_cities_text: { vi: 'Hà Nội — Đà Nẵng — TP.HCM', en: 'Hanoi — Da Nang — Ho Chi Minh City' },
+  footer_hotline_text: { vi: 'Hỗ trợ: trong tài khoản & DELTA AI', en: 'Support: account area & DELTA AI' },
+  footer_cities_text: { vi: 'Phạm vi: tour nội địa Việt Nam', en: 'Scope: domestic Vietnam tours' },
   footer_rights_text: {
     vi: '© 2026 DELTA TRAVEL. Bảo lưu mọi quyền.',
     en: '© 2026 DELTA TRAVEL. All rights reserved.',
@@ -623,8 +623,8 @@ export const DICTIONARY: Translations = {
     en: 'Booking Confirmed — Direct Payment',
   },
   bk_status_confirmed_sub: {
-    vi: 'Đơn đặt tour của Quý khách đã được bảo lưu thành công trên hệ thống. Quý khách vui lòng thanh toán trực tiếp tại văn phòng Delta Travel hoặc cho Hướng dẫn viên đón đoàn tại điểm hẹn trước giờ khởi hành.',
-    en: 'Your tour reservation has been successfully confirmed. Please pay in cash/card at any Delta Travel office or directly to your Tour Leader prior to departure.',
+    vi: 'Đơn đặt tour đã được xác nhận trên hệ thống. Nếu chọn tiền mặt, trạng thái chỉ chuyển sang đã thanh toán sau khi nhân viên thực sự nhận tiền và nhập mã biên nhận.',
+    en: 'The booking is confirmed in the system. For cash payments, it is marked paid only after staff actually receives the money and records a receipt reference.',
   },
   bk_status_paid_title: { vi: 'Đã Thanh Toán Thành Công', en: 'Payment Succeeded' },
   bk_status_paid_sub: {
@@ -676,12 +676,12 @@ export const DICTIONARY: Translations = {
   bk_status_label: { vi: 'Trạng thái:', en: 'Status:' },
   bk_payment_method_label: { vi: 'Phương Thức Thanh Toán', en: 'Payment Method' },
   bk_pay_direct_label: {
-    vi: 'Thanh toán trực tiếp (Tại quầy / Cho HDV)',
-    en: 'Direct Payment (At Office / To Tour Leader)',
+    vi: 'Đăng ký thanh toán tiền mặt',
+    en: 'Register Cash Payment',
   },
   bk_pay_direct_desc: {
-    vi: 'Thanh toán bằng tiền mặt hoặc thẻ tại văn phòng Delta Travel (Hà Nội, Đà Nẵng, TP.HCM) hoặc cho Hướng dẫn viên khi đón tour.',
-    en: 'Pay by cash or card at Delta Travel offices (Hanoi, Da Nang, HCMC) or directly to the Tour Leader upon tour pickup.',
+    vi: 'Chọn phương thức tiền mặt. Nhân viên chỉ xác nhận PAID sau khi thực nhận tiền và ghi mã biên nhận trong hệ thống.',
+    en: 'Choose cash payment. Staff marks the booking PAID only after actually receiving the money and recording a receipt reference.',
   },
   bk_pay_vnpay_label: { vi: 'VNPay QR / Thẻ ATM & Quốc tế', en: 'VNPay QR / ATM & Credit Cards' },
   bk_pay_vnpay_desc: {
@@ -698,18 +698,18 @@ export const DICTIONARY: Translations = {
     vi: 'Xác thực thanh toán liền mạch trong hệ sinh thái Zalo.',
     en: 'Seamless and authenticated payment in Zalo ecosystem.',
   },
-  bk_confirm_direct: { vi: 'Xác Nhận Thanh Toán Trực Tiếp', en: 'Confirm Direct Payment' },
+  bk_confirm_direct: { vi: 'Chọn Thanh Toán Tiền Mặt', en: 'Choose Cash Payment' },
   bk_confirming: { vi: 'Đang xác nhận...', en: 'Confirming...' },
   bk_connecting_gateway: { vi: 'Đang kết nối cổng...', en: 'Connecting to gateway...' },
   bk_pay_via: { vi: 'Thanh toán qua', en: 'Pay via' },
-  bk_office_network: { vi: 'Hệ thống văn phòng Delta Travel:', en: 'Delta Travel Office Network:' },
+  bk_office_network: { vi: 'Điểm thu tiền:', en: 'Cash collection point:' },
   bk_office_locations: {
-    vi: 'Hà Nội (12 Tràng Thi), Đà Nẵng (58 Bạch Đằng), TP.HCM (88 Nguyễn Huệ).',
-    en: 'Hanoi (12 Trang Thi), Da Nang (58 Bach Dang), HCMC (88 Nguyen Hue).',
+    vi: 'Theo thông tin được bộ phận vận hành xác nhận cho booking cụ thể.',
+    en: 'According to the collection information confirmed by operations for the specific booking.',
   },
   bk_hotline_support: {
-    vi: 'Hỗ trợ 24/7 qua tổng đài 1900 6868 để giải đáp mọi thắc mắc và hướng dẫn thanh toán.',
-    en: '24/7 Concierge Hotline 1900 6868 for inquiries and payment assistance.',
+    vi: 'Tra cứu trạng thái booking trong tài khoản; các hướng dẫn thanh toán chỉ dựa trên phương thức đang được hệ thống mở.',
+    en: 'Check booking status in your account; payment guidance follows only the methods currently enabled by the system.',
   },
   bk_status_pending_label: { vi: 'CHỜ THANH TOÁN', en: 'PENDING PAYMENT' },
   bk_status_cash_label: { vi: 'CHỜ THU TIỀN MẶT', en: 'AWAITING CASH' },
@@ -767,8 +767,8 @@ export const DICTIONARY: Translations = {
   },
   chk_summary_section: { vi: 'Tóm Tắt Giữ Chỗ', en: 'Reservation Summary' },
   chk_departure_prefix: { vi: 'Khởi hành:', en: 'Departure:' },
-  chk_dep_location: { vi: 'Xuất phát tại Việt Nam', en: 'Departing from Vietnam' },
-  chk_tax_included: { vi: 'Đã bao gồm thuế & bảo hiểm', en: 'Taxes & travel insurance included' },
+  chk_dep_location: { vi: 'Điểm khởi hành: theo lịch tour', en: 'Departure point: per tour schedule' },
+  chk_tax_included: { vi: 'Giá tour cơ bản • xem mục bao gồm/chưa bao gồm', en: 'Base tour price • review inclusions/exclusions' },
   chk_calculating: { vi: 'Đang tính...', en: 'Calculating...' },
   chk_hold_rule_title: { vi: 'Quy định giữ chỗ 15 phút', en: '15-minute seat hold policy' },
   chk_hold_rule_desc: {
@@ -844,6 +844,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       setLangState(saved);
     }
   }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const setLang = (newLang: Language) => {
     setLangState(newLang);
