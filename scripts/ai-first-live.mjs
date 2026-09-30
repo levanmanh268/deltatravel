@@ -41,6 +41,11 @@ try {
     throw new Error('AI discovery did not surface any TOUR source into catalog ranking');
   pass('AI-ranked tour catalog', `recommended=${recommended}`);
 
+  const firstCatalogTourLink = page.locator('a.liquid-glass-card[href^="/tours/"]').first();
+  await firstCatalogTourLink.waitFor({ state: 'visible', timeout: 30000 });
+  const catalogTourHref = await firstCatalogTourLink.getAttribute('href');
+  if (!catalogTourHref) throw new Error('No live catalog tour detail link found');
+
   await page.getByTestId('ai-command-center-launcher').click();
   const center = page.getByTestId('ai-command-center');
   await center.waitFor({ state: 'visible' });
@@ -59,11 +64,7 @@ try {
 
   await center.getByRole('button', { name: 'Đóng' }).click();
   await center.waitFor({ state: 'hidden', timeout: 30000 });
-  const firstTourLink = page.locator('a[href^="/tours/"]:visible').first();
-  await firstTourLink.waitFor({ state: 'visible', timeout: 30000 });
-  const href = await firstTourLink.getAttribute('href');
-  if (!href) throw new Error('No visible live tour detail link found');
-  await page.goto(WEB + href, { waitUntil: 'domcontentloaded', timeout: 120000 });
+  await page.goto(WEB + catalogTourHref, { waitUntil: 'domcontentloaded', timeout: 120000 });
   const advisor = page.locator('[data-ai-surface="context-card"]').first();
   await advisor.waitFor({ state: 'visible', timeout: 60000 });
   const advisorResponse = advisor.locator('[data-ai-response="true"]');
