@@ -58,12 +58,14 @@ try {
   pass('global page-aware AI command center');
 
   await center.getByRole('button', { name: 'Đóng' }).click();
-  const firstTourLink = page.locator('a[href^="/tours/"]').first();
+  await center.waitFor({ state: 'hidden', timeout: 30000 });
+  const firstTourLink = page.locator('a[href^="/tours/"]:visible').first();
+  await firstTourLink.waitFor({ state: 'visible', timeout: 30000 });
   const href = await firstTourLink.getAttribute('href');
-  if (!href) throw new Error('No live tour detail link found');
+  if (!href) throw new Error('No visible live tour detail link found');
   await page.goto(WEB + href, { waitUntil: 'domcontentloaded', timeout: 120000 });
   const advisor = page.locator('[data-ai-surface="context-card"]').first();
-  await advisor.waitFor({ state: 'visible' });
+  await advisor.waitFor({ state: 'visible', timeout: 60000 });
   const advisorResponse = advisor.locator('[data-ai-response="true"]');
   try {
     await advisorResponse.waitFor({ state: 'visible', timeout: 15000 });
