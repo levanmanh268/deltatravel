@@ -24,6 +24,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Install live-test browser dependencies
+        run: npm install --no-save playwright @axe-core/playwright
       - name: Install browser engines
         run: npx playwright install --with-deps chromium firefox
       - name: Live API and route smoke
