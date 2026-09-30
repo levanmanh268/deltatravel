@@ -220,19 +220,29 @@ export const TOUR_GALLERIES: Record<string, TourGalleryImage[]> = {
 };
 
 export function getTourGallery(
-  tour: Tour | { slug?: string; destination?: string; imageUrl?: string },
+  tour: Tour | {
+    slug?: string;
+    destination?: string;
+    imageUrl?: string | null;
+    galleryImages?: unknown;
+  },
 ): TourGalleryImage[] {
-  const gallery = tour.slug ? TOUR_GALLERIES[tour.slug] : undefined;
-  if (gallery?.length) return gallery;
+  if (
+    'galleryImages' in tour &&
+    Array.isArray(tour.galleryImages) &&
+    tour.galleryImages.length > 0
+  ) {
+    return tour.galleryImages
+      .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      .map((src, index) => ({
+        src,
+        altVi: `Ảnh chi tiết ${index + 1} của ${tour.destination || 'tour'}`,
+        altEn: `Tour detail image ${index + 1} for ${tour.destination || 'destination'}`,
+      }));
+  }
 
-  const hero = getTourImage(tour);
-  return [
-    {
-      src: hero,
-      altVi: `Hình ảnh ${tour.destination || 'điểm đến'}`,
-      altEn: `${tour.destination || 'Destination'} travel image`,
-    },
-  ];
+  const gallery = tour.slug ? TOUR_GALLERIES[tour.slug] : undefined;
+  return gallery?.length ? gallery : [];
 }
 
 // Luxury editorial taglines for each destination
