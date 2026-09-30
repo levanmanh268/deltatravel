@@ -1,0 +1,42 @@
+name: Temporary Netlify Production Diagnostic
+
+on:
+  push:
+    branches:
+      - manh/final-hardening-v3-20260930
+
+permissions:
+  contents: read
+
+jobs:
+  netlify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: manh/integrate-production-api
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Inspect Netlify release identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 30 https://deltatravel.netlify.app/api/release | tee /tmp/netlify-release.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/netlify-release.json'))
+          print("NETLIFY_RELEASE", d)
+          if d.get("service") != "delta-travel-web":
+              raise SystemExit("Unexpected service identity")
+          PY
+      - name: Check public routes and headers
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in / /tours /assistant /login /register /forgot-password /robots.txt /sitemap.xml; do
+            code="$(curl -LsS -o /tmp/body --max-time 30 -w '%{http_code}' "https://deltatravel.netlify.app$route")"
+            echo "$route => $code"
+            test "$code" -lt 400
+          done
+          curl -fsSI https://deltatravel.netlify.app/ | tr -d '\r' | grep -Ei 'content-security-policy|strict-transport-security|x-frame-options|x-content-type-options' || true
