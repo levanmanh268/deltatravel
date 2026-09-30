@@ -1,5 +1,7 @@
 name: Temporary Netlify Production Diagnostic
 
+# verify-after-main-sync
+
 on:
   push:
     branches:
