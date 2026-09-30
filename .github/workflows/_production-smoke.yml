@@ -4,6 +4,7 @@ name: Temporary Production Smoke
 # final-production-rerun-after-test-stabilization
 # rerun-after-catalog-navigation-fix
 # rerun-after-api-grounded-detail-fix
+# rerun-after-envelope-format-fix
 
 on:
   push:
