@@ -81,11 +81,11 @@ export function GiantScrollTypography({
         style={
           outline
             ? {
-                WebkitTextStroke: '1.5px rgba(0, 0, 0, 0.12)',
-                color: 'transparent',
+                WebkitTextStroke: '1.5px rgba(0, 0, 0, 0.72)',
+                color: 'rgba(0, 0, 0, 0.62)',
               }
             : {
-                color: 'rgba(0, 0, 0, 0.05)',
+                color: 'rgba(0, 0, 0, 0.62)',
               }
         }
         className="font-black tracking-wider uppercase select-none"
