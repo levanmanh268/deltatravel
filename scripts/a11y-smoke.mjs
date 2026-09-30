@@ -48,7 +48,10 @@ try {
           `A11Y ${viewport.name} ${route} returned HTTP ${response?.status() ?? 'no-response'}`,
         );
       }
-      await page.waitForTimeout(800);
+      await page.waitForFunction(() => document.querySelectorAll('main').length === 1, null, {
+        timeout: 30000,
+      });
+      await page.waitForTimeout(1500);
 
       const result = await new AxeBuilder({ page }).analyze();
       violationCount += result.violations.length;
