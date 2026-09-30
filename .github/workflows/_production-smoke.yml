@@ -1,6 +1,7 @@
 name: Temporary Production Smoke
 
 # production-rerun-after-a11y-fix
+# final-production-rerun-after-test-stabilization
 
 on:
   push:
