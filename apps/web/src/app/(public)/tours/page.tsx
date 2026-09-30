@@ -184,7 +184,7 @@ function ToursListContent() {
           <span className="text-xs font-black uppercase tracking-[0.2em] text-neutral-800">
             {activeRegion
               ? `${t('tours_counter_prefix')} ${REGION_TABS.find((r) => r.id === activeRegion)?.label.toUpperCase()} • ${tours.length} ${t('tours_counter_suffix')}`
-              : t('tours_counter_all')}
+              : `${t('tours_counter_prefix')} • ${tours.length} ${t('tours_counter_suffix')}`}
           </span>
         </div>
 
@@ -232,8 +232,8 @@ function ToursListContent() {
           </h2>
           <p className="mt-2 text-xs font-medium text-neutral-600 max-w-md mx-auto leading-relaxed">
             {lang === 'en'
-              ? 'This realm is currently undergoing high-season itinerary curation. Please select another realm.'
-              : 'Hiện khu vực này đang được nâng cấp lịch trình mùa cao điểm. Quý khách vui lòng chọn phân vùng khác.'}
+              ? 'There are currently no tours on sale in this region. Please select another region.'
+              : 'Hiện chưa có tour mở bán tại khu vực này. Vui lòng chọn khu vực khác.'}
           </p>
           <Button
             variant="outline"
@@ -290,10 +290,11 @@ function ToursListContent() {
                       variant="duration"
                       icon={<Calendar className="h-3 w-3 text-white" />}
                     >
-                      {tour.durationDays}
-                      {lang === 'en' ? 'D' : 'N'}
-                      {Math.max(1, tour.durationDays - 1)}
-                      {lang === 'en' ? 'N' : 'Đ'}
+                      {tour.durationDays === 1
+                        ? lang === 'en'
+                          ? 'DAY TRIP'
+                          : 'TRONG NGÀY'
+                        : `${tour.durationDays}${lang === 'en' ? 'D' : 'N'}${tour.durationDays - 1}${lang === 'en' ? 'N' : 'Đ'}`}
                     </LiquidGlassBadge>
                   </div>
 
@@ -313,7 +314,9 @@ function ToursListContent() {
                       variant="rating"
                       icon={<Star className="h-3 w-3 fill-amber-300 text-amber-300" />}
                     >
-                      {t('card_badge_luxury')}
+                      {rawTour.ratingCount && rawTour.ratingAverage !== null
+                        ? `${rawTour.ratingAverage?.toFixed(1)} · ${rawTour.ratingCount}`
+                        : t('card_badge_luxury')}
                     </LiquidGlassBadge>
                   </div>
                 </div>
