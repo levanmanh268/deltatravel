@@ -16,6 +16,11 @@ try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const pageErrors = [];
   page.on('pageerror', (error) => pageErrors.push(String(error)));
+  page.on('response', (response) => {
+    if (response.url().includes('/api/v1/tours/')) {
+      console.log('LIVE_TOUR_RESPONSE', response.status(), response.url());
+    }
+  });
 
   await page.goto(WEB + '/', { waitUntil: 'domcontentloaded', timeout: 120000 });
   await page.locator('[data-ai-surface="context-card"]').first().waitFor({ state: 'visible' });
@@ -54,7 +59,14 @@ try {
     timeout: 120000,
   });
   const advisor = page.locator('[data-ai-surface="context-card"]').first();
-  await advisor.waitFor({ state: 'visible', timeout: 60000 });
+  try {
+    await advisor.waitFor({ state: 'visible', timeout: 30000 });
+  } catch {
+    console.log('DETAIL_RECOVERY_URL', page.url());
+    console.log('DETAIL_RECOVERY_BODY', (await page.locator('body').innerText()).slice(0, 1600));
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 120000 });
+    await advisor.waitFor({ state: 'visible', timeout: 60000 });
+  }
   const advisorResponse = advisor.locator('[data-ai-response="true"]');
   try {
     await advisorResponse.waitFor({ state: 'visible', timeout: 15000 });
