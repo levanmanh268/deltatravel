@@ -6,6 +6,10 @@ const WEB = (process.env.LIVE_WEB_URL || 'https://delta-travel-web.onrender.com'
   /\/$/,
   '',
 );
+const API = (process.env.LIVE_API_URL || 'https://delta-travel-api.onrender.com/api/v1').replace(
+  /\/$/,
+  '',
+);
 
 function pass(label, detail = '') {
   console.log(`PASS  ${label}${detail ? `  ${detail}` : ''}`);
@@ -41,10 +45,13 @@ try {
     throw new Error('AI discovery did not surface any TOUR source into catalog ranking');
   pass('AI-ranked tour catalog', `recommended=${recommended}`);
 
-  const firstCatalogTourLink = page.locator('a.liquid-glass-card[href^="/tours/"]').first();
-  await firstCatalogTourLink.waitFor({ state: 'visible', timeout: 30000 });
-  const catalogTourHref = await firstCatalogTourLink.getAttribute('href');
-  if (!catalogTourHref) throw new Error('No live catalog tour detail link found');
+  const tourListResponse = await fetch(API + '/tours?page=1&pageSize=100');
+  if (!tourListResponse.ok) {
+    throw new Error(`Live tour API returned ${tourListResponse.status}`);
+  }
+  const tourList = await tourListResponse.json();
+  const liveTourId = tourList?.items?.find((item) => typeof item?.id === 'string')?.id;
+  if (!liveTourId) throw new Error('No live tour ID returned by production API');
 
   await page.getByTestId('ai-command-center-launcher').click();
   const center = page.getByTestId('ai-command-center');
@@ -64,7 +71,10 @@ try {
 
   await center.getByRole('button', { name: 'Đóng' }).click();
   await center.waitFor({ state: 'hidden', timeout: 30000 });
-  await page.goto(WEB + catalogTourHref, { waitUntil: 'domcontentloaded', timeout: 120000 });
+  await page.goto(WEB + '/tours/' + liveTourId, {
+    waitUntil: 'domcontentloaded',
+    timeout: 120000,
+  });
   const advisor = page.locator('[data-ai-surface="context-card"]').first();
   await advisor.waitFor({ state: 'visible', timeout: 60000 });
   const advisorResponse = advisor.locator('[data-ai-response="true"]');
