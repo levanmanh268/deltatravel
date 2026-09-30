@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, MessageSquareText, Star } from 'lucide-react';
 import type { TourReviewList } from '@tour/shared';
-import { reviewApi } from '@/lib/api';
+import { bookingApi, reviewApi } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 
@@ -44,6 +44,7 @@ export function TourReviews({ tourId, lang }: { tourId: string; lang: 'vi' | 'en
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [eligible, setEligible] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -62,6 +63,33 @@ export function TourReviews({ tourId, lang }: { tourId: string; lang: 'vi' | 'en
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    let active = true;
+    if (!user) {
+      setEligible(false);
+      return () => {
+        active = false;
+      };
+    }
+    void bookingApi
+      .list()
+      .then((page) => {
+        if (active) {
+          setEligible(
+            page.items.some(
+              (booking) => booking.tourId === tourId && booking.status === 'COMPLETED',
+            ),
+          );
+        }
+      })
+      .catch(() => {
+        if (active) setEligible(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [tourId, user]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -107,8 +135,8 @@ export function TourReviews({ tourId, lang }: { tourId: string; lang: 'vi' | 'en
           </h2>
           <p className="mt-2 max-w-2xl text-xs leading-relaxed text-stone-600">
             {lang === 'en'
-              ? 'Only accounts with a paid, confirmed or completed booking for this tour can publish a review.'
-              : 'Chỉ tài khoản có booking đã thanh toán, xác nhận hoặc hoàn thành tour này mới được đăng đánh giá.'}
+              ? 'Only travelers with a completed booking for this tour can publish a verified review.'
+              : 'Chỉ khách có booking đã hoàn thành tour này mới được đăng đánh giá xác thực.'}
           </p>
         </div>
 
@@ -124,7 +152,7 @@ export function TourReviews({ tourId, lang }: { tourId: string; lang: 'vi' | 'en
         </div>
       </div>
 
-      {user && (
+      {user && eligible && (
         <form
           onSubmit={submit}
           className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/50 p-5"
@@ -169,6 +197,14 @@ export function TourReviews({ tourId, lang }: { tourId: string; lang: 'vi' | 'en
             </Button>
           </div>
         </form>
+      )}
+
+      {user && !eligible && (
+        <p className="mt-5 rounded-xl border border-stone-200 bg-stone-50 p-4 text-xs text-stone-600">
+          {lang === 'en'
+            ? 'Verified ratings become available after the booking is marked COMPLETED.'
+            : 'Bạn có thể gửi số sao và feedback xác thực sau khi booking được đánh dấu HOÀN THÀNH.'}
+        </p>
       )}
 
       {notice && (
