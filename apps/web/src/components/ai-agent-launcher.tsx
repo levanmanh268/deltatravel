@@ -172,9 +172,14 @@ export function AiAgentLauncher() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [isNetlifyHost, setIsNetlifyHost] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const context = useMemo(() => contextForPath(pathname, user?.role), [pathname, user?.role]);
+
+  useEffect(() => {
+    setIsNetlifyHost(window.location.hostname.endsWith('.netlify.app'));
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -231,7 +236,9 @@ export function AiAgentLauncher() {
         aria-expanded={open}
         aria-controls="delta-ai-command-center"
         onClick={() => setOpen(true)}
-        className="group fixed bottom-5 right-5 z-[90] flex items-center gap-3 rounded-full border border-white/70 bg-black/90 px-4 py-3 text-white shadow-[0_18px_55px_-18px_rgba(0,0,0,0.65)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-black sm:bottom-7 sm:right-7"
+        className={`group fixed right-5 z-[90] flex items-center gap-3 rounded-full border border-white/70 bg-black/90 px-4 py-3 text-white shadow-[0_18px_55px_-18px_rgba(0,0,0,0.65)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-black sm:right-7 ${
+          isNetlifyHost ? 'bottom-24 sm:bottom-24' : 'bottom-5 sm:bottom-7'
+        }`}
       >
         <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-amber-500 text-black shadow-inner">
           <Bot className="h-5 w-5" />
