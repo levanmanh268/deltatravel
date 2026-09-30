@@ -40,3 +40,25 @@ jobs:
             test "$code" -lt 400
           done
           curl -fsSI https://deltatravel.netlify.app/ | tr -d '\r' | grep -Ei 'content-security-policy|strict-transport-security|x-frame-options|x-content-type-options' || true
+      - name: Verify latest hardening content is live
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --max-time 30 https://deltatravel.netlify.app/ -o /tmp/home.html
+          if grep -q '25,000+' /tmp/home.html; then
+            echo "STALE_NETLIFY: fake 25,000+ claim is still present" >&2
+            exit 1
+          fi
+          if grep -q '99.8%' /tmp/home.html; then
+            echo "STALE_NETLIFY: fake 99.8% claim is still present" >&2
+            exit 1
+          fi
+          if grep -q '1900 6868' /tmp/home.html; then
+            echo "STALE_NETLIFY: unverified hotline is still present" >&2
+            exit 1
+          fi
+          grep -q '15 PHÚT' /tmp/home.html || grep -q '15 MIN' /tmp/home.html
+          headers="$(curl -fsSI --max-time 30 https://deltatravel.netlify.app/ | tr -d '\r')"
+          printf '%s\n' "$headers" | grep -qi '^content-security-policy:'
+          printf '%s\n' "$headers" | grep -qi '^strict-transport-security:'
+          echo "NETLIFY_CURRENT_HARDENING_PASS"
