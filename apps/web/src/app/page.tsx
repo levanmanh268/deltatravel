@@ -81,10 +81,11 @@ function TourCardsGrid({
                   variant="duration"
                   icon={<Calendar className="h-3 w-3 text-white" />}
                 >
-                  {tour.durationDays}
-                  {lang === 'en' ? 'D' : 'N'}
-                  {Math.max(1, tour.durationDays - 1)}
-                  {lang === 'en' ? 'N' : 'Đ'}
+                  {tour.durationDays === 1
+                    ? lang === 'en'
+                      ? 'DAY TRIP'
+                      : 'TRONG NGÀY'
+                    : `${tour.durationDays}${lang === 'en' ? 'D' : 'N'}${tour.durationDays - 1}${lang === 'en' ? 'N' : 'Đ'}`}
                 </LiquidGlassBadge>
               </div>
 
@@ -104,7 +105,9 @@ function TourCardsGrid({
                   variant="rating"
                   icon={<Star className="h-3 w-3 fill-amber-300 text-amber-300" />}
                 >
-                  {t('card_badge_luxury')}
+                  {rawTour.ratingCount && rawTour.ratingAverage !== null
+                    ? `${rawTour.ratingAverage?.toFixed(1)} · ${rawTour.ratingCount}`
+                    : t('card_badge_luxury')}
                 </LiquidGlassBadge>
               </div>
             </div>
