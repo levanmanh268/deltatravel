@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import type { Schedule } from '@tour/shared';
-import { scheduleApi } from '@/lib/api';
+import { ApiError, scheduleApi } from '@/lib/api';
 export function useAvailability(scheduleId?: string) {
   const [data, setData] = useState<Schedule | null>(null),
     [error, setError] = useState<string | null>(null);
@@ -12,6 +12,7 @@ export function useAvailability(scheduleId?: string) {
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
     const poll = async () => {
+      let shouldContinue = true;
       try {
         const value = await scheduleApi.availability(scheduleId, controller.signal);
         if (!controller.signal.aborted) {
@@ -19,10 +20,12 @@ export function useAvailability(scheduleId?: string) {
           setError(null);
         }
       } catch (e) {
-        if (!controller.signal.aborted)
+        if (!controller.signal.aborted) {
           setError(e instanceof Error ? e.message : 'Không thể kiểm tra chỗ');
+          if (e instanceof ApiError && [400, 404].includes(e.status)) shouldContinue = false;
+        }
       } finally {
-        if (!controller.signal.aborted) timer = setTimeout(poll, 3000);
+        if (!controller.signal.aborted && shouldContinue) timer = setTimeout(poll, 3000);
       }
     };
     void poll();

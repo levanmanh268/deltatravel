@@ -7,10 +7,16 @@ import { useAvailability } from '@/hooks/use-availability';
 import { bookingApi } from '@/lib/api';
 import type { z } from 'zod';
 import { useAuth } from '@/providers/auth-provider';
-import type { QuoteResultSchema } from '@tour/shared';
+import { IdSchema, type QuoteResultSchema } from '@tour/shared';
 import { formatVND, formatDate } from '@/lib/format';
 
 type QuoteResult = z.infer<typeof QuoteResultSchema>;
+
+function parsePartyParam(value: string | null, fallback: number, min: number, max: number) {
+  if (value === null || value.trim() === '') return fallback;
+  const parsed = Number(value);
+  return Number.isInteger(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback;
+}
 
 import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
@@ -33,8 +39,8 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
   const { user } = useAuth();
   const { t, lang } = useLanguage();
 
-  const initialAdults = Math.max(1, parseInt(searchParams.get('adults') || '2', 10));
-  const initialChildren = Math.max(0, parseInt(searchParams.get('children') || '0', 10));
+  const initialAdults = parsePartyParam(searchParams.get('adults'), 2, 1, 100);
+  const initialChildren = parsePartyParam(searchParams.get('children'), 0, 0, 100);
 
   const [adults, setAdults] = useState<number>(initialAdults);
   const [childrenCount, setChildrenCount] = useState<number>(initialChildren);
@@ -440,6 +446,24 @@ export default function CheckoutPage({ params }: { params: Promise<{ scheduleId:
   const resolvedParams = use(params);
   const scheduleId = resolvedParams.scheduleId;
   const { t } = useLanguage();
+
+  if (!IdSchema.safeParse(scheduleId).success) {
+    return (
+      <PageShell
+        badge={t('chk_shell_badge')}
+        title={t('chk_shell_title')}
+        description={t('chk_shell_desc')}
+      >
+        <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
+          <AlertCircle className="mx-auto h-10 w-10 text-red-600" />
+          <p className="mt-3 text-sm font-bold text-red-900">Mã lịch khởi hành không hợp lệ.</p>
+          <Button asChild className="mt-5 bg-stone-900 text-white">
+            <Link href="/tours">Quay lại danh sách tour</Link>
+          </Button>
+        </div>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell

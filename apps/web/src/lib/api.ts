@@ -99,7 +99,9 @@ export async function api<T extends z.ZodTypeAny>(
 ): Promise<z.infer<T>> {
   const timeoutCtrl = new AbortController();
   const timeoutId = setTimeout(() => timeoutCtrl.abort(), REQUEST_TIMEOUT_MS);
-  const signal = options.signal || timeoutCtrl.signal;
+  const signal = options.signal
+    ? AbortSignal.any([options.signal, timeoutCtrl.signal])
+    : timeoutCtrl.signal;
 
   let response: Response;
   try {
@@ -118,6 +120,7 @@ export async function api<T extends z.ZodTypeAny>(
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
+      if (options.signal?.aborted) throw error;
       throw new ApiError(
         0,
         'REQUEST_TIMEOUT',
