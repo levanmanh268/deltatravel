@@ -34,7 +34,7 @@ const page = {
 const TourResponseSchema = TourSchema.passthrough();
 const parsed = PageSchema(TourResponseSchema).parse(page);
 if (parsed.items[0].futureServerField?.safe !== true) {
-  throw new Error('TourSchema client boundary no longer tolerates forward-compatible response fields');
+  throw new Error('TourSchema no longer tolerates forward-compatible response fields');
 }
 
 console.log('CLIENT_CONTRACT_COMPAT_PASS');
