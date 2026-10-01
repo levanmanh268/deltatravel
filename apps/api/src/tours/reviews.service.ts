@@ -71,11 +71,7 @@ export class ReviewsService {
     };
   }
 
-  async upsert(
-    tourId: string,
-    userId: string,
-    input: z.infer<typeof CreateTourReviewSchema>,
-  ) {
+  async upsert(tourId: string, userId: string, input: z.infer<typeof CreateTourReviewSchema>) {
     await this.requireActiveTour(tourId);
     const completed = await this.db.booking.findFirst({
       where: { userId, status: 'COMPLETED', schedule: { tourId } },

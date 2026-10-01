@@ -8,10 +8,10 @@ import { ReviewsService } from '../../src/tours/reviews.service';
 import type { CacheService } from '../../src/cache/cache.module';
 
 const db = new PrismaService();
-const admin = new AdminService(
-  db,
-  { read: async () => null, write: async () => {} } as unknown as CacheService,
-);
+const admin = new AdminService(db, {
+  read: async () => null,
+  write: async () => {},
+} as unknown as CacheService);
 const bookings = new BookingsService(db);
 const reviews = new ReviewsService(db);
 
