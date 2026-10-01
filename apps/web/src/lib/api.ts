@@ -51,7 +51,9 @@ import {
 } from '@tour/shared';
 import { inferTourRegion } from './fallback-data';
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || 'https://delta-travel-api.onrender.com/api/v1';
+const BASE = (
+  process.env.NEXT_PUBLIC_API_URL || 'https://delta-travel-api.onrender.com/api/v1'
+).replace(/\/$/, '');
 const REQUEST_TIMEOUT_MS = 65000;
 
 const TourResponseSchema = TourSchema.passthrough();
@@ -199,6 +201,26 @@ export async function api<T extends z.ZodTypeAny>(
   return parsed.data;
 }
 
+async function publicApiWithLegacyFallback<T extends z.ZodTypeAny>(
+  currentPath: string,
+  legacyPath: string,
+  schema: T,
+): Promise<z.infer<T>> {
+  const options = { retryAuth: false, anonymous: true } as const;
+  try {
+    return await api(currentPath, schema, options);
+  } catch (error) {
+    if (
+      !(error instanceof ApiError) ||
+      error.status !== 400 ||
+      error.code !== 'VALIDATION_ERROR'
+    ) {
+      throw error;
+    }
+    return api(legacyPath, schema, options);
+  }
+}
+
 export function refreshSession() {
   if (!refreshFlight) {
     refreshFlight = (async () => {
@@ -294,31 +316,31 @@ export const tourApi = {
     const params = new URLSearchParams({
       page: '1',
       pageSize: '100',
-      contract: 'v2',
     });
     if (q.trim()) params.set('q', q.trim());
-    const res = await api(`/tours?${params.toString()}`, PageSchema(TourResponseSchema), {
-      retryAuth: false,
-      anonymous: true,
-    });
+    const currentParams = new URLSearchParams(params);
+    currentParams.set('contract', 'v2');
+    const res = await publicApiWithLegacyFallback(
+      `/tours?${currentParams.toString()}`,
+      `/tours?${params.toString()}`,
+      PageSchema(TourResponseSchema),
+    );
     const items = region ? res.items.filter((tour) => belongsToRegion(tour, region)) : res.items;
     return { ...res, items, total: items.length };
   },
 
   get: (id: string) =>
-    api(`/tours/${id}?contract=v2`, TourResponseSchema, {
-      retryAuth: false,
-      anonymous: true,
-    }),
+    publicApiWithLegacyFallback(
+      `/tours/${id}?contract=v2`,
+      `/tours/${id}`,
+      TourResponseSchema,
+    ),
 
   schedules: (id: string) =>
-    api(
+    publicApiWithLegacyFallback(
       `/tours/${id}/schedules?page=1&pageSize=100&contract=v2`,
+      `/tours/${id}/schedules?page=1&pageSize=100`,
       PageSchema(ScheduleResponseSchema),
-      {
-        retryAuth: false,
-        anonymous: true,
-      },
     ),
 };
 
@@ -342,12 +364,25 @@ export const reviewApi = {
 };
 
 export const scheduleApi = {
-  availability: (id: string, signal?: AbortSignal) =>
-    api(`/schedules/${id}/availability?contract=v2`, ScheduleResponseSchema, {
-      signal,
-      retryAuth: false,
-      anonymous: true,
-    }),
+  availability: async (id: string, signal?: AbortSignal) => {
+    const options = { signal, retryAuth: false, anonymous: true } as const;
+    try {
+      return await api(
+        `/schedules/${id}/availability?contract=v2`,
+        ScheduleResponseSchema,
+        options,
+      );
+    } catch (error) {
+      if (
+        !(error instanceof ApiError) ||
+        error.status !== 400 ||
+        error.code !== 'VALIDATION_ERROR'
+      ) {
+        throw error;
+      }
+      return api(`/schedules/${id}/availability`, ScheduleResponseSchema, options);
+    }
+  },
 };
 
 export const bookingApi = {
