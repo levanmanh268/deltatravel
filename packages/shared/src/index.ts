@@ -270,7 +270,7 @@ export const TourSchema = CreateTourSchema.extend({
   fromPrice: MoneySchema.nullable().optional(),
   ratingAverage: z.number().min(0).max(5).nullable().optional(),
   ratingCount: z.number().int().nonnegative().optional(),
-}).passthrough();
+});
 export const ScheduleSchema = CreateScheduleSchema.extend({
   durationDays: z.number().int().min(1).max(60),
   id: IdSchema,
