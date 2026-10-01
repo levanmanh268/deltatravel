@@ -1,6 +1,6 @@
 name: Temporary Netlify Production Probe
 
-# rerun-home-and-catalog-after-backend-contract-v2
+# rerun-home-catalog-detail-after-backend-contract-v2
 
 on:
   push:
@@ -110,6 +110,26 @@ jobs:
             if (tourLinks < 1) {
               throw new Error('Netlify production rendered no tour cards');
             }
+
+            const firstHref = await page.locator('a[href^="/tours/"]').first().getAttribute('href');
+            if (!firstHref) throw new Error('Unable to resolve first Netlify tour detail URL');
+            const detailResponse = await page.goto(WEB + firstHref, {
+              waitUntil: 'domcontentloaded',
+              timeout: 120000,
+            });
+            console.log('NETLIFY_DETAIL_HTTP', detailResponse?.status(), firstHref);
+            await page.waitForTimeout(8000);
+            const detailBody = await page.locator('body').innerText();
+            for (const marker of fatalMarkers) {
+              if (detailBody.includes(marker)) {
+                throw new Error('Netlify detail still exposes catalog contract failure: ' + marker);
+              }
+            }
+            if (!detailBody.includes('LỊCH KHỞI HÀNH') && !detailBody.includes('DEPARTURE')) {
+              throw new Error('Netlify tour detail did not render the departure section');
+            }
+            console.log('NETLIFY_DETAIL_PROBE_PASS');
+
             if (pageErrors.length) {
               throw new Error('Netlify page errors: ' + pageErrors.join(' | '));
             }
