@@ -210,11 +210,7 @@ async function publicApiWithLegacyFallback<T extends z.ZodTypeAny>(
   try {
     return await api(currentPath, schema, options);
   } catch (error) {
-    if (
-      !(error instanceof ApiError) ||
-      error.status !== 400 ||
-      error.code !== 'VALIDATION_ERROR'
-    ) {
+    if (!(error instanceof ApiError) || error.status !== 400 || error.code !== 'VALIDATION_ERROR') {
       throw error;
     }
     return api(legacyPath, schema, options);
@@ -330,11 +326,7 @@ export const tourApi = {
   },
 
   get: (id: string) =>
-    publicApiWithLegacyFallback(
-      `/tours/${id}?contract=v2`,
-      `/tours/${id}`,
-      TourResponseSchema,
-    ),
+    publicApiWithLegacyFallback(`/tours/${id}?contract=v2`, `/tours/${id}`, TourResponseSchema),
 
   schedules: (id: string) =>
     publicApiWithLegacyFallback(
