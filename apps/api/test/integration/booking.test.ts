@@ -82,6 +82,7 @@ async function schedule(seats = 10, price = 100000) {
     data: {
       tourId,
       departureAt: new Date(Date.now() + 10 * 86400000),
+      durationDays: 2,
       totalSeats: seats,
       adultPrice: price,
       childPrice: 50000,
@@ -180,6 +181,7 @@ describe('database business invariants', () => {
       amount: p.amount,
       success: true,
     };
+    expect((await payments.byBooking(b.id, userId))?.id).toBe(p.id);
     expect(await payments.settle(event)).toBe('APPLIED');
     expect(await payments.settle(event)).toBe('DUPLICATE');
     expect((await bookings.get(b.id, userId)).status).toBe('PAID');
