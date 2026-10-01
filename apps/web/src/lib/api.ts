@@ -55,6 +55,7 @@ const BASE = process.env.NEXT_PUBLIC_API_URL || 'https://delta-travel-api.onrend
 const REQUEST_TIMEOUT_MS = 65000;
 
 const TourResponseSchema = TourSchema.passthrough();
+const ScheduleResponseSchema = ScheduleSchema.passthrough();
 
 let accessToken: string | null = null;
 let refreshFlight: Promise<z.infer<typeof AuthResultSchema>> | null = null;
@@ -296,7 +297,7 @@ export const tourApi = {
     }),
 
   schedules: (id: string) =>
-    api(`/tours/${id}/schedules?page=1&pageSize=100`, PageSchema(ScheduleSchema), {
+    api(`/tours/${id}/schedules?page=1&pageSize=100&contract=v2`, PageSchema(ScheduleResponseSchema), {
       retryAuth: false,
       anonymous: true,
     }),
@@ -323,7 +324,7 @@ export const reviewApi = {
 
 export const scheduleApi = {
   availability: (id: string, signal?: AbortSignal) =>
-    api(`/schedules/${id}/availability`, ScheduleSchema, {
+    api(`/schedules/${id}/availability?contract=v2`, ScheduleResponseSchema, {
       signal,
       retryAuth: false,
       anonymous: true,
@@ -547,16 +548,16 @@ export const adminApi = {
       method: 'DELETE',
     }),
 
-  schedules: () => api('/admin/schedules?page=1&pageSize=100', PageSchema(ScheduleSchema)),
+  schedules: () => api('/admin/schedules?page=1&pageSize=100', PageSchema(ScheduleResponseSchema)),
 
   createSchedule: (input: z.input<typeof CreateScheduleSchema>) =>
-    api('/admin/schedules', ScheduleSchema, {
+    api('/admin/schedules', ScheduleResponseSchema, {
       method: 'POST',
       body: CreateScheduleSchema.parse(input),
     }),
 
   updateSchedule: (id: string, input: z.input<typeof UpdateScheduleSchema>) =>
-    api(`/admin/schedules/${id}`, ScheduleSchema, {
+    api(`/admin/schedules/${id}`, ScheduleResponseSchema, {
       method: 'PATCH',
       body: UpdateScheduleSchema.parse(input),
     }),
