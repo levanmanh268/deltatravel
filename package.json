@@ -26,6 +26,7 @@
     "verify:staging": "node scripts/staging-e2e.mjs",
     "scan:secrets": "node scripts/scan-secrets.mjs",
     "verify:contract": "node scripts/verify-contract.mjs",
+    "verify:client-contract-compat": "npm run build -w @tour/shared && node scripts/verify-client-contract-compat.mjs",
     "verify:browser": "node scripts/browser-smoke.mjs",
     "verify:a11y": "node scripts/a11y-smoke.mjs",
     "verify:security": "node scripts/security-smoke.mjs",
