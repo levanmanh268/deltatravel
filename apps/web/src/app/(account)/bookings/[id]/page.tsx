@@ -235,6 +235,8 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
     const expiresTime = new Date(booking.expiresAt).getTime();
     const serverTime = new Date(booking.serverTime).getTime();
     const mountClientTime = performance.now();
+    let refreshTriggered = false;
+    let interval: ReturnType<typeof setInterval> | undefined;
 
     const updateTimer = () => {
       const elapsedSinceMount = performance.now() - mountClientTime;
@@ -242,14 +244,18 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       const remaining = Math.max(0, expiresTime - currentSimulatedTime);
       setTimeLeftMs(remaining);
 
-      if (remaining <= 0) {
+      if (remaining <= 0 && !refreshTriggered) {
+        refreshTriggered = true;
+        if (interval) clearInterval(interval);
         fetchBooking();
       }
     };
 
     updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
+    if (!refreshTriggered) interval = setInterval(updateTimer, 1000);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [booking]);
 
   const handlePay = async () => {
