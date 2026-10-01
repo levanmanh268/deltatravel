@@ -3,8 +3,13 @@
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { bookingApi, paymentApi } from '@/lib/api';
-import type { Booking, PaymentChannel, Provider } from '@tour/shared';
-import { BOOKING_LABELS } from '@tour/shared';
+import {
+  BOOKING_LABELS,
+  canCustomerCancel,
+  type Booking,
+  type PaymentChannel,
+  type Provider,
+} from '@tour/shared';
 import { formatVND, formatDate, formatDateTime } from '@/lib/format';
 import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
@@ -376,7 +381,11 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const isPaid = booking.status === 'PAID';
   const isConfirmed = booking.status === 'CONFIRMED';
   const isCancelled = booking.status === 'CANCELLED';
-  const canCancel = ['PENDING_PAYMENT', 'AWAITING_CASH', 'PAID'].includes(booking.status);
+  const canCancel = canCustomerCancel(
+              booking.status,
+              new Date(booking.departureAt),
+              new Date(booking.serverTime),
+            );
 
   const statusKeyMap: Record<string, string> = {
     PENDING_PAYMENT: 'bk_status_pending_label',
