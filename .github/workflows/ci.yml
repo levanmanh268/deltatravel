@@ -44,6 +44,7 @@ jobs:
       - run: npm run verify:ai-first
       - run: npm run docs:generate
       - run: npm run verify:contract
+      - run: npm run verify:client-contract-compat
       - name: Verify generated contract is committed
         run: |
           npx prettier --write docs/API_CONTRACT.md docs/openapi.json
