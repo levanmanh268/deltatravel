@@ -1,5 +1,19 @@
 import type { NextConfig } from 'next';
 
+const buildCommit =
+  process.env.RENDER_GIT_COMMIT ||
+  process.env.COMMIT_REF ||
+  process.env.GITHUB_SHA ||
+  process.env.DELTA_BUILD_COMMIT ||
+  '';
+const buildProvider = process.env.RENDER_GIT_COMMIT
+  ? 'render'
+  : process.env.COMMIT_REF
+    ? 'netlify'
+    : process.env.GITHUB_SHA
+      ? 'github'
+      : process.env.DELTA_BUILD_PROVIDER || 'unknown';
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -27,6 +41,10 @@ const securityHeaders = [
 ];
 
 const config: NextConfig = {
+  env: {
+    DELTA_BUILD_COMMIT: buildCommit,
+    DELTA_BUILD_PROVIDER: buildProvider,
+  },
   transpilePackages: ['@tour/shared'],
   poweredByHeader: false,
   images: {

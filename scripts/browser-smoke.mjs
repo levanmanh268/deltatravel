@@ -57,20 +57,27 @@ function isTransientChunkError(message) {
 }
 
 async function openRoute(page, name, viewport, route, pageErrors) {
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const errorStart = pageErrors.length;
     const response = await page.goto(WEB + route, {
       waitUntil: 'domcontentloaded',
       timeout: 120000,
     });
-    if (!response || response.status() >= 400) {
-      throw new Error(`${name} ${route} returned HTTP ${response?.status() ?? 'no-response'}`);
+    const status = response?.status();
+    if (!response || status >= 400) {
+      if (attempt < maxAttempts && status && [502, 503, 504].includes(status)) {
+        console.log(`RETRY ${name} ${route} after transient HTTP ${status}`);
+        await page.waitForTimeout(6000);
+        continue;
+      }
+      throw new Error(`${name} ${route} returned HTTP ${status ?? 'no-response'}`);
     }
     await page.waitForTimeout(800);
 
     const routeErrors = pageErrors.slice(errorStart);
     if (
-      attempt === 1 &&
+      attempt < maxAttempts &&
       routeErrors.length > 0 &&
       routeErrors.every((message) => isTransientChunkError(message))
     ) {

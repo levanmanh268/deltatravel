@@ -16,12 +16,14 @@ function Result() {
   const { loading, user } = useAuth();
   const [status, setStatus] = useState('Đang đối soát trạng thái từ hệ sinh thái thanh toán...');
   const [statusCode, setStatusCode] = useState<string>('PENDING_PAYMENT');
+  const [reconciling, setReconciling] = useState(false);
 
   useEffect(() => {
     if (loading || !user || !IdSchema.safeParse(id).success) return;
     let stopped = false;
     let tries = 0;
     let timer: ReturnType<typeof setTimeout>;
+    setReconciling(true);
 
     const poll = async () => {
       try {
@@ -32,9 +34,12 @@ function Result() {
         setStatus(BOOKING_LABELS[booking.status] || booking.status);
         if (booking.status === 'PENDING_PAYMENT' && ++tries < 20) {
           timer = setTimeout(poll, 3000);
+        } else {
+          setReconciling(false);
         }
       } catch (e) {
         if (!stopped) {
+          setReconciling(false);
           setStatus(e instanceof Error ? e.message : 'Chưa thể kiểm tra trạng thái.');
         }
       }
@@ -76,15 +81,19 @@ function Result() {
     );
   }
 
-  const isPaid = statusCode === 'PAID' || statusCode === 'CONFIRMED';
+  const isPaid = ['PAID', 'CONFIRMED', 'COMPLETED'].includes(statusCode);
+  const isCancelled = statusCode === 'CANCELLED';
+  const isAwaitingCash = statusCode === 'AWAITING_CASH';
 
   return (
     <div className="rounded-3xl border border-stone-200/80 bg-white p-10 shadow-luxury max-w-xl mx-auto text-center space-y-6">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-800 ring-1 ring-amber-200">
         {isPaid ? (
           <CheckCircle2 className="h-8 w-8 text-emerald-700" />
+        ) : isCancelled ? (
+          <AlertCircle className="h-8 w-8 text-red-700" />
         ) : (
-          <Clock className="h-8 w-8 text-amber-700 animate-spin" />
+          <Clock className={`h-8 w-8 text-amber-700 ${reconciling ? 'animate-spin' : ''}`} />
         )}
       </div>
 
@@ -94,7 +103,15 @@ function Result() {
         </span>
         <h2 className="font-serif text-2xl md:text-3xl font-bold text-stone-900">{status}</h2>
         <p className="mt-2 text-xs text-stone-500 leading-relaxed max-w-md mx-auto">
-          Hệ thống đang tự động đồng bộ kết quả trực tiếp từ cổng thanh toán qua webhook an toàn.
+          {isPaid
+            ? 'Thanh toán đã được hệ thống ghi nhận.'
+            : isCancelled
+              ? 'Đơn đã bị hủy và không còn chờ thanh toán.'
+              : isAwaitingCash
+                ? 'Đơn đang chờ thanh toán tiền mặt theo thời hạn đã hiển thị trong chi tiết booking.'
+                : reconciling
+                  ? 'Hệ thống đang tự động đồng bộ kết quả trực tiếp từ cổng thanh toán qua webhook an toàn.'
+                  : 'Chưa nhận được trạng thái thanh toán cuối cùng. Bạn có thể mở chi tiết đơn để kiểm tra lại.'}
         </p>
       </div>
 
