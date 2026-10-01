@@ -297,7 +297,7 @@ export const tourApi = {
     }),
 
   schedules: (id: string) =>
-    api(`/tours/${id}/schedules?page=1&pageSize=100`, PageSchema(ScheduleResponseSchema), {
+    api(`/tours/${id}/schedules?page=1&pageSize=100&contract=v2`, PageSchema(ScheduleResponseSchema), {
       retryAuth: false,
       anonymous: true,
     }),
@@ -324,7 +324,7 @@ export const reviewApi = {
 
 export const scheduleApi = {
   availability: (id: string, signal?: AbortSignal) =>
-    api(`/schedules/${id}/availability`, ScheduleResponseSchema, {
+    api(`/schedules/${id}/availability?contract=v2`, ScheduleResponseSchema, {
       signal,
       retryAuth: false,
       anonymous: true,
