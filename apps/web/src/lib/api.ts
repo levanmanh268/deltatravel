@@ -297,10 +297,14 @@ export const tourApi = {
     }),
 
   schedules: (id: string) =>
-    api(`/tours/${id}/schedules?page=1&pageSize=100&contract=v2`, PageSchema(ScheduleResponseSchema), {
-      retryAuth: false,
-      anonymous: true,
-    }),
+    api(
+      `/tours/${id}/schedules?page=1&pageSize=100&contract=v2`,
+      PageSchema(ScheduleResponseSchema),
+      {
+        retryAuth: false,
+        anonymous: true,
+      },
+    ),
 };
 
 export const reviewApi = {
