@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { lockSchedule, expireLocked, dbNow } from '../bookings/inventory';
 import { scheduleDto } from '../bookings/dto';
+
 @Injectable()
 export class SchedulesService {
   constructor(private readonly db: PrismaService) {}
-  async get(id: string) {
+  async get(id: string, includeDuration = false) {
     return this.db.serial(async (tx) => {
       await lockSchedule(tx, id);
       const now = await dbNow(tx);
@@ -13,10 +14,13 @@ export class SchedulesService {
       const s = await tx.schedule.findFirstOrThrow({
         where: { id, tour: { status: 'ACTIVE', countryCode: 'VN', deletedAt: null } },
       });
-      return scheduleDto(s, now);
+      const dto = scheduleDto(s, now);
+      if (includeDuration) return dto;
+      const { durationDays, ...legacy } = dto;
+      return legacy;
     });
   }
-  async list(tourId: string, page: number, pageSize: number) {
+  async list(tourId: string, page: number, pageSize: number, includeDuration = false) {
     await this.db.tour.findFirstOrThrow({
       where: { id: tourId, status: 'ACTIVE', deletedAt: null, countryCode: 'VN' },
     });
@@ -32,7 +36,7 @@ export class SchedulesService {
       this.db.schedule.count({ where }),
     ]);
     const items = [];
-    for (const row of rows) items.push(await this.get(row.id));
+    for (const row of rows) items.push(await this.get(row.id, includeDuration));
     return { items, total, page, pageSize };
   }
 }

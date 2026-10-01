@@ -23,12 +23,15 @@ import {
   TransitionSchema,
   RefundRecordSchema,
   CashReceiptSchema,
+  TourMediaUploadRequestSchema,
+  TourMediaCompleteSchema,
 } from '@tour/shared';
 import { Roles } from '../auth/guards';
 import { ZodPipe, AppRequest } from '../common/http';
 import { AdminService } from './admin.service';
 import { ToursService } from '../tours/tours.service';
 import { BookingsService } from '../bookings/bookings.service';
+import { TourMediaStorageService } from './tour-media-storage.service';
 @Roles('ADMIN', 'OPERATIONS')
 @Controller('admin')
 export class AdminController {
@@ -36,12 +39,13 @@ export class AdminController {
     private readonly admin: AdminService,
     private readonly tours: ToursService,
     private readonly bookings: BookingsService,
+    private readonly media: TourMediaStorageService,
   ) {}
   @Get('summary') summary() {
     return this.admin.summary();
   }
   @Get('tours') toursList(@Query(new ZodPipe(TourQuerySchema)) q: z.infer<typeof TourQuerySchema>) {
-    return this.tours.list(q, true);
+    return this.tours.list(q, true, true);
   }
   @Post('tours') createTour(
     @Body(new ZodPipe(CreateTourSchema)) b: z.infer<typeof CreateTourSchema>,
@@ -61,6 +65,21 @@ export class AdminController {
     @Req() r: AppRequest,
   ) {
     return this.admin.archiveTour(id, r.user!.id);
+  }
+  @Post('tours/:id/media/upload-url') createTourMediaUpload(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body(new ZodPipe(TourMediaUploadRequestSchema))
+    body: z.infer<typeof TourMediaUploadRequestSchema>,
+    @Req() req: AppRequest,
+  ) {
+    return this.media.createUploadTicket(req.user!.id, id, body);
+  }
+  @Post('tours/:id/media/complete') completeTourMediaUpload(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body(new ZodPipe(TourMediaCompleteSchema)) body: z.infer<typeof TourMediaCompleteSchema>,
+    @Req() req: AppRequest,
+  ) {
+    return this.media.claimUpload(req.user!.id, id, body.uploadId);
   }
   @Get('schedules') schedules(
     @Query(new ZodPipe(PaginationSchema)) q: z.infer<typeof PaginationSchema>,

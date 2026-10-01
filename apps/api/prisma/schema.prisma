@@ -57,6 +57,7 @@ model User {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   sessions RefreshSession[]
   bookings Booking[]
+  reviews TourReview[]
   passwordResetChallenges PasswordResetChallenge[]
   @@map("NGUOI_DUNG")
 }
@@ -92,11 +93,16 @@ model Tour {
   destination String @db.VarChar(100)
   countryCode String @default("VN") @db.Char(2)
   durationDays Int
+  imageUrl String?
+  galleryImages Json @default("[]")
+  itinerary Json @default("[]")
+  commercial Json?
   status TourStatus @default(DRAFT)
   deletedAt DateTime? @db.Timestamptz(3)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
   schedules Schedule[]
+  reviews TourReview[]
   @@index([status,destination])
   @@map("TOUR")
 }
@@ -105,6 +111,7 @@ model Schedule {
   tourId String @db.Uuid
   tour Tour @relation(fields:[tourId],references:[id],onDelete:Restrict)
   departureAt DateTime @db.Timestamptz(3)
+  durationDays Int
   totalSeats Int
   reservedSeats Int @default(0)
   adultPrice BigInt
@@ -175,6 +182,21 @@ model Payment {
   refundReference String?
   @@unique([provider,transactionId])
   @@map("THANH_TOAN")
+}
+model TourReview {
+  id String @id @default(uuid()) @db.Uuid
+  tourId String @db.Uuid
+  tour Tour @relation(fields:[tourId],references:[id],onDelete:Cascade)
+  userId String @db.Uuid
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  rating Int
+  comment String @db.VarChar(1200)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@unique([tourId,userId])
+  @@index([tourId,createdAt])
+  @@index([userId,createdAt])
+  @@map("DANH_GIA_TOUR")
 }
 model AuditLog {
   id String @id @default(uuid()) @db.Uuid

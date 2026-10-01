@@ -65,8 +65,8 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
       setForgotStep(2);
       setSuccess(
         lang === 'en'
-          ? `Verification code has been sent to ${email.trim()} (valid for 10 minutes).`
-          : `Mã xác thực 6 số đã được gửi tới email ${email.trim()} (hiệu lực 10 phút).`,
+          ? 'If an active account exists for this email, a 6-digit code will be sent and remain valid for 10 minutes.'
+          : 'Nếu có tài khoản đang hoạt động với email này, mã xác thực 6 số sẽ được gửi và có hiệu lực trong 10 phút.',
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Chưa thể gửi mã xác nhận. Vui lòng thử lại sau.');
