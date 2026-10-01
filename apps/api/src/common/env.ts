@@ -37,6 +37,7 @@ const schema = z.object({
   SUPABASE_SECRET_KEY: optionalString(z.string().min(20)),
   SUPABASE_SERVICE_ROLE_KEY: optionalString(z.string().min(20)),
   SUPABASE_AVATAR_BUCKET: z.string().min(1).default('avatars'),
+  SUPABASE_TOUR_BUCKET: optionalString(z.string().min(1)),
 
   PAYMENT_RETURN_ORIGIN: optionalString(z.string().url()),
   VNPAY_TMN_CODE: optionalString(z.string().min(2)),

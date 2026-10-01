@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
-import type { Provider } from '@tour/shared';
+import type { PaymentChannel, Provider } from '@tour/shared';
 import { PrismaService } from '../database/prisma.service';
 import { lockSchedule, dbNow, expireLocked } from '../bookings/inventory';
 import { paymentDto } from '../bookings/dto';
@@ -16,7 +16,13 @@ export class PaymentsService {
     private readonly config: ConfigService,
   ) {}
 
-  async create(userId: string, bookingId: string, provider: Provider, ip: string) {
+  async create(
+    userId: string,
+    bookingId: string,
+    provider: Provider,
+    ip: string,
+    channel?: PaymentChannel,
+  ) {
     const parent = await this.db.booking.findFirstOrThrow({ where: { id: bookingId, userId } });
 
     const prepared = await this.db.serial(async (tx) => {
@@ -131,7 +137,7 @@ export class PaymentsService {
 
     let checkoutUrl: string;
     try {
-      checkoutUrl = await this.gateways.checkout(prepared.payment, prepared.expiresAt, ip);
+      checkoutUrl = await this.gateways.checkout(prepared.payment, prepared.expiresAt, ip, channel);
     } catch (e) {
       if (e instanceof Error && e.name === 'ZodError')
         fail(
@@ -160,6 +166,13 @@ export class PaymentsService {
     return paymentDto(
       await this.db.payment.findFirstOrThrow({ where: { id, booking: { userId } } }),
     );
+  }
+
+  async byBooking(bookingId: string, userId: string) {
+    const payment = await this.db.payment.findFirst({
+      where: { bookingId, booking: { userId } },
+    });
+    return payment ? paymentDto(payment) : null;
   }
 
   async settle(event: VerifiedPayment): Promise<'APPLIED' | 'DUPLICATE'> {

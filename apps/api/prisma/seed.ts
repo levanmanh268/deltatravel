@@ -43,7 +43,14 @@ async function main() {
       departureAt.setUTCDate(departureAt.getUTCDate() + 30);
       departureAt.setUTCHours(1, 0, 0, 0);
       await db.schedule.create({
-        data: { tourId: tour.id, departureAt, totalSeats: 30, adultPrice, childPrice },
+        data: {
+          tourId: tour.id,
+          departureAt,
+          durationDays,
+          totalSeats: 30,
+          adultPrice,
+          childPrice,
+        },
       });
     }
   }

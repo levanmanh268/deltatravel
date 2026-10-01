@@ -31,12 +31,23 @@ export class PaymentsController {
     @Req() req: AppRequest,
     @Body(new ZodPipe(CreatePaymentSchema)) body: z.infer<typeof CreatePaymentSchema>,
   ) {
-    return this.payments.create(req.user!.id, body.bookingId, body.provider, req.ip ?? '127.0.0.1');
+    return this.payments.create(
+      req.user!.id,
+      body.bookingId,
+      body.provider,
+      req.ip ?? '127.0.0.1',
+      body.channel,
+    );
   }
   @Public()
   @Get('providers/status')
   providerStatus() {
     return this.gateways.status();
+  }
+
+  @Get('booking/:bookingId')
+  byBooking(@Req() req: AppRequest, @Param('bookingId', new ParseUUIDPipe()) bookingId: string) {
+    return this.payments.byBooking(bookingId, req.user!.id);
   }
 
   @Get(':id') get(@Req() req: AppRequest, @Param('id', new ParseUUIDPipe()) id: string) {
