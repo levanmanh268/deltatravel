@@ -278,6 +278,7 @@ export const tourApi = {
     const params = new URLSearchParams({
       page: '1',
       pageSize: '100',
+      contract: 'v2',
     });
     if (q.trim()) params.set('q', q.trim());
     const res = await api(`/tours?${params.toString()}`, PageSchema(TourResponseSchema), {
@@ -289,7 +290,7 @@ export const tourApi = {
   },
 
   get: (id: string) =>
-    api(`/tours/${id}`, TourResponseSchema, {
+    api(`/tours/${id}?contract=v2`, TourResponseSchema, {
       retryAuth: false,
       anonymous: true,
     }),
