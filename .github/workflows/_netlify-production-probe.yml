@@ -1,5 +1,7 @@
 name: Temporary Netlify Production Probe
 
+# rerun-after-backend-contract-v2
+
 on:
   push:
     branches:
@@ -32,6 +34,25 @@ jobs:
           import { chromium } from 'playwright';
 
           const WEB = 'https://deltatravel.netlify.app';
+          const API = 'https://delta-travel-api.onrender.com/api/v1';
+
+          const legacyResponse = await fetch(API + '/tours?page=1&pageSize=2');
+          if (!legacyResponse.ok) throw new Error('Legacy tour API returned ' + legacyResponse.status);
+          const legacy = await legacyResponse.json();
+          const legacyKeys = Object.keys(legacy?.data?.items?.[0] ?? legacy?.items?.[0] ?? {});
+          for (const forbidden of ['imageUrl','galleryImages','itinerary','commercial','fromPrice','ratingAverage','ratingCount']) {
+            if (legacyKeys.includes(forbidden)) throw new Error('Legacy contract leaked v2 key: ' + forbidden);
+          }
+          console.log('LEGACY_TOUR_CONTRACT_PASS', legacyKeys.join(','));
+
+          const v2Response = await fetch(API + '/tours?page=1&pageSize=2&contract=v2');
+          if (!v2Response.ok) throw new Error('V2 tour API returned ' + v2Response.status);
+          const v2 = await v2Response.json();
+          const v2Keys = Object.keys(v2?.data?.items?.[0] ?? v2?.items?.[0] ?? {});
+          for (const required of ['imageUrl','galleryImages','itinerary','commercial','fromPrice','ratingAverage','ratingCount']) {
+            if (!v2Keys.includes(required)) throw new Error('V2 contract missing key: ' + required);
+          }
+          console.log('V2_TOUR_CONTRACT_PASS', v2Keys.join(','));
 
           const releaseResponse = await fetch(WEB + '/api/release', { cache: 'no-store' });
           if (!releaseResponse.ok) {
