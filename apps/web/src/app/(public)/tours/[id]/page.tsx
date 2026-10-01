@@ -216,6 +216,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
           src={heroImage}
           alt={displayTour.title}
           fill
+          unoptimized={heroImage.startsWith('http')}
           priority
           sizes="(max-width: 1280px) 100vw, 1200px"
           className="object-cover object-center transform group-hover:scale-105 transition-transform duration-1000 ease-out"
@@ -425,6 +426,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                         src={item.imageUrl}
                         alt={`${displayTour.title} - ngày ${item.day}`}
                         fill
+                        unoptimized={item.imageUrl.startsWith('http')}
                         sizes="(max-width: 1024px) 100vw, 800px"
                         className="object-cover"
                       />
