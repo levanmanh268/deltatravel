@@ -141,7 +141,19 @@ export async function api<T extends z.ZodTypeAny>(
   }
 
   const raw = await response.text();
-  const body: unknown = raw ? JSON.parse(raw) : {};
+  let body: unknown = {};
+  if (raw) {
+    try {
+      body = JSON.parse(raw);
+    } catch {
+      throw new ApiError(
+        response.ok ? 502 : response.status,
+        'INVALID_JSON_RESPONSE',
+        'Máy chủ đang trả phản hồi không hợp lệ. Vui lòng thử lại.',
+        response.headers.get('x-request-id') || undefined,
+      );
+    }
+  }
 
   if (!response.ok) {
     const parsed = ErrorSchema.safeParse(body);
@@ -511,7 +523,7 @@ function tourPayload(input: Partial<z.infer<typeof TourSchema>>) {
 export const adminApi = {
   summary: () => api('/admin/summary', SummarySchema),
 
-  tours: () => api('/admin/tours?page=1&pageSize=100', PageSchema(TourSchema)),
+  tours: () => api('/admin/tours?page=1&pageSize=100', PageSchema(TourResponseSchema)),
 
   tour: async (id: string) => {
     const page = await adminApi.tours();
