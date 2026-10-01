@@ -5,6 +5,7 @@ export function bookingDto(b: BookingRow, now = new Date()) {
   return {
     id: b.id,
     scheduleId: b.scheduleId,
+    tourId: b.schedule.tourId,
     status: b.status,
     adults: b.adults,
     children: b.children,

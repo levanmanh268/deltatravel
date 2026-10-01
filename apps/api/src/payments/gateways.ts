@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import type { Payment } from '@prisma/client';
-import type { Provider } from '@tour/shared';
+import type { PaymentChannel, Provider } from '@tour/shared';
 import { fail } from '../common/errors';
 export const hmac = (algorithm: string, key: string, data: string) =>
   createHmac(algorithm, key).update(data, 'utf8').digest('hex');
@@ -96,24 +96,33 @@ export class Gateways {
         label: 'Thanh toán tiền mặt',
         kind: 'OFFLINE' as const,
         requiresExternalAuthorization: false,
+        channels: [] as PaymentChannel[],
       },
       {
         provider: 'VNPAY' as const,
         label: 'VNPay',
         kind: 'GATEWAY' as const,
         requiresExternalAuthorization: true,
+        channels: [
+          'VNPAY_DEFAULT',
+          'VNPAY_QR',
+          'VNPAY_DOMESTIC',
+          'VNPAY_INTERNATIONAL',
+        ] as PaymentChannel[],
       },
       {
         provider: 'MOMO' as const,
         label: 'Ví MoMo',
         kind: 'WALLET' as const,
         requiresExternalAuthorization: true,
+        channels: ['MOMO_WALLET', 'MOMO_ATM', 'MOMO_CARD'] as PaymentChannel[],
       },
       {
         provider: 'ZALOPAY' as const,
         label: 'Ví ZaloPay',
         kind: 'WALLET' as const,
         requiresExternalAuthorization: true,
+        channels: [] as PaymentChannel[],
       },
     ];
     return {
@@ -159,7 +168,12 @@ export class Gateways {
         'ZaloPay cần ít nhất 5 phút còn lại; chọn cổng khác trước khi tạo giao dịch',
       );
   }
-  async checkout(p: Payment, expiresAt: Date, ip: string): Promise<string> {
+  async checkout(
+    p: Payment,
+    expiresAt: Date,
+    ip: string,
+    channel?: PaymentChannel,
+  ): Promise<string> {
     if (p.provider === 'CASH')
       fail(409, 'CASH_NO_CHECKOUT', 'Thanh toán tiền mặt không có checkout URL');
     const returnUrl = `${this.returnOrigin()}/payments/return?bookingId=${p.bookingId}`;
@@ -180,10 +194,25 @@ export class Gateways {
         vnp_CreateDate: vietnamDate(p.createdAt),
         vnp_ExpireDate: vietnamDate(expiresAt),
       };
+      if (channel?.startsWith('MOMO_')) {
+        fail(400, 'PAYMENT_CHANNEL_MISMATCH', 'Kênh thanh toán không thuộc VNPay');
+      }
+      if (channel === 'VNPAY_QR') fields.vnp_BankCode = 'VNPAYQR';
+      if (channel === 'VNPAY_DOMESTIC') fields.vnp_BankCode = 'VNBANK';
+      if (channel === 'VNPAY_INTERNATIONAL') fields.vnp_BankCode = 'INTCARD';
       const query = vnpCanonical(fields);
       return `${this.gatewayUrl('VNPAY')}?${query}&vnp_SecureHash=${hmac('sha512', this.secret('VNPAY_HASH_SECRET'), query)}`;
     }
     if (p.provider === 'MOMO') {
+      if (channel?.startsWith('VNPAY_')) {
+        fail(400, 'PAYMENT_CHANNEL_MISMATCH', 'Kênh thanh toán không thuộc MoMo');
+      }
+      const requestType =
+        channel === 'MOMO_ATM'
+          ? 'payWithATM'
+          : channel === 'MOMO_CARD'
+            ? 'payWithCC'
+            : 'captureWallet';
       const data = {
         partnerCode: this.secret('MOMO_PARTNER_CODE'),
         requestId: p.id,
@@ -192,7 +221,7 @@ export class Gateways {
         orderInfo: `Thanh toan tour ${p.id}`,
         redirectUrl: returnUrl,
         ipnUrl: `${api}/api/v1/payments/webhooks/momo`,
-        requestType: 'captureWallet',
+        requestType,
         extraData: '',
         lang: 'vi',
         autoCapture: true,
@@ -224,6 +253,9 @@ export class Gateways {
       )
         fail(502, 'INVALID_PROVIDER_RESPONSE', 'Phản hồi MoMo không hợp lệ');
       return this.safeUrl(r.payUrl, 'momo.vn');
+    }
+    if (channel) {
+      fail(400, 'PAYMENT_CHANNEL_MISMATCH', 'ZaloPay không dùng kênh thanh toán phụ');
     }
     const data = {
       app_id: Number(this.secret('ZALOPAY_APP_ID')),
