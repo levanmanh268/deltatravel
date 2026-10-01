@@ -1,0 +1,31 @@
+name: Temporary Netlify Live Diagnostic
+
+on:
+  push:
+    branches:
+      - fix/netlify-contract-skew-20261001
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release identity
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -fsS -D /tmp/release.headers https://deltatravel.netlify.app/api/release -o /tmp/release.json || true
+          echo "=== HEADERS ==="
+          cat /tmp/release.headers || true
+          echo "=== RELEASE ==="
+          cat /tmp/release.json || true
+      - name: Catalog page shell
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -fsS -D /tmp/page.headers https://deltatravel.netlify.app/tours -o /tmp/page.html
+          echo "=== PAGE HEADERS ==="
+          sed -n '1,80p' /tmp/page.headers
+          echo "=== ERROR SIGNATURES ==="
+          grep -o "unrecognized_keys\|Không thể tải catalog từ production\|imageUrl\|ratingAverage" /tmp/page.html | head -50 || true
+          echo "=== NEXT STATIC CHUNKS ==="
+          grep -o '/_next/static/[^"]*\.js' /tmp/page.html | head -20 || true
