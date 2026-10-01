@@ -54,6 +54,8 @@ import { inferTourRegion } from './fallback-data';
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'https://delta-travel-api.onrender.com/api/v1';
 const REQUEST_TIMEOUT_MS = 65000;
 
+const TourResponseSchema = TourSchema.passthrough();
+
 let accessToken: string | null = null;
 let refreshFlight: Promise<z.infer<typeof AuthResultSchema>> | null = null;
 const listeners = new Set<() => void>();
@@ -278,7 +280,7 @@ export const tourApi = {
       pageSize: '100',
     });
     if (q.trim()) params.set('q', q.trim());
-    const res = await api(`/tours?${params.toString()}`, PageSchema(TourSchema), {
+    const res = await api(`/tours?${params.toString()}`, PageSchema(TourResponseSchema), {
       retryAuth: false,
       anonymous: true,
     });
@@ -287,7 +289,7 @@ export const tourApi = {
   },
 
   get: (id: string) =>
-    api(`/tours/${id}`, TourSchema, {
+    api(`/tours/${id}`, TourResponseSchema, {
       retryAuth: false,
       anonymous: true,
     }),
@@ -513,7 +515,7 @@ export const adminApi = {
   },
 
   createTour: (input: Partial<z.infer<typeof TourSchema>>) =>
-    api('/admin/tours', TourSchema, {
+    api('/admin/tours', TourResponseSchema, {
       method: 'POST',
       body: CreateTourSchema.parse(tourPayload(input)),
     }),
@@ -522,7 +524,7 @@ export const adminApi = {
     const candidate = Object.fromEntries(
       Object.entries(tourPayload(input)).filter(([, value]) => value !== undefined),
     );
-    return api(`/admin/tours/${id}`, TourSchema, {
+    return api(`/admin/tours/${id}`, TourResponseSchema, {
       method: 'PATCH',
       body: UpdateTourSchema.parse(candidate),
     });
