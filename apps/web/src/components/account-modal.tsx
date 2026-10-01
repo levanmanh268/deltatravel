@@ -172,6 +172,9 @@ export function AccountModal({ isOpen, onClose }: AccountModalProps) {
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="account-modal-title"
         onClick={(event) => event.stopPropagation()}
         className="liquid-modal-glass relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-[32px] p-6 text-black shadow-2xl sm:p-8"
       >
@@ -194,7 +197,9 @@ export function AccountModal({ isOpen, onClose }: AccountModalProps) {
               {t('acc_vip_badge')}
             </LiquidGlassBadge>
           </div>
-          <h2 className="text-2xl font-black uppercase tracking-tight">{t('acc_title')}</h2>
+          <h2 id="account-modal-title" className="text-2xl font-black uppercase tracking-tight">
+            {t('acc_title')}
+          </h2>
           <p className="mt-1 text-xs text-neutral-600">
             {lang === 'en'
               ? 'Your account data is synchronized with the DELTA TRAVEL server.'

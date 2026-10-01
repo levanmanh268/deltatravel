@@ -56,6 +56,25 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
     setSuccess('');
   };
 
+  const sendResetCode = async () => {
+    setBusy(true);
+    setError('');
+    setSuccess('');
+    try {
+      await authApi.requestPasswordReset(email.trim().toLowerCase());
+      setForgotStep(2);
+      setSuccess(
+        lang === 'en'
+          ? `Verification code has been sent to ${email.trim()} (valid for 10 minutes).`
+          : `Mã xác thực 6 số đã được gửi tới email ${email.trim()} (hiệu lực 10 phút).`,
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Chưa thể gửi mã xác nhận. Vui lòng thử lại sau.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   // Submit Handler
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -166,22 +185,7 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
           return;
         }
 
-        setBusy(true);
-        try {
-          await authApi.requestPasswordReset(email.trim().toLowerCase());
-          setForgotStep(2);
-          setSuccess(
-            lang === 'en'
-              ? `Verification code has been sent to ${email.trim()} (valid for 10 minutes).`
-              : `Mã xác thực 6 số đã được gửi tới email ${email.trim()} (hiệu lực 10 phút).`,
-          );
-        } catch (e) {
-          setError(
-            e instanceof Error ? e.message : 'Chưa thể gửi mã xác nhận. Vui lòng thử lại sau.',
-          );
-        } finally {
-          setBusy(false);
-        }
+        await sendResetCode();
         return;
       }
 
@@ -226,20 +230,29 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
               : 'Đặt lại mật khẩu thành công! Đang tự động đăng nhập...',
           );
 
-          // Auto login with new password
-          const result = await authApi.login({
-            email: email.trim().toLowerCase(),
-            password: newPassword,
-          });
-          accept(result);
+          try {
+            const result = await authApi.login({
+              email: email.trim().toLowerCase(),
+              password: newPassword,
+            });
+            accept(result);
 
-          setTimeout(() => {
-            if (result.user.role === 'ADMIN' || result.user.role === 'OPERATIONS') {
-              router.push('/admin');
-            } else {
-              router.push('/tours');
-            }
-          }, 800);
+            setTimeout(() => {
+              if (result.user.role === 'ADMIN' || result.user.role === 'OPERATIONS') {
+                router.push('/admin');
+              } else {
+                router.push('/tours');
+              }
+            }, 800);
+          } catch {
+            setMode('login');
+            setPassword('');
+            setSuccess(
+              lang === 'en'
+                ? 'Password reset successfully. Please sign in with your new password.'
+                : 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.',
+            );
+          }
         } catch (e) {
           setError(e instanceof Error ? e.message : 'Không thể đặt lại mật khẩu.');
         } finally {
@@ -572,13 +585,11 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
               {forgotStep === 2 && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setForgotStep(1);
-                    resetMessages();
-                  }}
-                  className="font-bold text-amber-800 hover:underline cursor-pointer"
+                  onClick={() => void sendResetCode()}
+                  disabled={busy}
+                  className="font-bold text-amber-800 hover:underline cursor-pointer disabled:opacity-50"
                 >
-                  Gửi lại mã OTP
+                  {busy ? 'Đang gửi lại...' : 'Gửi lại mã OTP'}
                 </button>
               )}
             </div>
