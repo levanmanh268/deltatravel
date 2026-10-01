@@ -6,7 +6,7 @@ const tour = {
   id: '10000000-0000-4000-8000-000000000001',
   title: 'Compatibility Tour',
   slug: 'compatibility-tour',
-  description: 'Regression fixture used to protect the production catalog from API/client version skew.',
+  description:\n    'Regression fixture used to protect the production catalog from API/client version skew.',
   destination: 'Hà Nội',
   countryCode: 'VN',
   durationDays: 2,
