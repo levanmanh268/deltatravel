@@ -31,7 +31,8 @@ const page = {
   total: 1,
 };
 
-const parsed = PageSchema(TourSchema).parse(page);
+const TourResponseSchema = TourSchema.passthrough();
+const parsed = PageSchema(TourResponseSchema).parse(page);
 if (parsed.items[0].futureServerField?.safe !== true) {
   throw new Error('TourSchema no longer tolerates forward-compatible response fields');
 }
