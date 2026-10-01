@@ -46,10 +46,7 @@ export class PaymentsController {
   }
 
   @Get('booking/:bookingId')
-  byBooking(
-    @Req() req: AppRequest,
-    @Param('bookingId', new ParseUUIDPipe()) bookingId: string,
-  ) {
+  byBooking(@Req() req: AppRequest, @Param('bookingId', new ParseUUIDPipe()) bookingId: string) {
     return this.payments.byBooking(bookingId, req.user!.id);
   }
 

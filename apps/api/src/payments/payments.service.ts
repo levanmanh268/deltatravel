@@ -137,12 +137,7 @@ export class PaymentsService {
 
     let checkoutUrl: string;
     try {
-      checkoutUrl = await this.gateways.checkout(
-        prepared.payment,
-        prepared.expiresAt,
-        ip,
-        channel,
-      );
+      checkoutUrl = await this.gateways.checkout(prepared.payment, prepared.expiresAt, ip, channel);
     } catch (e) {
       if (e instanceof Error && e.name === 'ZodError')
         fail(
