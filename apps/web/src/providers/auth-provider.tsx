@@ -37,9 +37,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(nextUser);
   }, []);
   const logout = async () => {
-    await authApi.logout();
-    setAccessToken(null);
-    setUser(null);
+    try {
+      await authApi.logout();
+    } finally {
+      setAccessToken(null);
+      setUser(null);
+    }
   };
   return (
     <Context.Provider value={{ user, loading, accept, updateUser, logout }}>
