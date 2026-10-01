@@ -1,6 +1,6 @@
 name: Temporary Netlify Production Probe
 
-# rerun-home-catalog-detail-after-backend-contract-v2
+# rerun-tour-detail-after-schedule-durationDays-client-compat-fix
 
 on:
   push:
