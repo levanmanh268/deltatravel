@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import {
   CreateTourSchema,
@@ -15,6 +16,32 @@ import { CacheService } from '../cache/cache.module';
 import { lockSchedule, dbNow, expireLocked } from '../bookings/inventory';
 import { scheduleDto, paymentDto } from '../bookings/dto';
 import { fail } from '../common/errors';
+
+function jsonInput(value: unknown): Prisma.InputJsonValue {
+  return value as Prisma.InputJsonValue;
+}
+
+function tourCreateData(input: z.infer<typeof CreateTourSchema>): Prisma.TourCreateInput {
+  const { galleryImages, itinerary, commercial, ...rest } = input;
+  return {
+    ...rest,
+    galleryImages: jsonInput(galleryImages),
+    itinerary: jsonInput(itinerary),
+    commercial: commercial === null ? Prisma.DbNull : jsonInput(commercial),
+  };
+}
+
+function tourUpdateData(input: z.infer<typeof UpdateTourSchema>): Prisma.TourUpdateInput {
+  const { galleryImages, itinerary, commercial, ...rest } = input;
+  const data: Prisma.TourUpdateInput = { ...rest };
+  if (galleryImages !== undefined) data.galleryImages = jsonInput(galleryImages);
+  if (itinerary !== undefined) data.itinerary = jsonInput(itinerary);
+  if (commercial !== undefined) {
+    data.commercial = commercial === null ? Prisma.DbNull : jsonInput(commercial);
+  }
+  return data;
+}
+
 @Injectable()
 export class AdminService {
   constructor(
@@ -24,7 +51,7 @@ export class AdminService {
   ) {}
   async createTour(input: z.infer<typeof CreateTourSchema>, actorId: string) {
     return this.db.serial(async (tx) => {
-      const { deletedAt, ...t } = await tx.tour.create({ data: input });
+      const { deletedAt, ...t } = await tx.tour.create({ data: tourCreateData(input) });
       await tx.auditLog.create({ data: { actorId, action: 'TOUR_CREATED', entityId: t.id } });
       return t;
     });
@@ -33,7 +60,7 @@ export class AdminService {
     return this.db.serial(async (tx) => {
       const { deletedAt, ...t } = await tx.tour.update({
         where: { id, deletedAt: null },
-        data: input,
+        data: tourUpdateData(input),
       });
       await tx.auditLog.create({
         data: {
@@ -58,15 +85,18 @@ export class AdminService {
       const now = await dbNow(tx);
       if (new Date(input.departureAt) <= now)
         fail(400, 'PAST_DEPARTURE', 'Ngày khởi hành phải ở tương lai');
-      await tx.tour.findFirstOrThrow({
+      const tour = await tx.tour.findFirstOrThrow({
         where: { id: input.tourId, deletedAt: null, countryCode: 'VN' },
       });
       const s = await tx.schedule.create({
         data: {
-          ...input,
+          tourId: input.tourId,
           departureAt: new Date(input.departureAt),
+          durationDays: input.durationDays ?? tour.durationDays,
+          totalSeats: input.totalSeats,
           adultPrice: BigInt(input.adultPrice),
           childPrice: BigInt(input.childPrice),
+          status: input.status,
         },
       });
       await tx.auditLog.create({ data: { actorId, action: 'SCHEDULE_CREATED', entityId: s.id } });

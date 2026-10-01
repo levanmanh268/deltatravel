@@ -125,7 +125,7 @@ export class AuthService {
       await this.mail.sendPasswordReset(user.email, code, 10);
     } catch {
       await this.db.passwordResetChallenge.deleteMany({ where: { id: challenge.id } });
-      fail(503, 'MAIL_UNAVAILABLE', 'Chưa thể gửi email xác thực. Vui lòng thử lại sau');
+      console.error(JSON.stringify({ level: 'error', event: 'password_reset_mail_failed' }));
     }
 
     return { ok: true as const };
