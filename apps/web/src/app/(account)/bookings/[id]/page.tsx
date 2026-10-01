@@ -382,10 +382,10 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const isConfirmed = booking.status === 'CONFIRMED';
   const isCancelled = booking.status === 'CANCELLED';
   const canCancel = canCustomerCancel(
-              booking.status,
-              new Date(booking.departureAt),
-              new Date(booking.serverTime),
-            );
+    booking.status,
+    new Date(booking.departureAt),
+    new Date(booking.serverTime),
+  );
 
   const statusKeyMap: Record<string, string> = {
     PENDING_PAYMENT: 'bk_status_pending_label',
