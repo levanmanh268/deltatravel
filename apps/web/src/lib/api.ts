@@ -157,8 +157,28 @@ export async function api<T extends z.ZodTypeAny>(
     );
   }
 
-  const envelope = EnvelopeSchema(z.unknown()).parse(body);
-  return schema.parse(envelope.data);
+  const envelopeResult = EnvelopeSchema(z.unknown()).safeParse(body);
+  if (!envelopeResult.success) {
+    throw new ApiError(
+      502,
+      'API_ENVELOPE_MISMATCH',
+      'Máy chủ đang trả dữ liệu không đúng định dạng. Vui lòng tải lại trang sau ít phút.',
+    );
+  }
+
+  const parsed = schema.safeParse(envelopeResult.data.data);
+  if (!parsed.success) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('API_CONTRACT_MISMATCH', path, parsed.error.flatten());
+    }
+    throw new ApiError(
+      502,
+      'API_CONTRACT_MISMATCH',
+      'Website và máy chủ đang chưa đồng bộ phiên bản dữ liệu. Vui lòng tải lại trang sau ít phút.',
+      envelopeResult.data.meta.requestId,
+    );
+  }
+  return parsed.data;
 }
 
 export function refreshSession() {
