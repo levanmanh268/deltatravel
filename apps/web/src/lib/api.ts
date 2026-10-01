@@ -47,6 +47,11 @@ import { inferTourRegion } from './fallback-data';
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'https://delta-travel-api.onrender.com/api/v1';
 const REQUEST_TIMEOUT_MS = 65000;
 
+// Validate the fields the client relies on, but keep response parsing forward-compatible
+// with additive fields emitted by a newer API during rolling deployments.
+const TourResponseSchema = TourSchema.passthrough();
+const ScheduleResponseSchema = ScheduleSchema.passthrough();
+
 let accessToken: string | null = null;
 let refreshFlight: Promise<z.infer<typeof AuthResultSchema>> | null = null;
 const listeners = new Set<() => void>();
@@ -251,7 +256,7 @@ export const tourApi = {
       pageSize: '100',
     });
     if (q.trim()) params.set('q', q.trim());
-    const res = await api(`/tours?${params.toString()}`, PageSchema(TourSchema), {
+    const res = await api(`/tours?${params.toString()}`, PageSchema(TourResponseSchema), {
       retryAuth: false,
       anonymous: true,
     });
@@ -260,13 +265,13 @@ export const tourApi = {
   },
 
   get: (id: string) =>
-    api(`/tours/${id}`, TourSchema, {
+    api(`/tours/${id}`, TourResponseSchema, {
       retryAuth: false,
       anonymous: true,
     }),
 
   schedules: (id: string) =>
-    api(`/tours/${id}/schedules?page=1&pageSize=100`, PageSchema(ScheduleSchema), {
+    api(`/tours/${id}/schedules?page=1&pageSize=100`, PageSchema(ScheduleResponseSchema), {
       retryAuth: false,
       anonymous: true,
     }),
@@ -274,7 +279,7 @@ export const tourApi = {
 
 export const scheduleApi = {
   availability: (id: string, signal?: AbortSignal) =>
-    api(`/schedules/${id}/availability`, ScheduleSchema, {
+    api(`/schedules/${id}/availability`, ScheduleResponseSchema, {
       signal,
       retryAuth: false,
       anonymous: true,
@@ -451,10 +456,10 @@ function tourPayload(input: Partial<z.infer<typeof TourSchema>>) {
 export const adminApi = {
   summary: () => api('/admin/summary', SummarySchema),
 
-  tours: () => api('/admin/tours?page=1&pageSize=100', PageSchema(TourSchema)),
+  tours: () => api('/admin/tours?page=1&pageSize=100', PageSchema(TourResponseSchema)),
 
   createTour: (input: Partial<z.infer<typeof TourSchema>>) =>
-    api('/admin/tours', TourSchema, {
+    api('/admin/tours', TourResponseSchema, {
       method: 'POST',
       body: CreateTourSchema.parse(tourPayload(input)),
     }),
@@ -463,7 +468,7 @@ export const adminApi = {
     const candidate = Object.fromEntries(
       Object.entries(tourPayload(input)).filter(([, value]) => value !== undefined),
     );
-    return api(`/admin/tours/${id}`, TourSchema, {
+    return api(`/admin/tours/${id}`, TourResponseSchema, {
       method: 'PATCH',
       body: UpdateTourSchema.parse(candidate),
     });
@@ -485,16 +490,16 @@ export const adminApi = {
       method: 'DELETE',
     }),
 
-  schedules: () => api('/admin/schedules?page=1&pageSize=100', PageSchema(ScheduleSchema)),
+  schedules: () => api('/admin/schedules?page=1&pageSize=100', PageSchema(ScheduleResponseSchema)),
 
   createSchedule: (input: z.input<typeof CreateScheduleSchema>) =>
-    api('/admin/schedules', ScheduleSchema, {
+    api('/admin/schedules', ScheduleResponseSchema, {
       method: 'POST',
       body: CreateScheduleSchema.parse(input),
     }),
 
   updateSchedule: (id: string, input: z.input<typeof UpdateScheduleSchema>) =>
-    api(`/admin/schedules/${id}`, ScheduleSchema, {
+    api(`/admin/schedules/${id}`, ScheduleResponseSchema, {
       method: 'PATCH',
       body: UpdateScheduleSchema.parse(input),
     }),
