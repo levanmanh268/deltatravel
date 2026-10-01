@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { bookingApi } from '@/lib/api';
-import type { Booking } from '@tour/shared';
-import { BOOKING_LABELS } from '@tour/shared';
+import { BOOKING_LABELS, canCustomerCancel, type Booking } from '@tour/shared';
 import { formatVND, formatDate } from '@/lib/format';
 import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
@@ -186,7 +185,11 @@ export default function BookingsListPage() {
               : BOOKING_LABELS[booking.status] || booking.status;
             const badgeClass =
               STATUS_COLOR_MAP[booking.status] || 'bg-stone-100 text-stone-800 border-stone-200';
-            const canCancel = ['PENDING_PAYMENT', 'AWAITING_CASH', 'PAID'].includes(booking.status);
+            const canCancel = canCustomerCancel(
+              booking.status,
+              new Date(booking.departureAt),
+              new Date(booking.serverTime),
+            );
 
             return (
               <div
