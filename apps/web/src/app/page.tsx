@@ -59,6 +59,7 @@ function TourCardsGrid({
                 src={heroImage}
                 alt={tour.title}
                 fill
+                unoptimized={heroImage.startsWith('http')}
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-108"
               />
