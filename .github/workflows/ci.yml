@@ -39,6 +39,12 @@ jobs:
       - run: npm run scan:secrets
       - run: npm run db:generate
       - run: npm run db:migrate
+      - name: Print canonical api.ts formatting
+        run: |
+          npx prettier --write apps/web/src/lib/api.ts
+          echo '=== API_FORMAT_START ==='
+          cat apps/web/src/lib/api.ts
+          echo '=== API_FORMAT_END ==='
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm run verify:ai-first
