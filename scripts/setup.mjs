@@ -13,6 +13,7 @@ for (const [source, target] of [
     continue;
   }
   const value = readFileSync(new URL(source, root), 'utf8')
+    .replace('REPLACE_WITH_RANDOM_64_HEX_RESET', randomBytes(32).toString('hex'))
     .replace('REPLACE_WITH_RANDOM_64_HEX', randomBytes(32).toString('hex'))
     .replace('REPLACE_WITH_RANDOM_SEED_PASSWORD', randomBytes(18).toString('base64url'));
   writeFileSync(to, value, { mode: 0o600 });

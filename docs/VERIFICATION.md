@@ -23,7 +23,7 @@ Cập nhật: 02/10/2026.
 | AI chat                                 | PASS           | live response mode GROQ, có sources                              |
 | mail integration                        | PASS readiness | RESEND configured                                                |
 | avatar integration                      | PASS readiness | Supabase storage configured                                      |
-| tour media integration                  | PASS readiness | signed upload + complete verification                            |
+| tour media integration                  | PASS readiness | signed upload + storage existence verification                   |
 | rich tour/review regression             | PASS           | content persistence, duration, verified review                   |
 | payment reconciliation/channel routing  | PASS           | booking lookup + VNPay/MoMo channel tests                        |
 | payment capability                      | PASS           | CASH available, wallet gateways fail closed khi thiếu credential |

@@ -28,7 +28,7 @@ Cập nhật: 02/10/2026.
 | Error envelope            | PASS             | request ID, không trả stack trace client                    |
 | Dependency audit          | PASS gate        | npm audit production high threshold                         |
 | Avatar upload controls    | PASS             | MIME allowlist, 2 MiB, signed upload                        |
-| Tour media controls       | PASS             | JPEG/PNG/WebP, tối đa 5 MiB, signed upload + complete check |
+| Tour media controls       | PASS             | request MIME/5 MiB limit, signed upload, existence check    |
 | Public health privacy     | PASS             | readiness chỉ trả boolean/provider names, không trả secret  |
 
 ## Những việc không nên làm
