@@ -1,6 +1,6 @@
 # Requirements Traceability Matrix
 
-Cập nhật: 28/09/2026.
+Cập nhật: 02/10/2026.
 
 Tài liệu này ánh xạ các yêu cầu đã xuất hiện trong phạm vi SRS được cung cấp trong quá trình phát triển sang code, API và bằng chứng kiểm thử. Project hiện chưa chứa toàn văn SRS hoặc rubric chính thức, vì vậy không tự tạo thêm yêu cầu mà nguồn chưa xác nhận.
 
@@ -10,6 +10,8 @@ Tài liệu này ánh xạ các yêu cầu đã xuất hiện trong phạm vi SR
 | Quên và đổi mật khẩu   | OTP email, challenge hết hạn, revoke refresh sessions               | /auth/forgot-password, /reset-password, /change-password | Unit, HTTP, mail readiness                        |
 | Phân quyền             | CUSTOMER, OPERATIONS, ADMIN, backend role checks, IDOR protection   | auth guards, admin routes                                | HTTP boundary, integration                        |
 | Quảng bá tour          | Catalog ACTIVE nội địa VN, tìm kiếm, chi tiết tour                  | /tours, /tours/{id}, web /tours                          | Build, browser smoke, live smoke                  |
+| Nội dung tour          | Ảnh bìa, gallery, itinerary, commercial policy persist PostgreSQL   | /admin/tours, /admin/tours/{id}/media/*, web tour detail | Integration content-review, CI                    |
+| Đánh giá tour          | Verified review chỉ từ customer đã COMPLETED tour                   | /tours/{id}/reviews                                      | Integration content-review                        |
 | Lịch khởi hành         | Ngày đi, giá snapshot source, kho chỗ, OPEN/CLOSED                  | /tours/{id}/schedules, /admin/schedules                  | Integration, admin UI                             |
 | Báo giá                | Báo giá từ schedule hiện tại, chưa giữ chỗ                          | POST /bookings/quote                                     | Unit, integration, customer UI                    |
 | Đặt tour               | Serializable transaction, row lock, inventory guard                 | POST /bookings                                           | Native integration, staging mutation E2E          |
@@ -20,7 +22,8 @@ Tài liệu này ánh xạ các yêu cầu đã xuất hiện trong phạm vi SR
 | VNPay                  | Checkout, signature, merchant, amount, idempotent callback          | /payments, /payments/webhooks/vnpay                      | Unit/integration fixtures; sandbox chờ credential |
 | MoMo                   | Checkout và webhook verification                                    | /payments, /payments/webhooks/momo                       | Unit/integration fixtures; sandbox chờ credential |
 | ZaloPay                | Checkout và callback verification                                   | /payments, /payments/webhooks/zalopay                    | Unit/integration fixtures; sandbox chờ credential |
-| Browser return an toàn | Return page đọc trạng thái backend, không tự đánh dấu PAID          | /payments/return                                         | UI review, contract                               |
+| Browser return an toàn | Return page đọc trạng thái backend, không tự đánh dấu PAID          | /payments/return, /payments/booking/{bookingId}          | Integration, browser/live acceptance              |
+| Payment channel        | Channel VNPay/MoMo được validate và chuyển đúng adapter             | POST /payments                                           | Unit payment-channel + CI                         |
 | Hoàn tiền              | REFUND_REQUIRED và record bằng chứng admin                          | /admin/payments/{id}/refund-record                       | Integration                                       |
 | Quản trị tour          | Create, update, status, soft archive                                | /admin/tours                                             | Admin UI, API contract                            |
 | Quản trị lịch          | Create, update giá, sức chứa, trạng thái                            | /admin/schedules                                         | Admin UI, API contract                            |
@@ -31,12 +34,13 @@ Tài liệu này ánh xạ các yêu cầu đã xuất hiện trong phạm vi SR
 | AI Agent               | Lập kế hoạch, constraints, candidate, checkpoint, approve/decline   | /assistant/agent/plans*                                  | Staging mutation E2E                              |
 | Human approval         | Side effect chỉ sau explicit checkpoint approval đúng version       | /assistant/agent/plans/{id}/approve                      | Staging mutation E2E, service tests               |
 | Avatar                 | Signed upload, complete validation, persistent profile              | /profile/avatar/*                                        | Integration readiness, UI                         |
+| Tour media             | Signed upload, MIME/size validation và complete verification        | /admin/tours/{id}/media/*                                | CI, admin UI, storage readiness                   |
 | Health                 | Liveness, DB/Redis readiness, integration capability                | /health/live, /health/ready, /health/integrations        | Live smoke                                        |
 | API contract           | Zod source, generated OpenAPI, required-operation verifier          | docs/openapi.json                                        | docs:generate + verify:contract                   |
 | Responsive web         | Public routes Chromium desktop/mobile và Firefox                    | web routes                                               | browser verification                              |
 | Secret hygiene         | Server-only secrets, no committed common credential formats         | config + scan script                                     | scan:secrets in CI                                |
 | Dependency quality     | Production dependency audit                                         | npm lockfile                                             | npm audit high threshold                          |
-| Release quality        | format, typecheck, docs, tests, build, integration, audit           | GitHub Actions                                           | CI                                                |
+| Release quality        | format, typecheck, docs, tests, build, integration, audit           | GitHub Actions                                           | CI + Release Live Acceptance 02/10/2026           |
 
 ## Dependencies bên ngoài chưa thể giả lập
 

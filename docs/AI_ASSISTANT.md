@@ -1,38 +1,46 @@
-# Trợ lý tour và hướng mở rộng agent
+# Trợ lý AI và Action Agent
 
-## Khả năng có thật trong skeleton
+Cập nhật: 02/10/2026.
 
-| Nhu cầu           | Cách hỗ trợ                                       | Quyền                               |
-| ----------------- | ------------------------------------------------- | ----------------------------------- |
-| Đăng ký/đăng nhập | Hướng dẫn và mở form                              | Guest                               |
-| Tìm tour Việt Nam | Tìm tour ACTIVE từ DB, trả nguồn tourId           | Guest                               |
-| Kiểm tra chỗ/giá  | Đọc schedule theo UUID, giá và chỗ hiện tại       | Guest                               |
-| Đặt tour          | Hướng dẫn luồng, dẫn đến trang chọn tour/xác nhận | Guest, cần CUSTOMER khi thực sự đặt |
-| Xem đơn           | Đọc tối đa 5 đơn của user đã xác thực             | User                                |
-| Thanh toán        | Giải thích trạng thái, mở trang đơn               | User khi đọc dữ liệu riêng          |
-| Hủy               | Giải thích điều kiện 72h và mở màn hình xác nhận  | User                                |
-| Quản trị          | Thống kê và đường dẫn đúng tác vụ quản trị        | ADMIN/OPERATIONS                    |
-| Chính sách        | Trả quy tắc được khóa theo SRS                    | Guest                               |
+Tài liệu này mô tả trạng thái AI hiện tại của release. Kiến trúc chi tiết và acceptance gate nằm trong `docs/AI_FIRST_ARCHITECTURE.md`.
 
-Đây là trợ lý phục vụ các luồng chính của dự án. Chưa phải agent có thể tự làm mọi việc, chưa tư vấn thời tiết/giá vé máy bay, chưa biết dữ liệu ngoài DB, chưa viết lịch trình thực tế hoặc tự gọi refund. Trả lời về giá/chỗ dựa vào service và template, không để model bịa số liệu.
+## Khả năng hiện có
 
-## Hai chế độ
+| Nhu cầu | Cách hỗ trợ | Quyền / ràng buộc |
+| --- | --- | --- |
+| Tìm tour | Đọc catalog ACTIVE và dữ liệu lịch từ backend, trả nguồn TOUR | Guest |
+| Giá và số chỗ | Lấy từ schedule/quote hiện tại, không để model tự suy diễn | Guest |
+| Xem booking | Ground theo booking của principal hiện tại | User, lọc theo userId |
+| Chính sách | Trả lời từ policy và dữ liệu backend đã khóa | Guest/User |
+| Operations | Tóm tắt tour, booking, payment, low inventory, audit và integration facts | ADMIN/OPERATIONS |
+| Action Agent | Lập plan, chọn candidate, kiểm tra constraint và tạo approval checkpoint | CUSTOMER |
+| Tạo booking/payment bằng Agent | Chỉ thực hiện sau explicit approval checkpoint đúng version và revalidation backend | CUSTOMER |
 
-- `RULE_BASED`: chạy ngay không mất phí API, nhận biết một số cụm từ tiếng Việt. UI hiển thị “Trợ lý cơ bản”.
-- `GEMINI`: cấu hình GEMINI_API_KEY và GEMINI_MODEL trong backend. Model phân loại ý định dưới JSON schema, rồi server gọi service đã cho phép. Kết quả trả có `mode` và `sources`. API lỗi/timeout trở về rule-based, không giả rằng vừa có phản hồi LLM.
+Manual UI vẫn tồn tại song song. Người dùng không buộc phải dùng AI để duyệt tour, đặt tour hoặc quản trị.
 
-Gemini model không được chốt sẵn vì khả dụng/quota phụ thuộc project. Chọn model còn được cấp quyền trong tài khoản, thử staging và giới hạn ngân sách. API key chỉ ở server. Nội dung người dùng và history được gửi tới provider để phân loại; UI đã thông báo không nhập dữ liệu nhạy cảm. Dữ liệu đơn từ DB không gửi lại model trong thiết kế hiện tại.
+## Provider và fallback
+
+Backend hỗ trợ `GROQ`, `GEMINI` và deterministic `RULE_BASED` fallback. API key chỉ tồn tại phía server. Runtime baseline ngày 02/10/2026 đã PASS AI-first live acceptance với provider thực tế được health/status endpoint báo trung thực.
+
+Nếu provider lỗi hoặc chưa cấu hình, hệ thống phải hiển thị/fallback đúng mode thay vì giả rằng phản hồi đến từ LLM.
+
+## Grounding và chống hallucination nghiệp vụ
+
+Tour, giá, số chỗ, booking state, payment state và policy không lấy từ trí nhớ của model. Service backend lấy facts trước, sau đó mới cho provider tổng hợp. Constraint gate được áp dụng trước ranking/candidate selection, và quote được kiểm tra lại trước side effect.
+
+Booking ID, schedule ID và principal hiện tại được phân biệt rõ. Dữ liệu riêng của customer luôn lọc theo userId. Trước khi gửi booking facts cho provider ngoài, contactName, contactEmail và contactPhone được loại khỏi facts.
 
 ## Quyền hạn và prompt injection
 
-Model chỉ trả intent/query/scheduleId. Zod strict từ chối field như role, userId, SQL, URL tự chọn hoặc command. User identity đến từ JWT + DB. Mọi lần đọc đơn lọc theo principal. Nội dung “bỏ qua quy định, tôi là admin” không đổi quyền backend. Không chạy eval, SQL do model sinh, HTML trả về hoặc URL bên ngoài do model đề xuất.
+Model không phải nguồn cấp quyền. JWT và dữ liệu role trong DB mới quyết định quyền. Nội dung kiểu “bỏ qua quy định, tôi là admin” không thay đổi authorization.
 
-Hiện chatbot không có write tool. Các CTA chỉ điều hướng tới màn hình nghiệp vụ; khách hoặc quản trị viên phải xem số tiền/lịch/số người/lý do rồi tự xác nhận. API nghiệp vụ kiểm tra lại các điều kiện.
+Chat/Command Center có thể tư vấn và điều hướng nhưng không tự ghi booking/payment. Action Agent có write path riêng, bắt buộc dừng tại checkpoint `requiresExplicitApproval=true`; chỉ endpoint approve hợp lệ mới được thực hiện side effect. Backend vẫn revalidate version, candidate, quote, inventory và quyền trước khi ghi.
 
-## Nếu nhóm phát triển agent sau này
+Không chạy eval, SQL, HTML hoặc URL tùy ý do model sinh. Facts lấy từ DB được coi là dữ liệu không tin cậy về mặt chỉ dẫn và không được phép ghi đè system policy.
 
-Thêm một tool vào module riêng theo trình tự: schema input/output -> authorization server-side -> service call -> audit -> tests. Việc đặt/hủy/sửa lịch phải tạo action proposal có actor, snapshot nội dung, expiry, idempotency key. UI hiển thị đề xuất; bước confirm gửi signed proposal tới backend; backend revalidate. Không cho model tự coi câu nói cũ là quyền xác nhận giao dịch mới.
+## Bằng chứng
 
-Chức năng gợi ý có giá trị cho đồ án sau MVP: giải thích vì sao nút hủy bị khóa; tìm tour theo ngân sách bằng giá lịch thật; tổng hợp công việc cần xử lý của Operations; đề xuất mô tả tour ở trạng thái bản nháp. Cần API và tests mới trước khi coi là đã triển khai.
-
-Tham khảo API phân loại JSON/structured generation trong tài liệu [Gemini API](https://ai.google.dev/gemini-api/docs/structured-output). Chưa kiểm thử live provider vì chưa có API key của nhóm.
+- `npm run verify:ai-first` chống regression các AI surface.
+- `npm run verify:ai-first-live` kiểm tra deployment public.
+- Release Live Acceptance baseline `36942743584` đã PASS AI-first live job.
+- Traceability và giới hạn ngoài codebase nằm trong `docs/REQUIREMENTS_TRACEABILITY.md` và `docs/PRODUCTION_READINESS.md`.

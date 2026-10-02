@@ -109,8 +109,8 @@ export function validateEnv(value: Record<string, unknown>) {
     throw new Error('AI_REQUIRED=true with GEMINI requires GEMINI_API_KEY and GEMINI_MODEL');
   }
 
-  // Supabase avatar storage is an optional integration. Keep the core API available
-  // even when only part of its configuration is present; AvatarStorageService
-  // fails closed with AVATAR_STORAGE_NOT_CONFIGURED until both values exist.
+  // Supabase storage is optional for avatars and tour media. Keep the core API
+  // available when only part of the configuration is present; storage services
+  // fail closed until the required URL and server key are available.
   return { ...value, ...e };
 }

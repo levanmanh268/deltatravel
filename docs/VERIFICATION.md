@@ -1,6 +1,6 @@
 # Báo cáo kiểm chứng
 
-Cập nhật: 28/09/2026.
+Cập nhật: 02/10/2026.
 
 ## Bằng chứng đã chạy
 
@@ -23,11 +23,16 @@ Cập nhật: 28/09/2026.
 | AI chat                                 | PASS           | live response mode GROQ, có sources                              |
 | mail integration                        | PASS readiness | RESEND configured                                                |
 | avatar integration                      | PASS readiness | Supabase storage configured                                      |
+| tour media integration                  | PASS readiness | signed upload + storage existence verification                   |
+| rich tour/review regression             | PASS           | content persistence, duration, verified review                   |
+| payment reconciliation/channel routing  | PASS           | booking lookup + VNPay/MoMo channel tests                        |
 | payment capability                      | PASS           | CASH available, wallet gateways fail closed khi thiếu credential |
 
-Full CI đã được chạy trên release tree trước khi merge vào upstream. Release tree trên upstream `main` và tree đã deploy trên Render là cùng nội dung source.
+Runtime baseline `823b980c0ef1c46c711f4030c40b9579ecfe40b3` trên repository `levanmanh268/deltatravel`, branch `manh/integrate-production-api`, đã PASS CI run `36942743594`. Render exact-commit check và toàn bộ Release Live Acceptance run `36942743584` cũng PASS.
 
 ## Bằng chứng live gần nhất
+
+Release Live Acceptance ngày 02/10/2026 đã PASS các job: exact-commit deploy, live, security, browser, accessibility và ai-first.
 
 `npm run verify:live` kiểm tra:
 

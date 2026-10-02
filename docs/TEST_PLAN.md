@@ -1,8 +1,10 @@
 # Test plan và tiêu chí nghiệm thu
 
-## Trạng thái thực thi 28/09/2026
+## Trạng thái thực thi 02/10/2026
 
-CI native PostgreSQL 16 + Redis đã PASS toàn bộ quality gate. Public live smoke đã PASS. Browser smoke đã PASS trên Chromium desktop, Chromium mobile 390x844 và Firefox desktop. Mutation E2E trên staging đã PASS luồng register, AI Agent checkpoint, approve, CASH booking, persistence, cancel và direct booking cleanup.
+Runtime baseline commit `823b980c0ef1c46c711f4030c40b9579ecfe40b3` đã PASS CI native PostgreSQL 16 + Redis, public live smoke, security smoke, browser smoke, accessibility smoke và AI-first live acceptance. Regression mới cũng bao phủ rich tour content, schedule duration, booking tourId, verified reviews, payment-by-booking reconciliation và payment channel routing.
+
+Mutation E2E trên staging ngày 28/09/2026 đã PASS luồng register, AI Agent checkpoint, approve, CASH booking, persistence, cancel và direct booking cleanup.
 
 Ba gateway VNPay, MoMo và ZaloPay vẫn cần merchant sandbox credentials thật trước khi có thể đánh dấu các case PAY liên quan provider là sandbox-certified.
 
@@ -87,4 +89,6 @@ Nếu chạy lại createdb và báo database đã tồn tại, giữ database t
 
 ## Definition of Done
 
-Build/typecheck/format pass, schema migration chạy từ DB trống, test native pass, sandbox cả ba cổng pass, giao diện đủ tám bước, responsive/a11y cơ bản, không có secret trong git, tài liệu nhất quán, mỗi thành viên giải thích được phần của mình. Điểm số phụ thuộc rubric và buổi bảo vệ, không chỉ số lượng tính năng.
+Bản bảo vệ đạt Definition of Done khi build/typecheck/format pass, schema migration chạy từ DB trống, test native pass, live/security/browser/accessibility/AI-first acceptance pass, giao diện chính hoạt động, không có secret trong Git, tài liệu nhất quán và nhóm giải thích được phần mình phụ trách.
+
+Merchant sandbox certification của VNPay, MoMo và ZaloPay là gate trước khi nhận tiền thật. Khi chưa có credential do provider cấp, tiêu chí đúng là hệ thống fail closed và không giả giao dịch thành công. Điểm số cuối cùng vẫn phụ thuộc rubric và buổi bảo vệ, không chỉ số lượng tính năng.
