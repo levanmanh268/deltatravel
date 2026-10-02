@@ -1,27 +1,34 @@
 # Database schema
 
-PostgreSQL là nguồn chuẩn cho giá, trạng thái, kho chỗ và thời gian quyết định. Redis không giữ bản chính của inventory. Prisma dùng tên model tiếng Anh trong code và `@@map` sang sáu tên thực thể SRS.
+Cập nhật: 02/10/2026.
+
+PostgreSQL là nguồn chuẩn cho giá, trạng thái, kho chỗ, nội dung tour, review và thời gian quyết định. Redis không giữ bản chính của inventory. Prisma dùng tên model tiếng Anh trong code và ánh xạ các bảng nghiệp vụ/bảng hỗ trợ bằng `@@map` khi cần.
 
 ```mermaid
 erDiagram
   NGUOI_DUNG ||--o{ DON_DAT_TOUR : dat
   NGUOI_DUNG ||--o{ RefreshSession : dang_nhap
+  NGUOI_DUNG ||--o{ PASSWORD_RESET_CHALLENGE : dat_lai_mat_khau
+  NGUOI_DUNG ||--o{ DANH_GIA_TOUR : danh_gia
   TOUR ||--o{ LICH_KHOI_HANH : co
+  TOUR ||--o{ DANH_GIA_TOUR : nhan_danh_gia
   LICH_KHOI_HANH ||--o{ DON_DAT_TOUR : duoc_dat
   DON_DAT_TOUR ||--|{ CHI_TIET_DAT_TOUR : gom
   DON_DAT_TOUR ||--o| THANH_TOAN : thanh_toan
 ```
 
-| SRS               | Prisma         | Trường và ràng buộc chính                                                                                                                |
-| ----------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| NGUOI_DUNG        | User           | email unique và chuẩn hóa lowercase; passwordHash; role; isActive                                                                        |
-| TOUR              | Tour           | slug unique; title, description, destination, durationDays; countryCode luôn VN; status; deletedAt                                       |
-| LICH_KHOI_HANH    | Schedule       | tourId; departureAt timestamptz; totalSeats; reservedSeats; adultPrice/childPrice BIGINT; status                                         |
-| DON_DAT_TOUR      | Booking        | userId, scheduleId; adults/children; totalAmount snapshot; tourTitle snapshot; expiresAt; status; contact; unique(userId,idempotencyKey) |
-| CHI_TIET_DAT_TOUR | BookingDetail  | loại ADULT/CHILD, quantity, unitPrice snapshot, lineTotal; unique(bookingId,kind)                                                        |
-| THANH_TOAN        | Payment        | bookingId unique; provider; providerReference unique; amount; status; unique(provider,transactionId)                                     |
-| Bổ sung           | RefreshSession | hash token, userId, familyId, expiresAt, revokedAt                                                                                       |
-| Bổ sung           | AuditLog       | actorId, action, entityId, metadata, createdAt                                                                                           |
+| SRS / bảng               | Prisma                 | Trường và ràng buộc chính                                                                                                                |
+| ------------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| NGUOI_DUNG               | User                   | email unique; passwordHash; role; isActive; avatarUrl/avatarPath/avatarId                                                                |
+| TOUR                     | Tour                   | slug unique; title, destination, durationDays; imageUrl; galleryImages JSON; itinerary JSON; commercial JSON; status; deletedAt          |
+| LICH_KHOI_HANH           | Schedule               | tourId; departureAt; durationDays; totalSeats; reservedSeats; adultPrice/childPrice BIGINT; status                                       |
+| DON_DAT_TOUR             | Booking                | userId, scheduleId; adults/children; totalAmount snapshot; tourTitle snapshot; expiresAt; status; contact; unique(userId,idempotencyKey) |
+| CHI_TIET_DAT_TOUR        | BookingDetail          | loại ADULT/CHILD, quantity, unitPrice snapshot, lineTotal; unique(bookingId,kind)                                                        |
+| THANH_TOAN               | Payment                | bookingId unique; provider; providerReference unique; amount; status; unique(provider,transactionId)                                     |
+| DANH_GIA_TOUR            | TourReview             | tourId, userId, rating 1..5, comment; unique(tourId,userId); review chỉ được service tạo sau booking COMPLETED                           |
+| Bổ sung                  | RefreshSession         | hash token, userId, familyId, expiresAt, revokedAt                                                                                       |
+| PASSWORD_RESET_CHALLENGE | PasswordResetChallenge | codeHash, expiresAt, consumedAt, attempts; không lưu OTP dạng rõ                                                                         |
+| Bổ sung                  | AuditLog               | actorId, action, entityId, metadata, createdAt                                                                                           |
 
 `CHI_TIET_DAT_TOUR` lưu hai dòng giá theo loại khách, không tự suy diễn họ tên/ngày sinh từng hành khách từ SRS chưa được cung cấp. Không tạo loại INFANT.
 
@@ -37,9 +44,11 @@ Tất cả writer phải theo thứ tự **Schedule trước, Booking/Payment sa
 
 ## Ràng buộc DB ngoài Prisma
 
-Prisma chưa biểu diễn đầy đủ CHECK trong schema này. Migration `202609160002_invariants` là thành phần bắt buộc:
+Prisma chưa biểu diễn đầy đủ CHECK trong schema này. Migration `202609160002_invariants` và `202610020001_tour_content_reviews` là thành phần bắt buộc:
 
-- countryCode='VN'; durationDays 1..60.
+- countryCode='VN'; Tour.durationDays 1..60.
+- Schedule.durationDays 1..60 và được backfill từ Tour khi migration nâng cấp chạy.
+- TourReview.rating 1..5; unique(tourId,userId).
 - 0 <= reservedSeats <= totalSeats <= 10000.
 - Giá nguyên VND, không âm, giới hạn ứng dụng công bố trong shared schema.
 - adults >= 1, children >= 0.
@@ -60,6 +69,6 @@ BIGINT trong DB, `bigint` trong backend; public DTO chuyển sang number sau gi�
 
 ## Chỉ mục và khả năng mở rộng
 
-Index status/expiresAt hỗ trợ sweep; scheduleId/status hỗ trợ reclaim dưới khóa; tourId/departureAt hỗ trợ lịch; userId/idempotencyKey chống tạo trùng. Tra cứu text hiện dùng contains insensitive, phù hợp đồ án. Dataset lớn cần full-text/trigram và keyset pagination sau khi đo, không cần thêm sớm.
+Index status/expiresAt hỗ trợ sweep; scheduleId/status hỗ trợ reclaim dưới khóa; tourId/departureAt hỗ trợ lịch; userId/idempotencyKey chống tạo trùng; review có index tourId/createdAt và userId/createdAt. Dataset lớn cần full-text/trigram và keyset pagination sau khi đo, không cần thêm sớm.
 
 One booking/one payment record là lựa chọn skeleton giúp khóa một provider. Nếu cần nhiều lần thử/cổng trên một đơn, thêm PaymentAttempt, đối soát và ràng buộc “một khoản thu được chấp nhận”, không xóa record cũ để né unique constraint.

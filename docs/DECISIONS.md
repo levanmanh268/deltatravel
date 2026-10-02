@@ -1,5 +1,7 @@
 # Quyết định và điểm cần đối chiếu SRS
 
+Cập nhật: 02/10/2026.
+
 Phạm vi nguồn: chỉ phần SRS trong lời yêu cầu. Chưa có file SRS đầy đủ hay rubric chấm điểm. Những lựa chọn dưới đây được ghi rõ để tránh ngầm sửa tài liệu đã phê duyệt.
 
 | Vấn đề                                                                             | Hành vi đã cài                                                                                                                                                            | Căn cứ / việc cần xác nhận                                                                                                       |
@@ -20,6 +22,7 @@ Phạm vi nguồn: chỉ phần SRS trong lời yêu cầu. Chưa có file SRS �
 | Giới hạn input                                                                     | Tối đa 100 NL, 100 TE; giá <=99.999.999/người, tổng <=9.999.999.999                                                                                                       | Giới hạn kỹ thuật minh bạch trong shared schema, không tự suy diễn phân loại tuổi trẻ em                                         |
 | Thống kê                                                                           | Cache 15s, không dùng số liệu này cho inventory hay thanh toán                                                                                                            | Inventory luôn đọc DB                                                                                                            |
 | Chatbot                                                                            | Truy xuất dữ liệu và hướng dẫn thao tác; không tự thanh toán/hủy/sửa DB                                                                                                   | AI không phải nguồn cấp quyền; tác vụ thay đổi phải qua màn hình xác nhận và API thường                                          |
+| Action Agent                                                                       | Có thể lập plan và chuẩn bị booking/payment nhưng side effect chỉ chạy sau explicit approval checkpoint đúng version; backend revalidate trước khi ghi                    | Human-in-the-loop, JWT/DB vẫn là nguồn quyền; model không tự cấp quyền hoặc tự xác nhận giao dịch                                |
 
 ## Máy trạng thái
 
