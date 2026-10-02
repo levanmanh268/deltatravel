@@ -2,34 +2,34 @@
 
 Cập nhật: 02/10/2026.
 
-| Kiểm soát                 | Trạng thái       | Ghi chú                                                     |
-| ------------------------- | ---------------- | ----------------------------------------------------------- |
-| Password hashing          | PASS             | scrypt + salt                                               |
-| Access JWT ngắn hạn       | PASS             | 15 phút                                                     |
-| Refresh rotation          | PASS             | hash token, family revoke khi replay                        |
-| Password reset privacy    | PASS             | response không tiết lộ email có tài khoản hay không         |
-| HttpOnly refresh cookie   | PASS             | client JavaScript không đọc token                           |
-| CSRF boundary             | PASS             | Origin + X-CSRF-Protection ở mutation nhạy cảm              |
-| RBAC                      | PASS             | role lấy từ DB, ADMIN/OPERATIONS tách quyền                 |
-| IDOR                      | PASS             | customer không đọc booking/payment người khác               |
-| Input validation          | PASS             | shared Zod + DB constraints                                 |
-| SQL injection surface     | PASS by design   | Prisma parameterization, raw SQL có review                  |
-| Booking race              | PASS             | Serializable + schedule lock + retry                        |
-| Idempotency               | PASS             | booking create và payment callback                          |
-| Payment signature         | PASS in fixtures | VNPay/MoMo/ZaloPay verification                             |
-| Provider fail closed      | PASS             | thiếu merchant credential => unavailable                    |
-| Payment channel boundary  | PASS             | từ chối channel không thuộc provider tương ứng              |
-| Secret exposure           | PASS             | secret scan + server-only env                               |
-| Frontend security headers | PASS             | nosniff, frame deny, referrer policy, permissions policy    |
-| Backend headers           | PASS             | Helmet                                                      |
-| CORS                      | PASS             | allowlist từ WEB_ORIGIN/WEB_ORIGINS                         |
-| Rate limiting             | PASS             | global + endpoint throttles                                 |
-| Audit trail               | PASS             | booking/payment/admin side effects                          |
-| Error envelope            | PASS             | request ID, không trả stack trace client                    |
-| Dependency audit          | PASS gate        | npm audit production high threshold                         |
-| Avatar upload controls    | PASS             | MIME allowlist, 2 MiB, signed upload                        |
-| Tour media controls       | PASS             | request MIME/5 MiB limit, signed upload, existence check    |
-| Public health privacy     | PASS             | readiness chỉ trả boolean/provider names, không trả secret  |
+| Kiểm soát                 | Trạng thái       | Ghi chú                                                    |
+| ------------------------- | ---------------- | ---------------------------------------------------------- |
+| Password hashing          | PASS             | scrypt + salt                                              |
+| Access JWT ngắn hạn       | PASS             | 15 phút                                                    |
+| Refresh rotation          | PASS             | hash token, family revoke khi replay                       |
+| Password reset privacy    | PASS             | response không tiết lộ email có tài khoản hay không        |
+| HttpOnly refresh cookie   | PASS             | client JavaScript không đọc token                          |
+| CSRF boundary             | PASS             | Origin + X-CSRF-Protection ở mutation nhạy cảm             |
+| RBAC                      | PASS             | role lấy từ DB, ADMIN/OPERATIONS tách quyền                |
+| IDOR                      | PASS             | customer không đọc booking/payment người khác              |
+| Input validation          | PASS             | shared Zod + DB constraints                                |
+| SQL injection surface     | PASS by design   | Prisma parameterization, raw SQL có review                 |
+| Booking race              | PASS             | Serializable + schedule lock + retry                       |
+| Idempotency               | PASS             | booking create và payment callback                         |
+| Payment signature         | PASS in fixtures | VNPay/MoMo/ZaloPay verification                            |
+| Provider fail closed      | PASS             | thiếu merchant credential => unavailable                   |
+| Payment channel boundary  | PASS             | từ chối channel không thuộc provider tương ứng             |
+| Secret exposure           | PASS             | secret scan + server-only env                              |
+| Frontend security headers | PASS             | nosniff, frame deny, referrer policy, permissions policy   |
+| Backend headers           | PASS             | Helmet                                                     |
+| CORS                      | PASS             | allowlist từ WEB_ORIGIN/WEB_ORIGINS                        |
+| Rate limiting             | PASS             | global + endpoint throttles                                |
+| Audit trail               | PASS             | booking/payment/admin side effects                         |
+| Error envelope            | PASS             | request ID, không trả stack trace client                   |
+| Dependency audit          | PASS gate        | npm audit production high threshold                        |
+| Avatar upload controls    | PASS             | MIME allowlist, 2 MiB, signed upload                       |
+| Tour media controls       | PASS             | request MIME/5 MiB limit, signed upload, existence check   |
+| Public health privacy     | PASS             | readiness chỉ trả boolean/provider names, không trả secret |
 
 ## Những việc không nên làm
 
