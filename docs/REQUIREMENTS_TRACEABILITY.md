@@ -22,7 +22,7 @@ Tài liệu này ánh xạ các yêu cầu đã xuất hiện trong phạm vi SR
 | VNPay                  | Checkout, signature, merchant, amount, idempotent callback          | /payments, /payments/webhooks/vnpay                      | Unit/integration fixtures; sandbox chờ credential |
 | MoMo                   | Checkout và webhook verification                                    | /payments, /payments/webhooks/momo                       | Unit/integration fixtures; sandbox chờ credential |
 | ZaloPay                | Checkout và callback verification                                   | /payments, /payments/webhooks/zalopay                    | Unit/integration fixtures; sandbox chờ credential |
-| Browser return an toàn | Return page đọc trạng thái backend, không tự đánh dấu PAID          | /payments/return, /payments/booking/{bookingId}           | Integration, browser/live acceptance              |
+| Browser return an toàn | Return page đọc trạng thái backend, không tự đánh dấu PAID          | /payments/return, /payments/booking/{bookingId}          | Integration, browser/live acceptance              |
 | Payment channel        | Channel VNPay/MoMo được validate và chuyển đúng adapter             | POST /payments                                           | Unit payment-channel + CI                         |
 | Hoàn tiền              | REFUND_REQUIRED và record bằng chứng admin                          | /admin/payments/{id}/refund-record                       | Integration                                       |
 | Quản trị tour          | Create, update, status, soft archive                                | /admin/tours                                             | Admin UI, API contract                            |
