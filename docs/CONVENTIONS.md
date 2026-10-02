@@ -21,7 +21,7 @@ Không đổi thành PENDING, SUCCESS, CANCELED hoặc tiếng Việt trong payl
 
 ## Git
 
-`main` là bản chạy ổn định, bật branch protection và CI required sau khi tạo repository. Mỗi người làm branch ngắn từ main: `feat/auth-refresh`, `feat/web-tour-list`, `feat/db-schedule`, `test/booking-races`, `chore/ci`. Không force push main. PR nhỏ, một mục tiêu rõ, nêu vấn đề, thay đổi và bằng chứng kiểm tra.
+Trong giai đoạn bảo vệ hiện tại, source of truth của release là `manh/integrate-production-api` trong repository `levanmanh268/deltatravel`. Không dùng `main` để suy ra trạng thái production khi hai branch còn diverged. Mỗi thay đổi phục vụ release phải đi qua branch ngắn, PR và CI trước khi merge vào release branch. Không force push release branch. PR nhỏ, một mục tiêu rõ, nêu vấn đề, thay đổi và bằng chứng kiểm tra.
 
 Commit theo Conventional Commits: `feat(bookings): reserve seats atomically`, `fix(payments): reject amount mismatch`, `docs(api): add cancellation examples`, `test(inventory): cover concurrent last-seat requests`.
 

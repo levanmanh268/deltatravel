@@ -10,7 +10,7 @@ Xem `docs/AI_FIRST_ARCHITECTURE.md` để biết kiến trúc, grounding và acc
 
 ## Trạng thái hiện tại
 
-Bản phát hành ngày 28/09/2026 đã có frontend, backend, PostgreSQL, Redis, AI Agent, xác thực, quản trị, booking, thanh toán CASH, email reset password và avatar storage. Code phát hành đã qua CI đầy đủ và đã được smoke test trên môi trường public.
+Bản phát hành hiện tại được tái kiểm định ngày 02/10/2026. Hệ thống có frontend, backend, PostgreSQL, Redis, AI Agent, xác thực, quản trị, booking, thanh toán CASH, email reset password, avatar storage, rich tour content, tour media storage và verified tour reviews. Code phát hành đã qua CI đầy đủ và Release Live Acceptance trên môi trường public.
 
 Các cổng VNPay, MoMo và ZaloPay đã có adapter, xác minh callback, idempotency và capability reporting. Chúng chỉ được bật khi server có merchant credentials thật. Khi chưa cấu hình, API trả trạng thái unavailable thay vì giả lập thanh toán thành công.
 
@@ -23,7 +23,7 @@ packages/shared Zod schemas, DTO, business rules
 PostgreSQL      dữ liệu giao dịch
 Redis           queue, cache, delayed jobs
 Groq/Gemini     AI provider server side
-Supabase        avatar storage
+Supabase        avatar + tour media storage
 Resend          email reset password
 ```
 
@@ -64,17 +64,23 @@ npm run build
 npm run test:integration
 npm audit --omit=dev --audit-level=high
 npm run verify:live
+npm run verify:security
+npm run verify:browser
+npm run verify:a11y
+npm run verify:ai-first-live
 ```
 
 CI dùng PostgreSQL 16 và Redis native. Không dùng DB production cho test.
 
 ## Production endpoints hiện dùng
 
-Web staging/public verification: https://delta-travel-web.onrender.com
+Web production/public verification: https://delta-travel-web.onrender.com
 
 API: https://delta-travel-api.onrender.com/api/v1
 
-Source of truth: repository `Anniehatani/deltatravel`, branch `main`.
+Source of truth cho bản bảo vệ: repository `levanmanh268/deltatravel`, branch `manh/integrate-production-api`.
+
+Runtime baseline đã được kiểm định đầy đủ: commit `823b980c0ef1c46c711f4030c40b9579ecfe40b3`. CI run `36942743594` và Release Live Acceptance run `36942743584` đều PASS.
 
 ## Thanh toán
 

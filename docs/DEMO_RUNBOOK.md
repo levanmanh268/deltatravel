@@ -1,12 +1,12 @@
 # Demo Runbook
 
-Cập nhật: 28/09/2026.
+Cập nhật: 02/10/2026.
 
 Mục tiêu của runbook là giúp nhóm demo đúng source of truth, không dựa vào dữ liệu giả và không phải sửa code ngay trước buổi bảo vệ.
 
 ## Trước giờ demo
 
-Chạy CI trên commit sẽ trình bày. Kiểm tra `npm run verify:live`. Mở web, API health và trang admin system. Không đưa file .env, API key hoặc merchant secret lên màn hình.
+Dùng release branch `manh/integrate-production-api`. Trước giờ bảo vệ, xác nhận CI và Release Live Acceptance của commit trình bày đều xanh. Mở web, API health và trang admin system. Không đưa file .env, API key hoặc merchant secret lên màn hình.
 
 ## Kịch bản demo chính
 
@@ -18,8 +18,9 @@ Chạy CI trên commit sẽ trình bày. Kiểm tra `npm run verify:live`. Mở 
 6. Mở AI Agent. Cho Agent tìm lịch và dừng tại checkpoint. Chỉ sau nút phê duyệt mới tạo booking/payment.
 7. Mở My Bookings, xem chi tiết, trạng thái, countdown và hủy một booking đủ điều kiện để chứng minh chỗ được trả.
 8. Đăng nhập ADMIN hoặc OPERATIONS. Demo dashboard, tour, lịch, booking và payment. Với ADMIN có thể xem audit trail và ghi refund evidence.
-9. Mở System Status để chỉ ra Groq, email, avatar storage và capability của payment gateway. Gateway thiếu credential phải hiện unavailable.
-10. Kết thúc bằng CI, OpenAPI, test plan và traceability matrix.
+9. Nếu còn thời gian, mở quản trị nội dung tour để chứng minh ảnh bìa, gallery, itinerary và policy được lưu backend; mở review để giải thích verified-purchase rule.
+10. Mở System Status để chỉ ra Groq, email, storage và capability của payment gateway. Gateway thiếu credential phải hiện unavailable.
+11. Kết thúc bằng CI, Release Live Acceptance, OpenAPI, test plan và traceability matrix.
 
 ## Tình huống biên nên chuẩn bị
 

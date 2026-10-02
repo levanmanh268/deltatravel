@@ -1,6 +1,6 @@
 # Deployment và vận hành
 
-Cập nhật: 28/09/2026.
+Cập nhật: 02/10/2026.
 
 ## Hạ tầng hiện tại
 
@@ -22,7 +22,7 @@ AI server side dùng `AI_PROVIDER`, `GROQ_API_KEY`, `GROQ_MODEL` hoặc Gemini t
 
 Reset password dùng provider mail và secret server side.
 
-Avatar dùng Supabase server credentials. Không đặt server secret trong `NEXT_PUBLIC_*`.
+Avatar và tour media dùng Supabase server credentials. Có thể tách bucket tour bằng `SUPABASE_TOUR_BUCKET`; nếu không cấu hình, backend dùng bucket storage đã cấu hình. Không đặt server secret trong `NEXT_PUBLIC_*`.
 
 ## Payment gateway
 
@@ -37,6 +37,14 @@ Webhook public:
 - ZaloPay: `/api/v1/payments/webhooks/zalopay`
 
 Return page: `/payments/return`.
+
+## Release source of truth
+
+Repository: `levanmanh268/deltatravel`.
+
+Release branch cho bản bảo vệ: `manh/integrate-production-api`.
+
+Runtime baseline đã PASS end-to-end: `823b980c0ef1c46c711f4030c40b9579ecfe40b3`.
 
 ## Release gate
 
@@ -55,7 +63,7 @@ npm run test:integration
 npm audit --omit=dev --audit-level=high
 ```
 
-Sau deploy chạy `npm run verify:live`.
+Sau deploy phải chạy `npm run verify:live`, `npm run verify:security`, `npm run verify:browser`, `npm run verify:a11y` và `npm run verify:ai-first-live`. Release workflow còn xác minh Render đang phục vụ đúng commit trước khi chạy các gate live.
 
 Mutation E2E trên staging dùng `VERIFY_ALLOW_MUTATIONS=true npm run verify:staging`. Script tự tạo một customer test, chạy AI Agent checkpoint, approve, tạo CASH booking, kiểm tra persistence rồi hủy booking để trả chỗ. Không chạy mutation E2E trên database bán hàng thật nếu chưa chấp thuận dữ liệu test.
 
