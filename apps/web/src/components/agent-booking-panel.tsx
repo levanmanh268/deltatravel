@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { AgentPlan, Provider } from '@tour/shared';
 import { assistantApi } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
+import { useLanguage } from '@/providers/language-provider';
 import { Button } from '@/components/ui/button';
 import {
   Bot,
@@ -75,8 +76,12 @@ export function AgentBookingPanel({
   initialChildren = 0,
 }: AgentBookingPanelProps = {}) {
   const { user } = useAuth();
+  const { lang } = useLanguage();
   const [message, setMessage] = useState(
-    initialMessage || 'Tìm giúp tôi một tour phù hợp, ưu tiên lịch hợp lý và giá tốt.',
+    initialMessage ||
+      (lang === 'en'
+        ? 'Find a suitable tour for me, prioritizing a practical schedule and good value.'
+        : 'Tìm giúp tôi một tour phù hợp, ưu tiên lịch hợp lý và giá tốt.'),
   );
   const [plan, setPlan] = useState<AgentPlan | null>(null);
   const [busy, setBusy] = useState(false);
@@ -93,7 +98,7 @@ export function AgentBookingPanel({
   const [scheduleId, setScheduleId] = useState(initialScheduleId || '');
 
   const editFormRef = useRef<HTMLFormElement>(null);
-  const checkpointRef = useRef<HTMLDivElement>(null);
+  const bước xác nhậnRef = useRef<HTMLDivElement>(null);
   const adultsRef = useRef<HTMLInputElement>(null);
   const childrenRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
@@ -178,7 +183,7 @@ export function AgentBookingPanel({
           </div>
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-300">
-              DELTA AI AGENT
+              DELTA AI
             </p>
             <h2 className="mt-1 text-2xl font-black tracking-tight">
               Để AI lập kế hoạch và đặt tour thay bạn
@@ -216,7 +221,7 @@ export function AgentBookingPanel({
     try {
       const next = await assistantApi.createPlan({
         message,
-        lang: 'vi',
+        lang,
         ...(adults ? { adults: Number(adults) } : {}),
         children: children ? Number(children) : 0,
         ...(budget ? { budgetVnd: Number(budget) } : {}),
@@ -450,19 +455,19 @@ export function AgentBookingPanel({
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] !text-white">
               <Sparkles className="h-4 w-4" />
-              DELTA AI AGENT • HUMAN-IN-THE-LOOP
+              DELTA AI • XÁC NHẬN TRƯỚC KHI THỰC HIỆN
             </div>
             <h2 className="mt-3 text-2xl font-black tracking-tight !text-white sm:text-3xl">
-              Một travel agent có thể hành động, nhưng không bao giờ vượt quyền bạn
+              DELTA AI có thể làm giúp, nhưng quyền quyết định luôn thuộc về bạn
             </h2>
             <p className="mt-3 text-sm leading-6 !text-white">
-              AI tự tìm, xếp hạng, kiểm tra giá và chỗ, tạo booking và chuẩn bị thanh toán. Trước
-              hành động thật, hệ thống luôn hiển thị checkpoint để bạn duyệt.
+              DELTA AI tìm tour, kiểm tra giá và số chỗ, chuẩn bị đơn và phương thức thanh toán.
+              Trước khi tạo đơn thật, hệ thống luôn hiển thị bước xác nhận để bạn duyệt.
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-xs font-bold !text-white">
             <ShieldCheck className="h-4 w-4" />
-            Explicit approval required
+            Luôn cần bạn xác nhận
           </div>
         </div>
       </div>
