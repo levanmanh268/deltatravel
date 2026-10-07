@@ -222,7 +222,9 @@ export function AiAgentLauncher() {
     };
   }, [open]);
 
-  if (pathname.startsWith('/assistant') || pathname.startsWith('/admin')) return null;
+  if (pathname === '/' || pathname.startsWith('/assistant') || pathname.startsWith('/admin')) {
+    return null;
+  }
 
   const send = async (value = input) => {
     const clean = value.trim();
