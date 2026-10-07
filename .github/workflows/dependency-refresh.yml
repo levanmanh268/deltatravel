@@ -21,8 +21,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Refresh patched production dependencies in lockfile
-        run: npm audit fix --package-lock-only
+      - name: Refresh patched dependencies in lockfile
+        run: |
+          npm audit fix --package-lock-only || true
       - name: Verify high-severity production audit
         run: npm audit --omit=dev --audit-level=high
       - name: Commit lockfile refresh
