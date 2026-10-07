@@ -390,7 +390,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                                 estimatedReturnDate(
                                   dateInputValue(schedule.departureAt),
                                   schedule.durationDays,
-                                )!,
+                                )!.toISOString(),
                             )}
                           </p>
                         </div>
