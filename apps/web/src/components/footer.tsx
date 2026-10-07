@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { ShieldCheck, Clock, Award, Bot, ReceiptText, MapPin } from 'lucide-react';
+import { ShieldCheck, Clock, Award, Bot, ReceiptText, MapPin, Mail, Phone } from 'lucide-react';
 import { useLanguage } from '@/providers/language-provider';
+import { siteConfig } from '@/lib/site-config';
 
 export function SiteFooter() {
   const pathname = usePathname();
@@ -117,6 +118,21 @@ export function SiteFooter() {
                   {t('nav_register')}
                 </Link>
               </li>
+              <li>
+                <Link href="/support" className="hover:underline underline-offset-4">
+                  Hỗ trợ khách hàng
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:underline underline-offset-4">
+                  Điều khoản sử dụng
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="hover:underline underline-offset-4">
+                  Chính sách bảo mật
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
@@ -124,13 +140,34 @@ export function SiteFooter() {
               {t('footer_col_contact')}
             </h3>
             <ul className="mt-4 space-y-2.5 text-sm font-medium text-black">
-              <li className="flex items-center gap-2">
-                <Bot className="w-4 h-4 text-black shrink-0" />
-                <span>{t('footer_hotline_text')}</span>
-              </li>
+              {siteConfig.supportPhone ? (
+                <li>
+                  <a href={`tel:${siteConfig.supportPhone}`} className="flex items-center gap-2 hover:underline underline-offset-4">
+                    <Phone className="w-4 h-4 text-black shrink-0" />
+                    <span>{siteConfig.supportPhone}</span>
+                  </a>
+                </li>
+              ) : null}
+              {siteConfig.supportEmail ? (
+                <li>
+                  <a href={`mailto:${siteConfig.supportEmail}`} className="flex items-center gap-2 hover:underline underline-offset-4">
+                    <Mail className="w-4 h-4 text-black shrink-0" />
+                    <span>{siteConfig.supportEmail}</span>
+                  </a>
+                </li>
+              ) : (
+                <li className="flex items-center gap-2">
+                  <Bot className="w-4 h-4 text-black shrink-0" />
+                  <Link href="/support" className="hover:underline underline-offset-4">
+                    {t('footer_hotline_text')}
+                  </Link>
+                </li>
+              )}
               <li className="flex items-center gap-2">
                 <ReceiptText className="w-4 h-4 text-black shrink-0" />
-                <span>{t('footer_payment_text')}</span>
+                <Link href="/payment-policy" className="hover:underline underline-offset-4">
+                  {t('footer_payment_text')}
+                </Link>
               </li>
               <li className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-black shrink-0" />
