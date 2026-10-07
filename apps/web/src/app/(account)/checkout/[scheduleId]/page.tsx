@@ -94,6 +94,29 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
     setTravelers((current) => syncTravelerDrafts(current, adults, childrenCount));
   }, [partyKey, adults, childrenCount]);
 
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(`delta_checkout_draft_${scheduleId}`);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as {
+        adults?: number;
+        children?: number;
+        contactName?: string;
+        contactEmail?: string;
+        contactPhone?: string;
+        travelers?: TravelerDraft[];
+      };
+      if (Number.isInteger(draft.adults) && draft.adults! >= 1) setAdults(draft.adults!);
+      if (Number.isInteger(draft.children) && draft.children! >= 0) setChildrenCount(draft.children!);
+      if (typeof draft.contactName === 'string') setContactName(draft.contactName);
+      if (typeof draft.contactEmail === 'string') setContactEmail(draft.contactEmail);
+      if (typeof draft.contactPhone === 'string') setContactPhone(draft.contactPhone);
+      if (Array.isArray(draft.travelers)) setTravelers(draft.travelers);
+    } catch {
+      sessionStorage.removeItem(`delta_checkout_draft_${scheduleId}`);
+    }
+  }, [scheduleId]);
+
   // Fetch official quote
   useEffect(() => {
     let active = true;
@@ -135,9 +158,26 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
 
   const handleSubmitBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
     setSubmitError(null);
 
+    if (!user) {
+      sessionStorage.setItem(
+        `delta_checkout_draft_${scheduleId}`,
+        JSON.stringify({
+          adults,
+          children: childrenCount,
+          contactName,
+          contactEmail,
+          contactPhone,
+          travelers,
+        }),
+      );
+      const next = `/checkout/${scheduleId}?adults=${adults}&children=${childrenCount}`;
+      router.push(`/login?next=${encodeURIComponent(next)}`);
+      return;
+    }
+
+    setSubmitting(true);
     try {
       const result = await bookingApi.create(
         {
@@ -157,7 +197,7 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
         idempotencyKey,
       );
 
-      // Redirect immediately to booking detail page
+      sessionStorage.removeItem(`delta_checkout_draft_${scheduleId}`);
       router.push(`/bookings/${result.id}`);
     } catch (err) {
       setSubmitError(
@@ -177,6 +217,13 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
 
   return (
     <div className="space-y-8">
+      {!user && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-xs leading-relaxed text-amber-950">
+          {lang === 'en'
+            ? 'You can review the trip and complete traveler details first. Sign in is only required when you actually hold the seats.'
+            : 'Bạn có thể xem giá và điền thông tin hành khách trước. Hệ thống chỉ yêu cầu đăng nhập khi bạn thực sự bấm giữ chỗ.'}
+        </div>
+      )}
       <AiContextCard
         eyebrow="DELTA AI • KIỂM TRA TRƯỚC KHI ĐẶT"
         title="Kiểm tra lại chuyến đi trước khi bạn giữ chỗ"
@@ -513,7 +560,13 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
                 }
                 className="w-full sm:w-auto bg-stone-900 hover:bg-stone-800 text-white px-8 py-3 rounded-xl shadow-md text-sm font-semibold"
               >
-                {submitting ? t('chk_holding') : t('chk_btn_hold')}
+                {submitting
+                  ? t('chk_holding')
+                  : !user
+                    ? lang === 'en'
+                      ? 'Sign in to hold seats'
+                      : 'Đăng nhập để giữ chỗ'
+                    : t('chk_btn_hold')}
               </Button>
             </div>
           </form>
