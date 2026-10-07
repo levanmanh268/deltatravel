@@ -14,7 +14,6 @@ import { getTourImage, getTourLuxuryTag } from '@/lib/tour-assets';
 import { GiantScrollTypography } from '@/components/giant-scroll-typography';
 import { LuxuryPreloader } from '@/components/luxury-preloader';
 import { LiquidGlassBadge } from '@/components/ui/liquid-glass-badge';
-import { AiContextCard } from '@/components/ai-context-card';
 import {
   MapPin,
   Calendar,
@@ -222,7 +221,7 @@ function HomeContent() {
           setTourLoadError(
             error instanceof Error
               ? error.message
-              : 'Không thể tải catalog production. Vui lòng thử lại.',
+              : 'Không thể tải danh sách tour. Vui lòng thử lại.',
           );
         })
         .finally(() => {
@@ -273,15 +272,14 @@ function HomeContent() {
             <div className="p-7 sm:p-9 lg:p-10">
               <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-amber-300">
                 <Sparkles className="h-4 w-4" />
-                DELTA AI AGENT • PRIMARY EXPERIENCE
+                DELTA AI • TRỢ LÝ DU LỊCH
               </div>
               <h1 className="mt-4 max-w-3xl text-2xl font-black tracking-tight text-white sm:text-4xl">
                 Nói chuyến đi bạn muốn. AI tự tìm, lập kế hoạch và đặt tour cùng bạn.
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-white/75">
-                AI kiểm tra tour, ngày khởi hành, ngân sách và số chỗ thật. Trước mọi hành động tạo
-                booking hoặc thanh toán, hệ thống dừng ở checkpoint để bạn quyết định Cho phép hoặc
-                Không cho phép.
+                AI kiểm tra tour, ngày khởi hành, ngân sách và số chỗ hiện có. Trước khi tạo đơn
+                hoặc bắt đầu thanh toán, DELTA AI luôn yêu cầu bạn xác nhận rõ ràng.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
@@ -304,10 +302,10 @@ function HomeContent() {
               <div className="flex h-full flex-col justify-center gap-4">
                 {[
                   ['01', 'Hiểu yêu cầu tự nhiên'],
-                  ['02', 'Kiểm tra dữ liệu production'],
+                  ['02', 'Kiểm tra giá, lịch và số chỗ'],
                   ['03', 'Đề xuất phương án phù hợp'],
-                  ['04', 'Xin duyệt trước hành động thật'],
-                  ['05', 'Đặt tour & chuẩn bị thanh toán'],
+                  ['04', 'Xin bạn xác nhận trước khi đặt'],
+                  ['05', 'Giữ chỗ và chuyển sang thanh toán'],
                 ].map(([number, label]) => (
                   <div key={number} className="flex items-center gap-3">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-300/40 bg-amber-300/10 text-[10px] font-black text-amber-300">
@@ -320,25 +318,6 @@ function HomeContent() {
             </div>
           </div>
         </div>
-      </section>
-
-      <section className="relative z-20 mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
-        <AiContextCard
-          eyebrow="DELTA AI • LIVE PLANNER"
-          title="Bắt đầu chuyến đi bằng một câu nói, không phải bằng bộ lọc"
-          description="AI đang kết nối với catalog thật. Bạn vẫn có thể dùng toàn bộ giao diện thủ công của An ở phía dưới, nhưng luồng mặc định bây giờ bắt đầu từ AI."
-          prompt="Tôi muốn đi du lịch trong nước. Hãy giúp tôi tìm chuyến đi phù hợp nhất theo ngân sách, thời gian và số người."
-          context={`Homepage production; hiện có ${allTours.length} tour được tải từ backend.`}
-          suggestions={[
-            '2 người lớn, ngân sách 8 triệu, đi 3 ngày.',
-            'Tôi thích biển, muốn lịch còn nhiều chỗ.',
-            'Gợi ý chuyến đi miền Bắc cho cuối tuần.',
-          ]}
-          agentHref={
-            '/assistant?prompt=' +
-            encodeURIComponent('Hãy lập kế hoạch chuyến đi phù hợp nhất cho tôi.')
-          }
-        />
       </section>
 
       {/* Content wrapper with overflow-hidden to protect parallax typography without breaking sticky */}
@@ -434,16 +413,6 @@ function HomeContent() {
           />
         </div>
 
-        {/* ─── Giant Parallax Typography 2 ─── */}
-        <div className="relative pt-6 pb-2 pointer-events-none -z-0">
-          <GiantScrollTypography
-            text="HAUTE EXPEDITIONS"
-            direction="right"
-            speed={0.8}
-            outline={false}
-          />
-        </div>
-
         {/* ─── Featured Tours Section — Apple Liquid Glass with All Destination Images ─── */}
         <section
           id="tours-section"
@@ -505,7 +474,7 @@ function HomeContent() {
           ) : tourLoadError ? (
             <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center">
               <p className="text-sm font-bold text-red-900">
-                Không thể tải catalog tour production
+                Không thể tải danh sách tour
               </p>
               <p className="mt-2 text-xs text-red-700">{tourLoadError}</p>
               <button
@@ -518,7 +487,7 @@ function HomeContent() {
             </div>
           ) : displayedTours.length === 0 ? (
             <div className="rounded-3xl border border-stone-200 bg-stone-50 p-8 text-center text-sm text-stone-600">
-              Chưa có tour production phù hợp với bộ lọc hiện tại.
+              Chưa có tour phù hợp với bộ lọc hiện tại.
             </div>
           ) : (
             <TourCardsGrid tours={displayedTours} t={t} lang={lang} />
