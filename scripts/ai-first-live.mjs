@@ -23,9 +23,14 @@ try {
   });
 
   await page.goto(WEB + '/', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.locator('[data-ai-surface="context-card"]').first().waitFor({ state: 'visible' });
-  await page.getByTestId('ai-command-center-launcher').waitFor({ state: 'visible' });
-  pass('homepage AI-first surfaces');
+  const homepagePlanner = page.locator('[data-ai-surface="context-card"]').first();
+  await homepagePlanner.waitFor({ state: 'visible' });
+  if (await page.getByTestId('ai-command-center-launcher').count()) {
+    throw new Error(
+      'Homepage should use the inline DELTA AI planner without a duplicate floating launcher',
+    );
+  }
+  pass('homepage DELTA AI planner without duplicate launcher');
 
   await page.goto(WEB + '/tours', { waitUntil: 'domcontentloaded', timeout: 120000 });
   const discovery = page.locator('[data-ai-surface="context-card"]').first();
@@ -101,15 +106,15 @@ try {
   await center.waitFor({ state: 'hidden', timeout: 30000 });
 
   await page.goto(WEB + '/assistant', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.getByText('DELTA AI AGENT', { exact: true }).first().waitFor({
+  await page.getByText('DELTA AI', { exact: true }).first().waitFor({
     state: 'visible',
     timeout: 30000,
   });
   const body = await page.locator('body').innerText();
-  if (!body.includes('checkpoint') && !body.includes('Checkpoint')) {
-    throw new Error('Assistant page does not explain the approval checkpoint');
+  if (!body.includes('xác nhận') && !body.includes('approval')) {
+    throw new Error('Assistant page does not explain explicit user approval');
   }
-  pass('action agent remains human-in-the-loop');
+  pass('action agent keeps explicit user approval');
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(WEB + '/tours', { waitUntil: 'domcontentloaded', timeout: 120000 });
