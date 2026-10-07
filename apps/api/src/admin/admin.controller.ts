@@ -123,6 +123,20 @@ export class AdminController {
   ) {
     return this.bookings.cancel(id, r.user!.id, b.reason, true);
   }
+  @Get('reviews') reviews(
+    @Query(new ZodPipe(PaginationSchema)) q: z.infer<typeof PaginationSchema>,
+  ) {
+    return this.admin.reviews(q);
+  }
+  @Roles('ADMIN')
+  @Delete('reviews/:id')
+  removeReview(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() r: AppRequest,
+  ) {
+    return this.admin.removeReview(id, r.user!.id);
+  }
+
   @Get('payments') payments(
     @Query(new ZodPipe(PaginationSchema)) q: z.infer<typeof PaginationSchema>,
   ) {
