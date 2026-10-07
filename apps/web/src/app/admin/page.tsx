@@ -129,9 +129,7 @@ export default function AdminDashboardPage() {
         <Metric
           icon={<CircleDollarSign className="h-5 w-5" />}
           label="Doanh thu đã thu"
-          value={
-            loading ? '...' : formatVND(snapshot.summary?.collectedRevenueVnd ?? 0)
-          }
+          value={loading ? '...' : formatVND(snapshot.summary?.collectedRevenueVnd ?? 0)}
           detail="Chỉ payment SUCCEEDED"
         />
         <Metric

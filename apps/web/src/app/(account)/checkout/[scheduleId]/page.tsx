@@ -107,7 +107,8 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
         travelers?: TravelerDraft[];
       };
       if (Number.isInteger(draft.adults) && draft.adults! >= 1) setAdults(draft.adults!);
-      if (Number.isInteger(draft.children) && draft.children! >= 0) setChildrenCount(draft.children!);
+      if (Number.isInteger(draft.children) && draft.children! >= 0)
+        setChildrenCount(draft.children!);
       if (typeof draft.contactName === 'string') setContactName(draft.contactName);
       if (typeof draft.contactEmail === 'string') setContactEmail(draft.contactEmail);
       if (typeof draft.contactPhone === 'string') setContactPhone(draft.contactPhone);
@@ -366,10 +367,12 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
 
               <div className="space-y-4">
                 {travelers.map((traveler, index) => {
-                  const adultNumber =
-                    travelers.slice(0, index + 1).filter((item) => item.kind === 'ADULT').length;
-                  const childNumber =
-                    travelers.slice(0, index + 1).filter((item) => item.kind === 'CHILD').length;
+                  const adultNumber = travelers
+                    .slice(0, index + 1)
+                    .filter((item) => item.kind === 'ADULT').length;
+                  const childNumber = travelers
+                    .slice(0, index + 1)
+                    .filter((item) => item.kind === 'CHILD').length;
                   const label =
                     traveler.kind === 'ADULT'
                       ? lang === 'en'
@@ -417,7 +420,9 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
                               )
                             }
                             className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-normal text-stone-900 outline-none focus:border-black"
-                            placeholder={lang === 'en' ? 'Name on traveler list' : 'Tên trên danh sách khách'}
+                            placeholder={
+                              lang === 'en' ? 'Name on traveler list' : 'Tên trên danh sách khách'
+                            }
                           />
                         </label>
 

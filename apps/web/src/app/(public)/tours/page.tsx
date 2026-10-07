@@ -44,9 +44,9 @@ function ToursListContent() {
   const [query, setQuery] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [duration, setDuration] = useState('');
-  const [sortBy, setSortBy] = useState<'recommended' | 'price-asc' | 'price-desc' | 'rating' | 'duration'>(
-    'recommended',
-  );
+  const [sortBy, setSortBy] = useState<
+    'recommended' | 'price-asc' | 'price-desc' | 'rating' | 'duration'
+  >('recommended');
 
   const REGION_TABS = [
     { id: '', label: t('tours_tab_all'), subtitle: t('tours_tab_all_sub') },
@@ -137,7 +137,8 @@ function ToursListContent() {
 
     if (sortBy === 'price-asc') {
       return [...result].sort(
-        (a, b) => (a.fromPrice ?? Number.MAX_SAFE_INTEGER) - (b.fromPrice ?? Number.MAX_SAFE_INTEGER),
+        (a, b) =>
+          (a.fromPrice ?? Number.MAX_SAFE_INTEGER) - (b.fromPrice ?? Number.MAX_SAFE_INTEGER),
       );
     }
     if (sortBy === 'price-desc') {
@@ -159,7 +160,9 @@ function ToursListContent() {
     setSortBy('recommended');
   };
 
-  const hasManualFilters = Boolean(query.trim() || maxPrice || duration || sortBy !== 'recommended');
+  const hasManualFilters = Boolean(
+    query.trim() || maxPrice || duration || sortBy !== 'recommended',
+  );
 
   return (
     <div className="relative space-y-12 text-black overflow-hidden pb-16">
@@ -314,7 +317,9 @@ function ToursListContent() {
               <option value="price-asc">{lang === 'en' ? 'Lowest price' : 'Giá thấp nhất'}</option>
               <option value="price-desc">{lang === 'en' ? 'Highest price' : 'Giá cao nhất'}</option>
               <option value="rating">{lang === 'en' ? 'Best rated' : 'Đánh giá cao nhất'}</option>
-              <option value="duration">{lang === 'en' ? 'Shortest duration' : 'Thời lượng ngắn nhất'}</option>
+              <option value="duration">
+                {lang === 'en' ? 'Shortest duration' : 'Thời lượng ngắn nhất'}
+              </option>
             </select>
           </label>
         </div>

@@ -933,7 +933,8 @@ Response:
   "data": {
     "tours": 3,
     "bookings": 12,
-    "pendingRefunds": 1
+    "pendingRefunds": 1,
+    "collectedRevenueVnd": 0
   },
   "meta": {
     "requestId": "example-request-id",

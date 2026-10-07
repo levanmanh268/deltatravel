@@ -473,9 +473,7 @@ function HomeContent() {
             </div>
           ) : tourLoadError ? (
             <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center">
-              <p className="text-sm font-bold text-red-900">
-                Không thể tải danh sách tour
-              </p>
+              <p className="text-sm font-bold text-red-900">Không thể tải danh sách tour</p>
               <p className="mt-2 text-xs text-red-700">{tourLoadError}</p>
               <button
                 type="button"

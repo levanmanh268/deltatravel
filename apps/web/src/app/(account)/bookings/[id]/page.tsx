@@ -68,9 +68,8 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tourCommercial, setTourCommercial] = useState<
-    Awaited<ReturnType<typeof tourApi.get>>['commercial']
-  >(null);
+  const [tourCommercial, setTourCommercial] =
+    useState<Awaited<ReturnType<typeof tourApi.get>>['commercial']>(null);
   const [actionNotice, setActionNotice] = useState('');
 
   // Zero-cost sandbox-ready channels stay explicit so the UI never implies a gateway is live.
@@ -198,8 +197,8 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       !option.channel || Boolean(capability?.channels.includes(option.channel));
     return Boolean(
       capability?.available &&
-        channelSupported &&
-        (capability.environment === 'PRODUCTION' || showSandboxPayments),
+      channelSupported &&
+      (capability.environment === 'PRODUCTION' || showSandboxPayments),
     );
   });
 
@@ -281,7 +280,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       await navigator.clipboard.writeText(booking.id);
       setActionNotice(lang === 'en' ? 'Booking code copied.' : 'Đã sao chép mã booking.');
     } catch {
-      setActionNotice(lang === 'en' ? 'Could not copy the booking code.' : 'Không thể sao chép mã booking.');
+      setActionNotice(
+        lang === 'en' ? 'Could not copy the booking code.' : 'Không thể sao chép mã booking.',
+      );
     }
   };
 
@@ -297,7 +298,10 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       'PRODID:-//Delta Travel//Booking//VI',
       'BEGIN:VEVENT',
       `UID:${booking.id}@delta-travel`,
-      `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')}`,
+      `DTSTAMP:${new Date()
+        .toISOString()
+        .replace(/[-:]/g, '')
+        .replace(/\.\d{3}Z$/, 'Z')}`,
       `DTSTART:${start}`,
       `SUMMARY:${booking.tourTitle.replace(/[\r\n]/g, ' ')}`,
       `DESCRIPTION:Booking ${booking.id} - DELTA TRAVEL`,
@@ -566,7 +570,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
           <Printer className="h-3.5 w-3.5" />
           {lang === 'en' ? 'Print / save PDF' : 'In / lưu PDF'}
         </button>
-        {actionNotice ? <span className="text-[11px] font-semibold text-emerald-700">{actionNotice}</span> : null}
+        {actionNotice ? (
+          <span className="text-[11px] font-semibold text-emerald-700">{actionNotice}</span>
+        ) : null}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -738,7 +744,10 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
                 {booking.travelers.map((traveler, index) => (
-                  <div key={`${traveler.kind}-${index}`} className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-xs">
+                  <div
+                    key={`${traveler.kind}-${index}`}
+                    className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-xs"
+                  >
                     <div className="font-black text-stone-950">{traveler.fullName}</div>
                     <div className="mt-1 text-stone-500">
                       {traveler.kind === 'ADULT'
@@ -751,7 +760,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                       {traveler.birthDate ? ` · ${traveler.birthDate}` : ''}
                     </div>
                     {traveler.specialRequest ? (
-                      <div className="mt-2 leading-relaxed text-stone-600">{traveler.specialRequest}</div>
+                      <div className="mt-2 leading-relaxed text-stone-600">
+                        {traveler.specialRequest}
+                      </div>
                     ) : null}
                   </div>
                 ))}
@@ -1028,7 +1039,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
 
             <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950">
               <div className="font-black uppercase tracking-wider">
-                {lang === 'en' ? 'Financial impact before cancellation' : 'Thông tin tài chính trước khi hủy'}
+                {lang === 'en'
+                  ? 'Financial impact before cancellation'
+                  : 'Thông tin tài chính trước khi hủy'}
               </div>
               <div className="mt-2">
                 <strong>{lang === 'en' ? 'Booking value:' : 'Giá trị booking:'}</strong>{' '}

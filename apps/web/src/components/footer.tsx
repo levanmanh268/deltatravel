@@ -142,7 +142,10 @@ export function SiteFooter() {
             <ul className="mt-4 space-y-2.5 text-sm font-medium text-black">
               {siteConfig.supportPhone ? (
                 <li>
-                  <a href={`tel:${siteConfig.supportPhone}`} className="flex items-center gap-2 hover:underline underline-offset-4">
+                  <a
+                    href={`tel:${siteConfig.supportPhone}`}
+                    className="flex items-center gap-2 hover:underline underline-offset-4"
+                  >
                     <Phone className="w-4 h-4 text-black shrink-0" />
                     <span>{siteConfig.supportPhone}</span>
                   </a>
@@ -150,7 +153,10 @@ export function SiteFooter() {
               ) : null}
               {siteConfig.supportEmail ? (
                 <li>
-                  <a href={`mailto:${siteConfig.supportEmail}`} className="flex items-center gap-2 hover:underline underline-offset-4">
+                  <a
+                    href={`mailto:${siteConfig.supportEmail}`}
+                    className="flex items-center gap-2 hover:underline underline-offset-4"
+                  >
                     <Mail className="w-4 h-4 text-black shrink-0" />
                     <span>{siteConfig.supportEmail}</span>
                   </a>

@@ -275,9 +275,7 @@ export function AiAgentLauncher() {
             <Sparkles className="h-3 w-3" />
             DELTA AI
           </span>
-          <span className="mt-0.5 block whitespace-nowrap text-xs font-black">
-            Hỏi DELTA AI
-          </span>
+          <span className="mt-0.5 block whitespace-nowrap text-xs font-black">Hỏi DELTA AI</span>
         </span>
         <MessageCircle className="hidden h-4 w-4 text-white/70 sm:block" />
       </button>
@@ -323,7 +321,8 @@ export function AiAgentLauncher() {
               </div>
               <div className="mt-4 flex items-center gap-2 rounded-xl border border-emerald-400/15 bg-emerald-400/10 px-3 py-2 text-[10px] font-bold text-emerald-100">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                AI chỉ đọc dữ liệu bạn được phép xem. Mọi thao tác tạo đơn hoặc thanh toán vẫn cần bạn xác nhận.
+                AI chỉ đọc dữ liệu bạn được phép xem. Mọi thao tác tạo đơn hoặc thanh toán vẫn cần
+                bạn xác nhận.
               </div>
             </header>
 
@@ -422,7 +421,11 @@ export function AiAgentLauncher() {
                   onChange={(event) => setInput(event.target.value)}
                   rows={2}
                   maxLength={2000}
-                  placeholder={lang === 'en' ? 'Ask DELTA AI about this page...' : 'Hỏi DELTA AI về trang hiện tại...'}
+                  placeholder={
+                    lang === 'en'
+                      ? 'Ask DELTA AI about this page...'
+                      : 'Hỏi DELTA AI về trang hiện tại...'
+                  }
                   className="min-h-[46px] flex-1 resize-none rounded-2xl border border-stone-200 bg-stone-50 px-3.5 py-3 text-xs outline-none focus:border-amber-400 focus:bg-white"
                 />
                 <button
