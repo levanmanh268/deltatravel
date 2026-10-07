@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authApi } from '@/lib/api';
 import { useAuth } from '@/providers/auth-provider';
@@ -28,10 +28,14 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
   const { accept } = useAuth();
   const { t, lang } = useLanguage();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const requestedNext = searchParams.get('next');
-  const safeNext =
-    requestedNext?.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : null;
+  const [safeNext, setSafeNext] = useState<string | null>(null);
+
+  useEffect(() => {
+    const requestedNext = new URLSearchParams(window.location.search).get('next');
+    setSafeNext(
+      requestedNext?.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : null,
+    );
+  }, []);
 
   // Mode: 'login' | 'register' | 'forgot'
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(
