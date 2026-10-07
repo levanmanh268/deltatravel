@@ -36,6 +36,7 @@ import {
   Copy,
   CalendarPlus,
   Printer,
+  Star,
 } from 'lucide-react';
 import { useLanguage } from '@/providers/language-provider';
 import { siteConfig } from '@/lib/site-config';
@@ -477,7 +478,17 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const isAwaitingCash = booking.status === 'AWAITING_CASH';
   const isPaid = booking.status === 'PAID';
   const isConfirmed = booking.status === 'CONFIRMED';
+  const isCompleted = booking.status === 'COMPLETED';
   const isCancelled = booking.status === 'CANCELLED';
+  const bookingDuration = booking.durationDays ?? null;
+  const bookingEstimatedReturnAt =
+    booking.estimatedReturnAt ??
+    (bookingDuration
+      ? new Date(
+          new Date(booking.departureAt).getTime() +
+            Math.max(0, bookingDuration - 1) * 24 * 60 * 60 * 1000,
+        ).toISOString()
+      : null);
   const canCancel = canCustomerCancel(
     booking.status,
     new Date(booking.departureAt),
@@ -699,12 +710,32 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
               <span>{t('bk_itinerary_title')}</span>
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="p-4 rounded-xl bg-[#faf9f5] border border-stone-200/70">
                 <span className="text-xs text-stone-500 block">{t('bk_dep_date_label')}</span>
                 <span className="font-semibold text-stone-900 text-base mt-1 block">
                   {formatDate(booking.departureAt)}
                 </span>
+              </div>
+              <div className="p-4 rounded-xl bg-[#faf9f5] border border-stone-200/70">
+                <span className="text-xs text-stone-500 block">
+                  {lang === 'en' ? 'Estimated return' : 'Ngày về dự kiến'}
+                </span>
+                <span className="font-semibold text-stone-900 text-base mt-1 block">
+                  {bookingEstimatedReturnAt
+                    ? formatDate(bookingEstimatedReturnAt)
+                    : lang === 'en'
+                      ? 'Updating'
+                      : 'Đang cập nhật'}
+                </span>
+                {bookingDuration ? (
+                  <span className="mt-1 block text-[10px] font-semibold text-stone-500">
+                    {bookingDuration} {lang === 'en' ? 'days' : 'ngày'}
+                    {bookingDuration > 1
+                      ? ` · ${bookingDuration - 1} ${lang === 'en' ? 'nights' : 'đêm'}`
+                      : ''}
+                  </span>
+                ) : null}
               </div>
               <div className="p-4 rounded-xl bg-[#faf9f5] border border-stone-200/70">
                 <span className="text-xs text-stone-500 block">{t('bk_guest_count_label')}</span>
@@ -792,6 +823,31 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
           </div>
+
+          {isCompleted && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="flex items-center gap-2 text-sm font-black text-stone-950">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                    {lang === 'en'
+                      ? 'Rate your completed trip'
+                      : 'Đánh giá chuyến đi đã hoàn thành'}
+                  </h3>
+                  <p className="mt-1 text-xs leading-relaxed text-stone-600">
+                    {lang === 'en'
+                      ? 'Share a star rating and feedback. Your review will be marked as a verified booking.'
+                      : 'Hãy chấm sao và gửi feedback. Đánh giá của bạn sẽ được gắn nhãn booking xác thực.'}
+                  </p>
+                </div>
+                <Button asChild className="shrink-0 bg-stone-950 text-white">
+                  <Link href={`/tours/${booking.tourId}#reviews`}>
+                    {lang === 'en' ? 'Rate this tour' : 'Chấm sao & feedback'}
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Cancellation Section */}
           {canCancel && (

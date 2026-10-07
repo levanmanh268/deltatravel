@@ -184,7 +184,7 @@ export default function AdminToursPage() {
     <PageShell
       badge="DANH MỤC TOUR • SOURCE OF TRUTH"
       title="Quản Lý Tour"
-      description="Quản lý thông tin tour thực sự được lưu trong PostgreSQL. Giá, kho chỗ và ngày khởi hành được quản lý riêng ở phân hệ Lịch khởi hành để tránh hiển thị dữ liệu không được lưu."
+      description="Quản lý tour, lịch trình từng ngày, ảnh bìa, gallery, chính sách và trạng thái mở bán. Giá, kho chỗ, ngày khởi hành và thời lượng riêng của từng lịch được quản lý ở phân hệ Lịch khởi hành."
       action={
         <div className="flex flex-wrap items-center gap-2">
           <Button asChild variant="outline" className="text-xs gap-1.5">
@@ -316,7 +316,7 @@ export default function AdminToursPage() {
                         <Edit3 className="mr-1 h-3.5 w-3.5" /> Sửa
                       </Button>
                       <Button asChild size="sm" variant="outline" className="h-8 text-[11px]">
-                        <Link href={`/admin/tours/${tour.id}/content`}>Nội dung & ảnh</Link>
+                        <Link href={`/admin/tours/${tour.id}/content`}>Lịch trình & ảnh</Link>
                       </Button>
                       <Button
                         size="sm"

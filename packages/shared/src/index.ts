@@ -282,6 +282,11 @@ export const TourReviewListSchema = z.object({
   items: z.array(TourReviewSchema),
 });
 
+export const AdminTourReviewSchema = TourReviewSchema.extend({
+  authorEmail: z.string().email(),
+  tourTitle: z.string(),
+});
+
 // Public DTOs never expose database entities, credential hashes or provider secrets.
 export const UserSchema = z.object({
   id: IdSchema,
@@ -303,12 +308,13 @@ export const TourSchema = CreateTourSchema.extend({
   fromPrice: MoneySchema.nullable().optional(),
   ratingAverage: z.number().min(0).max(5).nullable().optional(),
   ratingCount: z.number().int().nonnegative().optional(),
-});
+}).passthrough();
 export const ScheduleSchema = CreateScheduleSchema.extend({
   durationDays: z.number().int().min(1).max(60),
   id: IdSchema,
   reservedSeats: z.number().int(),
   availableSeats: z.number().int(),
+  estimatedReturnAt: IsoDateSchema.optional(),
   serverTime: IsoDateSchema,
 });
 export const BookingDetailSchema = z.object({
@@ -338,6 +344,8 @@ export const BookingSchema = z.object({
   cancelReason: z.string().nullable(),
   tourTitle: z.string(),
   departureAt: IsoDateSchema,
+  durationDays: z.number().int().min(1).max(60).optional(),
+  estimatedReturnAt: IsoDateSchema.optional(),
   details: z.array(BookingDetailSchema),
   serverTime: IsoDateSchema,
 });
@@ -667,6 +675,7 @@ export type AssistantResult = z.infer<typeof AssistantResultSchema>;
 export type AssistantPageContext = z.infer<typeof AssistantPageContextSchema>;
 export type TourReview = z.infer<typeof TourReviewSchema>;
 export type TourReviewList = z.infer<typeof TourReviewListSchema>;
+export type AdminTourReview = z.infer<typeof AdminTourReviewSchema>;
 export type AgentPlan = z.infer<typeof AgentPlanSchema>;
 export type AgentPlanRequest = z.infer<typeof AgentPlanRequestSchema>;
 export type AgentPlanUpdate = z.infer<typeof AgentPlanUpdateSchema>;
