@@ -315,7 +315,7 @@ export const ScheduleSchema = CreateScheduleSchema.extend({
   id: IdSchema,
   reservedSeats: z.number().int(),
   availableSeats: z.number().int(),
-  estimatedReturnAt: IsoDateSchema,
+  estimatedReturnAt: IsoDateSchema.optional(),
   serverTime: IsoDateSchema,
 });
 export const BookingDetailSchema = z.object({
@@ -345,8 +345,8 @@ export const BookingSchema = z.object({
   cancelReason: z.string().nullable(),
   tourTitle: z.string(),
   departureAt: IsoDateSchema,
-  durationDays: z.number().int().min(1).max(60),
-  estimatedReturnAt: IsoDateSchema,
+  durationDays: z.number().int().min(1).max(60).optional(),
+  estimatedReturnAt: IsoDateSchema.optional(),
   details: z.array(BookingDetailSchema),
   serverTime: IsoDateSchema,
 });
