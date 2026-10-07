@@ -10,6 +10,12 @@ import { AlertCircle, Calendar, Edit3, Plus, RefreshCcw, X } from 'lucide-react'
 
 type ScheduleStatus = Schedule['status'];
 
+function estimateReturnAt(departureAt: string | Date, durationDays: number) {
+  return new Date(
+    new Date(departureAt).getTime() + Math.max(0, durationDays - 1) * 24 * 60 * 60 * 1000,
+  );
+}
+
 export default function AdminSchedulesPage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [tours, setTours] = useState<Tour[]>([]);
@@ -223,7 +229,10 @@ export default function AdminSchedulesPage() {
                   </td>
                   <td className="px-5 py-4 font-black">{schedule.durationDays} ngày</td>
                   <td className="px-5 py-4 font-semibold">
-                    {formatDateTime(schedule.estimatedReturnAt)}
+                    {formatDateTime(
+                      schedule.estimatedReturnAt ??
+                        estimateReturnAt(schedule.departureAt, schedule.durationDays),
+                    )}
                   </td>
                   <td className="px-5 py-4">
                     <span className="font-black text-emerald-800">
@@ -327,12 +336,7 @@ export default function AdminSchedulesPage() {
                       ? new Intl.DateTimeFormat('vi-VN', {
                           dateStyle: 'medium',
                           timeStyle: 'short',
-                        }).format(
-                          new Date(
-                            new Date(departureDate).getTime() +
-                              Math.max(0, durationDays - 1) * 24 * 60 * 60 * 1000,
-                          ),
-                        )
+                        }).format(estimateReturnAt(departureDate, durationDays))
                       : 'Chưa chọn ngày khởi hành'}
                   </strong>
                 </div>
