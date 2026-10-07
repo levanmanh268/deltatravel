@@ -15,8 +15,7 @@ function Stars({ value }: { value: number }) {
         <Star
           key={star}
           className={
-            'h-4 w-4 ' +
-            (star <= value ? 'fill-amber-400 text-amber-500' : 'text-stone-300')
+            'h-4 w-4 ' + (star <= value ? 'fill-amber-400 text-amber-500' : 'text-stone-300')
           }
         />
       ))}
@@ -49,9 +48,7 @@ export default function AdminReviewsPage() {
 
   const stats = useMemo(() => {
     const total = reviews.length;
-    const average = total
-      ? reviews.reduce((sum, review) => sum + review.rating, 0) / total
-      : 0;
+    const average = total ? reviews.reduce((sum, review) => sum + review.rating, 0) / total : 0;
     return {
       total,
       average,
@@ -108,7 +105,10 @@ export default function AdminReviewsPage() {
       </div>
 
       {error ? (
-        <div role="alert" className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800">
+        <div
+          role="alert"
+          className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800"
+        >
           {error}
         </div>
       ) : null}
@@ -130,7 +130,10 @@ export default function AdminReviewsPage() {
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => (
-            <article key={review.id} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+            <article
+              key={review.id}
+              className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
+            >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

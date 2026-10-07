@@ -287,7 +287,6 @@ export const AdminTourReviewSchema = TourReviewSchema.extend({
   tourTitle: z.string(),
 });
 
-
 // Public DTOs never expose database entities, credential hashes or provider secrets.
 export const UserSchema = z.object({
   id: IdSchema,

@@ -830,7 +830,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                 <div>
                   <h3 className="flex items-center gap-2 text-sm font-black text-stone-950">
                     <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
-                    {lang === 'en' ? 'Rate your completed trip' : 'Đánh giá chuyến đi đã hoàn thành'}
+                    {lang === 'en'
+                      ? 'Rate your completed trip'
+                      : 'Đánh giá chuyến đi đã hoàn thành'}
                   </h3>
                   <p className="mt-1 text-xs leading-relaxed text-stone-600">
                     {lang === 'en'

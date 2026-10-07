@@ -674,8 +674,7 @@ export const adminApi = {
       body: CancelSchema.parse({ reason }),
     }),
 
-  reviews: () =>
-    api('/admin/reviews?page=1&pageSize=100', PageSchema(AdminTourReviewSchema)),
+  reviews: () => api('/admin/reviews?page=1&pageSize=100', PageSchema(AdminTourReviewSchema)),
 
   removeReview: (id: string) =>
     api(`/admin/reviews/${id}`, AckSchema, {
