@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useMemo, useState, use } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -37,6 +37,21 @@ import {
 
 type QuoteResult = z.infer<typeof QuoteResultSchema>;
 
+function dateInputValue(value: string | Date) {
+  const date = new Date(value);
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 10);
+}
+
+function estimatedReturnDate(departureDate: string, durationDays: number) {
+  if (!departureDate) return null;
+  const [year, month, day] = departureDate.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  const date = new Date(year, month - 1, day, 12, 0, 0, 0);
+  date.setDate(date.getDate() + Math.max(0, durationDays - 1));
+  return date;
+}
+
 export default function TourDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const tourId = resolvedParams.id;
@@ -46,6 +61,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
   const [tour, setTour] = useState<Tour | null>(null);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(null);
+  const [plannedDepartureDate, setPlannedDepartureDate] = useState('');
 
   const [adults, setAdults] = useState<number>(2);
   const [childrenCount, setChildrenCount] = useState<number>(0);
@@ -69,8 +85,10 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
         );
         if (firstOpen) {
           setSelectedScheduleId(firstOpen.id);
+          setPlannedDepartureDate(dateInputValue(firstOpen.departureAt));
         } else if (schedulesData.items.length > 0) {
           setSelectedScheduleId(schedulesData.items[0].id);
+          setPlannedDepartureDate(dateInputValue(schedulesData.items[0].departureAt));
         }
       })
       .catch((err) => {
@@ -188,6 +206,10 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
   const galleryImages = tour ? getTourGallery(tour) : [];
   const luxuryTag = tour ? getTourLuxuryTag(tour, lang) : '';
   const commercial = tour.commercial;
+  const plannedReturnDate = useMemo(
+    () => estimatedReturnDate(plannedDepartureDate, effectiveDuration),
+    [plannedDepartureDate, effectiveDuration],
+  );
 
   if (!displayTour) return null;
 
@@ -335,7 +357,10 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                       key={schedule.id}
                       type="button"
                       disabled={!isAvailable}
-                      onClick={() => setSelectedScheduleId(schedule.id)}
+                      onClick={() => {
+                        setSelectedScheduleId(schedule.id);
+                        setPlannedDepartureDate(dateInputValue(schedule.departureAt));
+                      }}
                       className={`relative flex flex-col justify-between p-5 rounded-xl border text-left transition ${
                         isSelected
                           ? 'border-2 border-black bg-black text-white shadow-sm'
@@ -358,6 +383,12 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                             className={`mt-1 text-[11px] font-bold ${isSelected ? 'text-neutral-300' : 'text-neutral-500'}`}
                           >
                             {schedule.durationDays} {lang === 'en' ? 'days' : 'ngày'}
+                          </p>
+                          <p
+                            className={`mt-1 text-[11px] ${isSelected ? 'text-neutral-300' : 'text-neutral-500'}`}
+                          >
+                            {lang === 'en' ? 'Est. return:' : 'Về dự kiến:'}{' '}
+                            {formatDate(schedule.estimatedReturnAt)}
                           </p>
                         </div>
                         {isSelected && (
@@ -387,6 +418,50 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                 })}
               </div>
             )}
+
+            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div className="flex-1">
+                  <label className="block text-xs font-black uppercase tracking-wider text-stone-700">
+                    {lang === 'en' ? 'Planned departure date' : 'Ngày đi dự kiến'}
+                    <input
+                      type="date"
+                      value={plannedDepartureDate}
+                      onChange={(event) => setPlannedDepartureDate(event.target.value)}
+                      className="mt-2 h-11 w-full rounded-xl border border-stone-300 bg-white px-3 text-sm font-semibold text-stone-950 outline-none focus:border-black"
+                    />
+                  </label>
+                  <p className="mt-2 text-[11px] leading-relaxed text-stone-600">
+                    {lang === 'en'
+                      ? 'The calculator uses the duration of the selected departure. Booking is still only available on open departure dates.'
+                      : 'Máy tính dùng thời lượng của lịch khởi hành đang chọn. Việc đặt chỗ vẫn chỉ thực hiện trên các lịch đang mở bán.'}
+                  </p>
+                </div>
+                <div className="min-w-[220px] rounded-2xl bg-stone-950 p-4 text-white">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-stone-400">
+                    {lang === 'en' ? 'Estimated trip time' : 'Thời gian dự kiến'}
+                  </div>
+                  <div className="mt-1 text-lg font-black">
+                    {effectiveDuration} {lang === 'en' ? 'days' : 'ngày'}
+                    {effectiveDuration > 1
+                      ? ` · ${effectiveDuration - 1} ${lang === 'en' ? 'nights' : 'đêm'}`
+                      : ''}
+                  </div>
+                  <div className="mt-2 text-xs text-stone-300">
+                    {lang === 'en' ? 'Estimated return:' : 'Ngày về dự kiến:'}{' '}
+                    <strong className="text-white">
+                      {plannedReturnDate
+                        ? new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'vi-VN', {
+                            dateStyle: 'long',
+                          }).format(plannedReturnDate)
+                        : lang === 'en'
+                          ? 'Choose a date'
+                          : 'Chọn ngày đi'}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* Detailed Day-by-Day Itinerary Section */}
