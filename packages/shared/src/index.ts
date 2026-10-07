@@ -160,28 +160,33 @@ export const TravelerSchema = z
   })
   .strict();
 
-export const CreateBookingSchema = QuoteSchema.extend({
+const CreateBookingBaseSchema = QuoteSchema.extend({
   contactName: name,
   contactEmail: email,
   contactPhone: z.string().regex(/^(?:\+84|0)[0-9]{9,10}$/),
   travelers: z.array(TravelerSchema).max(200).default([]),
-})
-  .strict()
-  .superRefine((value, ctx) => {
-    if (value.travelers.length === 0) return;
-    const adultCount = value.travelers.filter((traveler) => traveler.kind === 'ADULT').length;
-    const childCount = value.travelers.filter((traveler) => traveler.kind === 'CHILD').length;
-    if (adultCount !== value.adults || childCount !== value.children) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['travelers'],
-        message: 'Danh sách hành khách phải khớp số người lớn và trẻ em',
-      });
-    }
-  });
-export const AssistantBookingProposalSchema = CreateBookingSchema.extend({
-  provider: ProviderSchema.optional(),
 }).strict();
+
+function validateTravelerCounts(
+  value: z.infer<typeof CreateBookingBaseSchema>,
+  ctx: z.RefinementCtx,
+) {
+  if (value.travelers.length === 0) return;
+  const adultCount = value.travelers.filter((traveler) => traveler.kind === 'ADULT').length;
+  const childCount = value.travelers.filter((traveler) => traveler.kind === 'CHILD').length;
+  if (adultCount !== value.adults || childCount !== value.children) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['travelers'],
+      message: 'Danh sách hành khách phải khớp số người lớn và trẻ em',
+    });
+  }
+}
+
+export const CreateBookingSchema = CreateBookingBaseSchema.superRefine(validateTravelerCounts);
+export const AssistantBookingProposalSchema = CreateBookingBaseSchema.extend({
+  provider: ProviderSchema.optional(),
+}).superRefine(validateTravelerCounts);
 export const CancelSchema = z.object({ reason: z.string().trim().min(3).max(500) }).strict();
 export const TransitionSchema = z.object({ status: z.enum(['CONFIRMED', 'COMPLETED']) }).strict();
 export const CreatePaymentSchema = z
