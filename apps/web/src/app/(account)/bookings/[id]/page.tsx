@@ -991,7 +991,13 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <div className="flex items-start gap-1.5">
                 <ShieldCheck className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
-                <span>{t('bk_hotline_support')}</span>
+                <Link href="/support" className="font-semibold underline underline-offset-2">
+                  {siteConfig.supportPhone || siteConfig.supportEmail
+                    ? lang === 'en'
+                      ? 'Contact official support'
+                      : 'Liên hệ hỗ trợ chính thức'
+                    : t('bk_hotline_support')}
+                </Link>
               </div>
             </div>
           </div>
@@ -1019,6 +1025,33 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
             <p className="text-xs text-neutral-600 mb-4 leading-relaxed">
               {t('bk_cancel_modal_warning')}
             </p>
+
+            <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950">
+              <div className="font-black uppercase tracking-wider">
+                {lang === 'en' ? 'Financial impact before cancellation' : 'Thông tin tài chính trước khi hủy'}
+              </div>
+              <div className="mt-2">
+                <strong>{lang === 'en' ? 'Booking value:' : 'Giá trị booking:'}</strong>{' '}
+                {formatVND(booking.totalAmount)}
+              </div>
+              {tourCommercial?.cancellationPolicy ? (
+                <p className="mt-2">
+                  <strong>{lang === 'en' ? 'Cancellation policy:' : 'Chính sách hủy:'}</strong>{' '}
+                  {tourCommercial.cancellationPolicy}
+                </p>
+              ) : null}
+              {tourCommercial?.refundPolicy ? (
+                <p className="mt-2">
+                  <strong>{lang === 'en' ? 'Refund policy:' : 'Chính sách hoàn tiền:'}</strong>{' '}
+                  {tourCommercial.refundPolicy}
+                </p>
+              ) : null}
+              <p className="mt-2 text-[11px] text-amber-800">
+                {lang === 'en'
+                  ? 'The system does not invent a refund amount from free-text policy. The exact refund, when applicable, is confirmed from the published policy and payment record.'
+                  : 'Hệ thống không tự suy đoán số tiền hoàn từ chính sách dạng văn bản. Số tiền hoàn chính xác, nếu có, được đối chiếu theo chính sách đã công bố và giao dịch thanh toán.'}
+              </p>
+            </div>
 
             <form onSubmit={handleCancelBooking} className="space-y-4">
               <div>
