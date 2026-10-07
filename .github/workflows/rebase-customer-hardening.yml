@@ -23,12 +23,25 @@ jobs:
           git config user.name "delta-travel-ci"
           git config user.email "actions@users.noreply.github.com"
           git fetch origin main
+          cp .github/customer-hardening-auth-form-merged.tsx /tmp/customer-hardening-auth-form-merged.tsx
           git diff --binary 823b980c0ef1c46c711f4030c40b9579ecfe40b3 9fe834a95a968c7d42e507a7e55e77f37ee715fa > /tmp/customer-hardening.patch
           git switch -C manh/ux-hardening-main-sync-20261007 origin/main
           if ! git apply --3way --index /tmp/customer-hardening.patch; then
-            echo 'Patch application failed. Conflicts:'
+            echo 'Resolving the known auth-form overlap against current main.'
+            unresolved="$(git diff --name-only --diff-filter=U)"
+            if [ "$unresolved" != "apps/web/src/components/auth-form.tsx" ]; then
+              echo 'Unexpected conflicts:'
+              printf '%s\n' "$unresolved"
+              git status --short
+              exit 1
+            fi
+            cp /tmp/customer-hardening-auth-form-merged.tsx apps/web/src/components/auth-form.tsx
+            git add apps/web/src/components/auth-form.tsx
+          fi
+          if [ -n "$(git diff --name-only --diff-filter=U)" ]; then
+            echo 'Unresolved conflicts remain.'
             git status --short
             exit 1
           fi
           git commit -m "ux: customer journey hardening rebased onto current main [main-sync]"
-          git push origin HEAD:manh/ux-hardening-main-sync-20261007
+          git push --force-with-lease origin HEAD:manh/ux-hardening-main-sync-20261007
