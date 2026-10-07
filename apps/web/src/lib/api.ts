@@ -554,12 +554,12 @@ function tourPayload(input: Partial<z.infer<typeof TourSchema>>) {
 export const adminApi = {
   summary: () => api('/admin/summary', SummarySchema),
 
-  tours: () => api('/admin/tours?page=1&pageSize=100', PageSchema(TourResponseSchema)),
+  tours: () => api('/admin/tours?page=1&pageSize=100&contract=v2', PageSchema(TourResponseSchema)),
 
-  tour: (id: string) => api(`/admin/tours/${id}`, TourResponseSchema),
+  tour: (id: string) => api(`/admin/tours/${id}?contract=v2`, TourResponseSchema),
 
   createTour: (input: Partial<z.infer<typeof TourSchema>>) =>
-    api('/admin/tours', TourResponseSchema, {
+    api('/admin/tours?contract=v2', TourResponseSchema, {
       method: 'POST',
       body: CreateTourSchema.parse(tourPayload(input)),
     }),
@@ -568,7 +568,7 @@ export const adminApi = {
     const candidate = Object.fromEntries(
       Object.entries(tourPayload(input)).filter(([, value]) => value !== undefined),
     );
-    return api(`/admin/tours/${id}`, TourResponseSchema, {
+    return api(`/admin/tours/${id}?contract=v2`, TourResponseSchema, {
       method: 'PATCH',
       body: UpdateTourSchema.parse(candidate),
     });
@@ -590,16 +590,17 @@ export const adminApi = {
       method: 'DELETE',
     }),
 
-  schedules: () => api('/admin/schedules?page=1&pageSize=100', PageSchema(ScheduleResponseSchema)),
+  schedules: () =>
+    api('/admin/schedules?page=1&pageSize=100&contract=v2', PageSchema(ScheduleResponseSchema)),
 
   createSchedule: (input: z.input<typeof CreateScheduleSchema>) =>
-    api('/admin/schedules', ScheduleResponseSchema, {
+    api('/admin/schedules?contract=v2', ScheduleResponseSchema, {
       method: 'POST',
       body: CreateScheduleSchema.parse(input),
     }),
 
   updateSchedule: (id: string, input: z.input<typeof UpdateScheduleSchema>) =>
-    api(`/admin/schedules/${id}`, ScheduleResponseSchema, {
+    api(`/admin/schedules/${id}?contract=v2`, ScheduleResponseSchema, {
       method: 'PATCH',
       body: UpdateScheduleSchema.parse(input),
     }),
