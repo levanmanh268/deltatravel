@@ -205,6 +205,33 @@ export default function AdminBookingDetailPage({ params }: { params: Promise<{ i
                 <Info label="Hạn giữ chỗ" value={formatDateTime(booking.expiresAt)} />
               </div>
 
+              {booking.travelers.length > 0 && (
+                <div className="mt-6 border-t border-stone-100 pt-5">
+                  <div className="mb-3 text-[10px] font-black uppercase tracking-wider text-stone-500">
+                    Danh sách hành khách
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {booking.travelers.map((traveler, index) => (
+                      <div
+                        key={`${traveler.kind}-${index}`}
+                        className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-xs"
+                      >
+                        <div className="font-black text-stone-950">{traveler.fullName}</div>
+                        <div className="mt-1 text-stone-500">
+                          {traveler.kind === 'ADULT' ? 'Người lớn' : 'Trẻ em'}
+                          {traveler.birthDate ? ` · ${traveler.birthDate}` : ''}
+                        </div>
+                        {traveler.specialRequest ? (
+                          <div className="mt-2 leading-relaxed text-stone-700">
+                            <strong>Yêu cầu:</strong> {traveler.specialRequest}
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {booking.cancelReason && (
                 <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-800">
                   <strong>Lý do hủy:</strong> {booking.cancelReason}

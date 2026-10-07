@@ -24,6 +24,10 @@ import {
   Sparkles,
   Shield,
   Star,
+  Search,
+  SlidersHorizontal,
+  ArrowUpDown,
+  X,
 } from 'lucide-react';
 
 function ToursListContent() {
@@ -37,6 +41,12 @@ function ToursListContent() {
   const [aiRecommendedIds, setAiRecommendedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [duration, setDuration] = useState('');
+  const [sortBy, setSortBy] = useState<
+    'recommended' | 'price-asc' | 'price-desc' | 'rating' | 'duration'
+  >('recommended');
 
   const REGION_TABS = [
     { id: '', label: t('tours_tab_all'), subtitle: t('tours_tab_all_sub') },
@@ -101,6 +111,59 @@ function ToursListContent() {
     });
   }, [tours, aiRecommendedIds]);
 
+  const filteredTours = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase(lang === 'en' ? 'en-US' : 'vi-VN');
+    const ceiling = maxPrice ? Number(maxPrice) : null;
+    const durationValue = duration ? Number(duration) : null;
+
+    const result = orderedTours.filter((tour) => {
+      const localized = getLocalizedTour(tour, lang);
+      const searchable = [localized.title, localized.destination, localized.description]
+        .join(' ')
+        .toLocaleLowerCase(lang === 'en' ? 'en-US' : 'vi-VN');
+      if (normalizedQuery && !searchable.includes(normalizedQuery)) return false;
+      if (ceiling !== null && Number.isFinite(ceiling)) {
+        if (tour.fromPrice === null || tour.fromPrice === undefined || tour.fromPrice > ceiling) {
+          return false;
+        }
+      }
+      if (durationValue !== null && Number.isFinite(durationValue)) {
+        if (durationValue === 5 ? tour.durationDays < 5 : tour.durationDays !== durationValue) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    if (sortBy === 'price-asc') {
+      return [...result].sort(
+        (a, b) =>
+          (a.fromPrice ?? Number.MAX_SAFE_INTEGER) - (b.fromPrice ?? Number.MAX_SAFE_INTEGER),
+      );
+    }
+    if (sortBy === 'price-desc') {
+      return [...result].sort((a, b) => (b.fromPrice ?? -1) - (a.fromPrice ?? -1));
+    }
+    if (sortBy === 'rating') {
+      return [...result].sort((a, b) => (b.ratingAverage ?? -1) - (a.ratingAverage ?? -1));
+    }
+    if (sortBy === 'duration') {
+      return [...result].sort((a, b) => a.durationDays - b.durationDays);
+    }
+    return result;
+  }, [orderedTours, query, maxPrice, duration, sortBy, lang]);
+
+  const clearFilters = () => {
+    setQuery('');
+    setMaxPrice('');
+    setDuration('');
+    setSortBy('recommended');
+  };
+
+  const hasManualFilters = Boolean(
+    query.trim() || maxPrice || duration || sortBy !== 'recommended',
+  );
+
   return (
     <div className="relative space-y-12 text-black overflow-hidden pb-16">
       {/* Background Giant Parallax Typography 1 */}
@@ -115,8 +178,8 @@ function ToursListContent() {
 
       <AiContextCard
         eyebrow="DELTA AI • TOUR DISCOVERY"
-        title="Nói nhu cầu, AI tìm tour trước khi bạn phải lọc thủ công"
-        description="AI đọc catalog production, lịch khởi hành và dữ liệu hiện có để gợi ý. Bộ lọc truyền thống của An vẫn giữ nguyên ngay bên dưới."
+        title="Bạn có thể hỏi DELTA AI hoặc tự lọc tour theo cách quen thuộc"
+        description="AI gợi ý từ dữ liệu tour hiện có. Nếu muốn tự chọn, bộ lọc tìm kiếm, giá, thời lượng và sắp xếp nằm ngay bên dưới."
         prompt={
           activeRegion
             ? `Tìm tour phù hợp nhất ở miền ${activeRegion === 'bac' ? 'Bắc' : activeRegion === 'trung' ? 'Trung' : 'Nam'} cho tôi. Hãy ưu tiên lịch còn chỗ, giá hợp lý và giải thích vì sao phù hợp.`
@@ -145,7 +208,7 @@ function ToursListContent() {
         className="relative z-10"
       />
 
-      {/* Apple Liquid Glass Segmented Region Switcher (No Search Bar) */}
+      {/* Region switcher */}
       <div className="relative z-10 flex flex-col items-center justify-center pt-2">
         <div className="inline-flex p-1.5 rounded-full bg-white/70 backdrop-blur-2xl border border-white/80 shadow-[inset_0_1px_2px_rgba(255,255,255,0.9),0_15px_35px_-10px_rgba(0,0,0,0.07)] gap-1.5 flex-wrap justify-center max-w-full">
           {REGION_TABS.map((tab) => {
@@ -177,14 +240,99 @@ function ToursListContent() {
         </div>
       </div>
 
+      <section
+        aria-label={lang === 'en' ? 'Tour filters' : 'Bộ lọc tour'}
+        className="relative z-10 rounded-3xl border border-neutral-200 bg-white/90 p-4 shadow-sm backdrop-blur-xl sm:p-5"
+      >
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-neutral-800">
+            <SlidersHorizontal className="h-4 w-4" />
+            {lang === 'en' ? 'Find the right tour' : 'Tìm tour phù hợp'}
+          </div>
+          {hasManualFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold text-neutral-600 transition hover:bg-neutral-100 hover:text-black"
+            >
+              <X className="h-3.5 w-3.5" />
+              {lang === 'en' ? 'Clear filters' : 'Xóa bộ lọc'}
+            </button>
+          )}
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <label className="relative">
+            <span className="sr-only">{lang === 'en' ? 'Search tours' : 'Tìm kiếm tour'}</span>
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={lang === 'en' ? 'Destination or tour name' : 'Điểm đến hoặc tên tour'}
+              className="h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50 pl-10 pr-3 text-sm outline-none transition focus:border-black focus:bg-white"
+            />
+          </label>
+
+          <label>
+            <span className="sr-only">{lang === 'en' ? 'Maximum price' : 'Giá tối đa'}</span>
+            <select
+              value={maxPrice}
+              onChange={(event) => setMaxPrice(event.target.value)}
+              className="h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none transition focus:border-black focus:bg-white"
+            >
+              <option value="">{lang === 'en' ? 'Any budget' : 'Mọi mức giá'}</option>
+              <option value="2000000">≤ 2.000.000 ₫</option>
+              <option value="4000000">≤ 4.000.000 ₫</option>
+              <option value="6000000">≤ 6.000.000 ₫</option>
+              <option value="10000000">≤ 10.000.000 ₫</option>
+            </select>
+          </label>
+
+          <label>
+            <span className="sr-only">{lang === 'en' ? 'Duration' : 'Thời lượng'}</span>
+            <select
+              value={duration}
+              onChange={(event) => setDuration(event.target.value)}
+              className="h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none transition focus:border-black focus:bg-white"
+            >
+              <option value="">{lang === 'en' ? 'Any duration' : 'Mọi thời lượng'}</option>
+              <option value="1">{lang === 'en' ? '1 day' : '1 ngày'}</option>
+              <option value="2">{lang === 'en' ? '2 days' : '2 ngày'}</option>
+              <option value="3">{lang === 'en' ? '3 days' : '3 ngày'}</option>
+              <option value="4">{lang === 'en' ? '4 days' : '4 ngày'}</option>
+              <option value="5">{lang === 'en' ? '5+ days' : 'Từ 5 ngày'}</option>
+            </select>
+          </label>
+
+          <label className="relative">
+            <span className="sr-only">{lang === 'en' ? 'Sort tours' : 'Sắp xếp tour'}</span>
+            <ArrowUpDown className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+            <select
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value as typeof sortBy)}
+              className="h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50 pl-10 pr-3 text-sm outline-none transition focus:border-black focus:bg-white"
+            >
+              <option value="recommended">{lang === 'en' ? 'Recommended' : 'Đề xuất'}</option>
+              <option value="price-asc">{lang === 'en' ? 'Lowest price' : 'Giá thấp nhất'}</option>
+              <option value="price-desc">{lang === 'en' ? 'Highest price' : 'Giá cao nhất'}</option>
+              <option value="rating">{lang === 'en' ? 'Best rated' : 'Đánh giá cao nhất'}</option>
+              <option value="duration">
+                {lang === 'en' ? 'Shortest duration' : 'Thời lượng ngắn nhất'}
+              </option>
+            </select>
+          </label>
+        </div>
+      </section>
+
       {/* Collection Counter & Editorial Tagline */}
       <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between border-b border-neutral-200/80 pb-4 gap-3">
         <div className="flex items-center gap-2.5">
           <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_#edcb8e]" />
           <span className="text-xs font-black uppercase tracking-[0.2em] text-neutral-800">
             {activeRegion
-              ? `${t('tours_counter_prefix')} ${REGION_TABS.find((r) => r.id === activeRegion)?.label.toUpperCase()} • ${tours.length} ${t('tours_counter_suffix')}`
-              : `${t('tours_counter_prefix')} • ${tours.length} ${t('tours_counter_suffix')}`}
+              ? `${t('tours_counter_prefix')} ${REGION_TABS.find((r) => r.id === activeRegion)?.label.toUpperCase()} • ${filteredTours.length} ${t('tours_counter_suffix')}`
+              : `${t('tours_counter_prefix')} • ${filteredTours.length} ${t('tours_counter_suffix')}`}
           </span>
         </div>
 
@@ -224,7 +372,7 @@ function ToursListContent() {
             <span>{lang === 'en' ? 'Reload Voyages' : 'Tải Lại Hành Trình'}</span>
           </Button>
         </div>
-      ) : tours.length === 0 ? (
+      ) : filteredTours.length === 0 ? (
         <div className="liquid-glass-card rounded-3xl p-16 text-center max-w-xl mx-auto">
           <Compass className="mx-auto h-12 w-12 text-black/60 mb-4" />
           <h2 className="text-xl font-black text-black uppercase tracking-tight">
@@ -232,12 +380,19 @@ function ToursListContent() {
           </h2>
           <p className="mt-2 text-xs font-medium text-neutral-600 max-w-md mx-auto leading-relaxed">
             {lang === 'en'
-              ? 'There are currently no tours on sale in this region. Please select another region.'
-              : 'Hiện chưa có tour mở bán tại khu vực này. Vui lòng chọn khu vực khác.'}
+              ? hasManualFilters
+                ? 'No tours match the current filters. Try widening your search.'
+                : 'There are currently no tours on sale in this region. Please select another region.'
+              : hasManualFilters
+                ? 'Không có tour khớp bộ lọc hiện tại. Hãy thử nới điều kiện tìm kiếm.'
+                : 'Hiện chưa có tour mở bán tại khu vực này. Vui lòng chọn khu vực khác.'}
           </p>
           <Button
             variant="outline"
-            onClick={() => handleRegionChange('')}
+            onClick={() => {
+              handleRegionChange('');
+              clearFilters();
+            }}
             className="mt-6 text-xs font-bold rounded-full border border-black hover:bg-black hover:text-white uppercase px-6 py-2.5"
           >
             {lang === 'en' ? 'View All Masterpieces' : 'Xem Toàn Bộ Tuyệt Tác'}
@@ -245,7 +400,7 @@ function ToursListContent() {
         </div>
       ) : (
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {orderedTours.map((rawTour, index) => {
+          {filteredTours.map((rawTour, index) => {
             const tour = getLocalizedTour(rawTour, lang);
             const price = rawTour.fromPrice ?? null;
             const luxuryTag = getTourLuxuryTag(tour, lang);
@@ -328,7 +483,7 @@ function ToursListContent() {
                     {aiRecommendedIds.includes(tour.id) && (
                       <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-amber-800 ring-1 ring-amber-200">
                         <Sparkles className="h-3 w-3" />
-                        AI đề xuất
+                        {lang === 'en' ? 'AI pick' : 'AI đề xuất'}
                       </div>
                     )}
                     <h2 className="text-[16px] font-black text-black leading-snug line-clamp-2 group-hover:text-amber-900 transition-colors duration-300 tracking-tight">

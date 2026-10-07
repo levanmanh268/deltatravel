@@ -135,7 +135,7 @@ function contextForPath(pathname: string, role?: string) {
   }
   if (pathname === '/tours') {
     return {
-      label: 'catalog tour production',
+      label: 'danh sách tour đang mở bán',
       suggestions: [
         'Tìm tour phù hợp nhất cho 2 người lớn.',
         'Gợi ý chuyến đi miền Trung có giá hợp lý.',
@@ -173,13 +173,39 @@ export function AiAgentLauncher() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [isNetlifyHost, setIsNetlifyHost] = useState(false);
+  const [historyHydrated, setHistoryHydrated] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const context = useMemo(() => contextForPath(pathname, user?.role), [pathname, user?.role]);
 
   useEffect(() => {
     setIsNetlifyHost(window.location.hostname.endsWith('.netlify.app'));
+    try {
+      const saved = sessionStorage.getItem('delta_ai_conversation_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved) as Message[];
+        if (Array.isArray(parsed)) setMessages(parsed.slice(-12));
+      }
+    } catch {
+      sessionStorage.removeItem('delta_ai_conversation_v1');
+    } finally {
+      setHistoryHydrated(true);
+    }
   }, []);
+
+  useEffect(() => {
+    if (!historyHydrated) return;
+    try {
+      const safeMessages = messages.slice(-12).map(({ role, content, result }) => ({
+        role,
+        content,
+        result,
+      }));
+      sessionStorage.setItem('delta_ai_conversation_v1', JSON.stringify(safeMessages));
+    } catch {
+      // Conversation continuity is helpful but never blocks the assistant.
+    }
+  }, [messages, historyHydrated]);
 
   useEffect(() => {
     if (!open) return;
@@ -196,7 +222,9 @@ export function AiAgentLauncher() {
     };
   }, [open]);
 
-  if (pathname.startsWith('/assistant') || pathname.startsWith('/admin')) return null;
+  if (pathname === '/' || pathname.startsWith('/assistant') || pathname.startsWith('/admin')) {
+    return null;
+  }
 
   const send = async (value = input) => {
     const clean = value.trim();
@@ -228,11 +256,11 @@ export function AiAgentLauncher() {
   };
 
   return (
-    <aside aria-label="DELTA AI Command Center">
+    <aside aria-label="DELTA AI">
       <button
         type="button"
         data-testid="ai-command-center-launcher"
-        aria-label="Mở DELTA AI Command Center"
+        aria-label="Mở DELTA AI"
         aria-expanded={open}
         aria-controls="delta-ai-command-center"
         onClick={() => setOpen(true)}
@@ -247,11 +275,9 @@ export function AiAgentLauncher() {
         <span className="hidden min-w-0 sm:block">
           <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.2em] text-amber-300">
             <Sparkles className="h-3 w-3" />
-            AI COMMAND CENTER
+            DELTA AI
           </span>
-          <span className="mt-0.5 block whitespace-nowrap text-xs font-black">
-            Hỏi AI về trang đang xem
-          </span>
+          <span className="mt-0.5 block whitespace-nowrap text-xs font-black">Hỏi DELTA AI</span>
         </span>
         <MessageCircle className="hidden h-4 w-4 text-white/70 sm:block" />
       </button>
@@ -277,10 +303,10 @@ export function AiAgentLauncher() {
                 <div>
                   <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-amber-300">
                     <Sparkles className="h-3.5 w-3.5" />
-                    DELTA AI • PAGE-AWARE
+                    DELTA AI
                   </div>
                   <h2 id="delta-ai-command-title" className="mt-2 text-lg font-black">
-                    AI hiểu trang bạn đang xem
+                    Hỏi về nội dung bạn đang xem
                   </h2>
                   <p className="mt-1 text-[11px] leading-5 text-white/65">
                     Bối cảnh: {context.label}
@@ -297,7 +323,8 @@ export function AiAgentLauncher() {
               </div>
               <div className="mt-4 flex items-center gap-2 rounded-xl border border-emerald-400/15 bg-emerald-400/10 px-3 py-2 text-[10px] font-bold text-emerald-100">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                AI đọc dữ liệu theo quyền hiện tại. Side effect vẫn cần phê duyệt rõ ràng.
+                AI chỉ đọc dữ liệu bạn được phép xem. Mọi thao tác tạo đơn hoặc thanh toán vẫn cần
+                bạn xác nhận.
               </div>
             </header>
 
@@ -360,7 +387,7 @@ export function AiAgentLauncher() {
               {busy && (
                 <div className="flex items-center gap-2 text-xs text-stone-500">
                   <Loader2 className="h-4 w-4 animate-spin text-amber-600" />
-                  AI đang đọc bối cảnh và dữ liệu production...
+                  DELTA AI đang kiểm tra dữ liệu hiện có...
                 </div>
               )}
 
@@ -376,7 +403,7 @@ export function AiAgentLauncher() {
                   onClick={() => setOpen(false)}
                   className="flex items-center justify-between rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs font-black text-amber-950"
                 >
-                  <span>Chuyển sang AI Agent có thể hành động</span>
+                  <span>Để DELTA AI thực hiện giúp tôi</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               )}
@@ -396,13 +423,17 @@ export function AiAgentLauncher() {
                   onChange={(event) => setInput(event.target.value)}
                   rows={2}
                   maxLength={2000}
-                  placeholder="Hỏi AI về trang hiện tại..."
+                  placeholder={
+                    lang === 'en'
+                      ? 'Ask DELTA AI about this page...'
+                      : 'Hỏi DELTA AI về trang hiện tại...'
+                  }
                   className="min-h-[46px] flex-1 resize-none rounded-2xl border border-stone-200 bg-stone-50 px-3.5 py-3 text-xs outline-none focus:border-amber-400 focus:bg-white"
                 />
                 <button
                   type="submit"
                   disabled={busy || !input.trim()}
-                  aria-label="Gửi cho AI"
+                  aria-label={lang === 'en' ? 'Send to DELTA AI' : 'Gửi cho DELTA AI'}
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-stone-950 text-white transition hover:bg-stone-800 disabled:opacity-40"
                 >
                   <Send className="h-4 w-4" />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authApi } from '@/lib/api';
@@ -28,6 +28,14 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
   const { accept } = useAuth();
   const { t, lang } = useLanguage();
   const router = useRouter();
+  const [safeNext, setSafeNext] = useState<string | null>(null);
+
+  useEffect(() => {
+    const requestedNext = new URLSearchParams(window.location.search).get('next');
+    setSafeNext(
+      requestedNext?.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : null,
+    );
+  }, []);
 
   // Mode: 'login' | 'register' | 'forgot'
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(
@@ -126,7 +134,7 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
         if (result.user.role === 'ADMIN' || result.user.role === 'OPERATIONS') {
           router.push('/admin');
         } else {
-          router.push('/tours');
+          router.push(safeNext || '/tours');
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Đăng ký tài khoản không thành công.');
@@ -158,7 +166,7 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
         if (result.user.role === 'ADMIN' || result.user.role === 'OPERATIONS') {
           router.push('/admin');
         } else {
-          router.push('/tours');
+          router.push(safeNext || '/tours');
         }
       } catch (e) {
         setError(
@@ -241,7 +249,7 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
               if (result.user.role === 'ADMIN' || result.user.role === 'OPERATIONS') {
                 router.push('/admin');
               } else {
-                router.push('/tours');
+                router.push(safeNext || '/tours');
               }
             }, 800);
           } catch {
