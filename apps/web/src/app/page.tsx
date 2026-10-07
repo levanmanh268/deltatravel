@@ -125,8 +125,8 @@ function TourCardsGrid({
                 </p>
                 <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2.5 py-1 text-[10px] font-black text-stone-700">
                   <Calendar className="h-3 w-3" />
-                  {lang === 'en' ? 'Estimated duration' : 'Thời gian dự kiến'}:{' '}
-                  {tour.durationDays} {lang === 'en' ? 'days' : 'ngày'}
+                  {lang === 'en' ? 'Estimated duration' : 'Thời gian dự kiến'}: {tour.durationDays}{' '}
+                  {lang === 'en' ? 'days' : 'ngày'}
                   {tour.durationDays > 1
                     ? ` · ${tour.durationDays - 1} ${lang === 'en' ? 'nights' : 'đêm'}`
                     : ''}
