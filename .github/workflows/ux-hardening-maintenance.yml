@@ -50,6 +50,19 @@ jobs:
             apps/api/src/admin/admin.service.ts \
             apps/api/src/bookings/dto.ts \
             packages/shared/src/index.ts
+      - name: Refresh generated-contract fixtures
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/generate-contract.mjs')
+          text = path.read_text()
+          text = text.replace(
+              "SummarySchema: { tours: 3, bookings: 12, pendingRefunds: 1 },",
+              "SummarySchema: { tours: 3, bookings: 12, pendingRefunds: 1, collectedRevenueVnd: 0 },",
+          )
+          path.write_text(text)
+          PY
+          npx prettier --write scripts/generate-contract.mjs
       - name: Regenerate API contract
         run: |
           npm run docs:generate
