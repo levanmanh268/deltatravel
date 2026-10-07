@@ -1,0 +1,36 @@
+name: Normalize release docs
+
+on:
+  push:
+    branches:
+      - manh/release-evidence-20261007
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    if: ${{ !contains(github.event.head_commit.message, '[release-docs-normalize]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: manh/release-evidence-20261007
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Format release documents
+        run: npx prettier --write docs/FINAL_RELEASE_ACCEPTANCE.md docs/PRODUCTION_READINESS.md docs/VERIFICATION.md README.md
+      - name: Commit normalized docs
+        run: |
+          if git diff --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git config user.name "delta-travel-ci"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/FINAL_RELEASE_ACCEPTANCE.md docs/PRODUCTION_READINESS.md docs/VERIFICATION.md README.md
+          git commit -m "chore: normalize release evidence docs [release-docs-normalize]"
+          git push origin HEAD:manh/release-evidence-20261007
