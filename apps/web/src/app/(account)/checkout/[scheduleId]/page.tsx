@@ -103,15 +103,7 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
         contactPhone,
         travelers,
       }),
-    [
-      scheduleId,
-      adults,
-      childrenCount,
-      contactName,
-      contactEmail,
-      contactPhone,
-      travelers,
-    ],
+    [scheduleId, adults, childrenCount, contactName, contactEmail, contactPhone, travelers],
   );
 
   useEffect(() => {
