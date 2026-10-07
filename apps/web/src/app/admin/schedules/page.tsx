@@ -231,7 +231,7 @@ export default function AdminSchedulesPage() {
                   <td className="px-5 py-4 font-semibold">
                     {formatDateTime(
                       schedule.estimatedReturnAt ??
-                        estimateReturnAt(schedule.departureAt, schedule.durationDays),
+                        estimateReturnAt(schedule.departureAt, schedule.durationDays).toISOString(),
                     )}
                   </td>
                   <td className="px-5 py-4">
