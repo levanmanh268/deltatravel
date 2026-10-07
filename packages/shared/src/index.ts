@@ -146,11 +146,39 @@ export const PartySchema = z
   .object({ adults: z.number().int().min(1).max(100), children: z.number().int().min(0).max(100) })
   .strict();
 export const QuoteSchema = PartySchema.extend({ scheduleId: IdSchema }).strict();
+
+export const TravelerSchema = z
+  .object({
+    kind: z.enum(['ADULT', 'CHILD']),
+    fullName: z.string().trim().min(2).max(100),
+    birthDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullable()
+      .default(null),
+    specialRequest: z.string().trim().max(500).nullable().default(null),
+  })
+  .strict();
+
 export const CreateBookingSchema = QuoteSchema.extend({
   contactName: name,
   contactEmail: email,
   contactPhone: z.string().regex(/^(?:\+84|0)[0-9]{9,10}$/),
-}).strict();
+  travelers: z.array(TravelerSchema).max(200).default([]),
+})
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.travelers.length === 0) return;
+    const adultCount = value.travelers.filter((traveler) => traveler.kind === 'ADULT').length;
+    const childCount = value.travelers.filter((traveler) => traveler.kind === 'CHILD').length;
+    if (adultCount !== value.adults || childCount !== value.children) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['travelers'],
+        message: 'Danh sách hành khách phải khớp số người lớn và trẻ em',
+      });
+    }
+  });
 export const AssistantBookingProposalSchema = CreateBookingSchema.extend({
   provider: ProviderSchema.optional(),
 }).strict();
@@ -296,6 +324,7 @@ export const BookingSchema = z.object({
   contactName: z.string(),
   contactEmail: z.string(),
   contactPhone: z.string(),
+  travelers: z.array(TravelerSchema).default([]),
   expiresAt: IsoDateSchema,
   createdAt: IsoDateSchema,
   paidAt: IsoDateSchema.nullable(),
@@ -623,6 +652,7 @@ export type TourItineraryDay = z.infer<typeof TourItineraryDaySchema>;
 export type TourCommercial = z.infer<typeof TourCommercialSchema>;
 export type Schedule = z.infer<typeof ScheduleSchema>;
 export type Booking = z.infer<typeof BookingSchema>;
+export type Traveler = z.infer<typeof TravelerSchema>;
 export type Payment = z.infer<typeof PaymentSchema>;
 export type PaymentProviderCapability = z.infer<typeof PaymentProviderCapabilitySchema>;
 export type IntegrationStatus = z.infer<typeof IntegrationStatusSchema>;
