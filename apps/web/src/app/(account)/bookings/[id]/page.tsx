@@ -701,11 +701,25 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
               <span>{t('bk_itinerary_title')}</span>
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="p-4 rounded-xl bg-[#faf9f5] border border-stone-200/70">
                 <span className="text-xs text-stone-500 block">{t('bk_dep_date_label')}</span>
                 <span className="font-semibold text-stone-900 text-base mt-1 block">
                   {formatDate(booking.departureAt)}
+                </span>
+              </div>
+              <div className="p-4 rounded-xl bg-[#faf9f5] border border-stone-200/70">
+                <span className="text-xs text-stone-500 block">
+                  {lang === 'en' ? 'Estimated return' : 'Ngày về dự kiến'}
+                </span>
+                <span className="font-semibold text-stone-900 text-base mt-1 block">
+                  {formatDate(booking.estimatedReturnAt)}
+                </span>
+                <span className="mt-1 block text-[10px] font-semibold text-stone-500">
+                  {booking.durationDays} {lang === 'en' ? 'days' : 'ngày'}
+                  {booking.durationDays > 1
+                    ? ` · ${booking.durationDays - 1} ${lang === 'en' ? 'nights' : 'đêm'}`
+                    : ''}
                 </span>
               </div>
               <div className="p-4 rounded-xl bg-[#faf9f5] border border-stone-200/70">
