@@ -423,6 +423,54 @@ export class AdminService {
       return paymentDto(payment);
     });
   }
+  async reviews(q: z.infer<typeof PaginationSchema>) {
+    const [rows, total] = await this.db.$transaction([
+      this.db.tourReview.findMany({
+        skip: (q.page - 1) * q.pageSize,
+        take: q.pageSize,
+        orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+        include: {
+          user: { select: { name: true, email: true, avatarUrl: true } },
+          tour: { select: { title: true } },
+        },
+      }),
+      this.db.tourReview.count(),
+    ]);
+    return {
+      ...q,
+      total,
+      items: rows.map((row) => ({
+        id: row.id,
+        tourId: row.tourId,
+        rating: row.rating,
+        comment: row.comment,
+        authorName: row.user.name,
+        authorEmail: row.user.email,
+        authorAvatarUrl: row.user.avatarUrl,
+        tourTitle: row.tour.title,
+        verifiedPurchase: true,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      })),
+    };
+  }
+
+  async removeReview(id: string, actorId: string) {
+    return this.db.serial(async (tx) => {
+      const review = await tx.tourReview.findUniqueOrThrow({ where: { id } });
+      await tx.tourReview.delete({ where: { id } });
+      await tx.auditLog.create({
+        data: {
+          actorId,
+          action: 'TOUR_REVIEW_REMOVED',
+          entityId: id,
+          metadata: { tourId: review.tourId, userId: review.userId, rating: review.rating },
+        },
+      });
+      return { ok: true as const };
+    });
+  }
+
   async audit(q: z.infer<typeof PaginationSchema>) {
     const [items, total] = await this.db.$transaction([
       this.db.auditLog.findMany({
