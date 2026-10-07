@@ -84,15 +84,39 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Idempotency Key: maintained for network retry; regenerated only if party changes
+  // Keep the same idempotency key for a true retry of the same request, but
+  // rotate it whenever any booking payload field changes.
   const [idempotencyKey, setIdempotencyKey] = useState<string>(() => crypto.randomUUID());
 
-  // Regenerate the idempotency key and keep traveler rows aligned with party size.
-  const partyKey = useMemo(() => `${adults}-${childrenCount}`, [adults, childrenCount]);
+  useEffect(() => {
+    setTravelers((current) => syncTravelerDrafts(current, adults, childrenCount));
+  }, [adults, childrenCount]);
+
+  const bookingRequestKey = useMemo(
+    () =>
+      JSON.stringify({
+        scheduleId,
+        adults,
+        children: childrenCount,
+        contactName,
+        contactEmail,
+        contactPhone,
+        travelers,
+      }),
+    [
+      scheduleId,
+      adults,
+      childrenCount,
+      contactName,
+      contactEmail,
+      contactPhone,
+      travelers,
+    ],
+  );
+
   useEffect(() => {
     setIdempotencyKey(crypto.randomUUID());
-    setTravelers((current) => syncTravelerDrafts(current, adults, childrenCount));
-  }, [partyKey, adults, childrenCount]);
+  }, [bookingRequestKey]);
 
   useEffect(() => {
     try {
