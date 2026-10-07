@@ -10,7 +10,7 @@ Xem `docs/AI_FIRST_ARCHITECTURE.md` để biết kiến trúc, grounding và acc
 
 ## Trạng thái hiện tại
 
-Bản phát hành ngày 28/09/2026 đã có frontend, backend, PostgreSQL, Redis, AI Agent, xác thực, quản trị, booking, thanh toán CASH, email reset password và avatar storage. Code phát hành đã qua CI đầy đủ và đã được smoke test trên môi trường public.
+Bản phát hành được kiểm chứng lại ngày 07/10/2026 đã có frontend, backend, PostgreSQL, Redis, DELTA AI, xác thực, quản trị, booking, traveler details, thời lượng riêng theo lịch khởi hành, ngày về dự kiến, feedback và đánh giá sao xác thực, thanh toán CASH, email reset password và avatar storage. Web và API đã qua CI đầy đủ, production deploy và live acceptance gồm browser, accessibility, security và AI first.
 
 Các cổng VNPay, MoMo và ZaloPay đã có adapter, xác minh callback, idempotency và capability reporting. Chúng chỉ được bật khi server có merchant credentials thật. Khi chưa cấu hình, API trả trạng thái unavailable thay vì giả lập thanh toán thành công.
 
@@ -31,7 +31,7 @@ Resend          email reset password
 
 Khách có thể duyệt tour, xem lịch khởi hành và giá thật từ API, đăng ký hoặc đăng nhập, tạo booking, thanh toán CASH và theo dõi đơn. AI Agent có thể hiểu yêu cầu, tìm lịch phù hợp, giữ nguyên ràng buộc người dùng, dừng ở checkpoint yêu cầu phê duyệt rõ ràng rồi mới tạo booking và payment.
 
-Admin và Operations có các màn hình quản lý tour, lịch, booking, payment, audit và trạng thái tích hợp. Secret của AI, email, storage và payment gateway chỉ tồn tại phía server.
+Admin và Operations có các màn hình quản lý tour, lịch trình, hình ảnh, lịch khởi hành, booking, payment, feedback và trạng thái tích hợp. Audit log và các thao tác phá hủy nhạy cảm vẫn chỉ dành cho ADMIN. Secret của AI, email, storage và payment gateway chỉ tồn tại phía server.
 
 ## Chạy local
 
@@ -74,7 +74,11 @@ Web staging/public verification: https://delta-travel-web.onrender.com
 
 API: https://delta-travel-api.onrender.com/api/v1
 
-Source of truth: repository `Anniehatani/deltatravel`, branch `main`.
+Web development source of truth: repository `levanmanh268/deltatravel`, branch `main`.
+
+Web production branch: `manh/integrate-production-api`.
+
+Production API source: repository `levanmanh268/tour-booking`, branch `manh/backend-ai-stage1`.
 
 ## Thanh toán
 
@@ -96,4 +100,4 @@ Tài liệu dự án hiện có chỉ xác nhận phạm vi SRS đã được tr
 
 ## Verification bổ sung
 
-`npm run verify:live`, `npm run verify:browser`, `npm run verify:a11y` dùng để kiểm tra deployment public.
+`npm run verify:live`, `npm run verify:browser`, `npm run verify:a11y`, `npm run verify:security` và `npm run verify:ai-first-live` dùng để kiểm tra deployment public. Xem `docs/FINAL_RELEASE_ACCEPTANCE.md` để biết commit và workflow evidence gần nhất.
