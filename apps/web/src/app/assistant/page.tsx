@@ -118,7 +118,7 @@ export default function AssistantPage() {
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-stone-200" />
           <span className="text-[10px] font-black uppercase tracking-[0.22em] text-stone-600">
-            Hoặc chat tư vấn như bình thường
+            Cần hỏi thêm trước khi DELTA AI thực hiện?
           </span>
           <div className="h-px flex-1 bg-stone-200" />
         </div>
