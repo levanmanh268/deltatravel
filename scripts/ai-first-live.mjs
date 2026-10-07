@@ -26,7 +26,9 @@ try {
   const homepagePlanner = page.locator('[data-ai-surface="context-card"]').first();
   await homepagePlanner.waitFor({ state: 'visible' });
   if (await page.getByTestId('ai-command-center-launcher').count()) {
-    throw new Error('Homepage should use the inline DELTA AI planner without a duplicate floating launcher');
+    throw new Error(
+      'Homepage should use the inline DELTA AI planner without a duplicate floating launcher',
+    );
   }
   pass('homepage DELTA AI planner without duplicate launcher');
 
