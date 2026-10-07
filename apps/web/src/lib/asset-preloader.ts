@@ -157,13 +157,15 @@ export function startBackgroundFramePreload(
     void preloadFrames(remaining, 4, onFrameLoaded);
   };
 
-  if ('requestIdleCallback' in window) {
-    (
-      window as Window & {
-        requestIdleCallback: (callback: () => void, options?: { timeout: number }) => number;
-      }
-    ).requestIdleCallback(run, { timeout: 2500 });
+  const idleCallback = (
+    window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+    }
+  ).requestIdleCallback;
+
+  if (typeof idleCallback === 'function') {
+    idleCallback(run, { timeout: 2500 });
   } else {
-    window.setTimeout(run, 700);
+    globalThis.setTimeout(run, 700);
   }
 }
