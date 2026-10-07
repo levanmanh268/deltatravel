@@ -28,6 +28,13 @@ export function GiantScrollTypography({
 
   useEffect(() => {
     let isMounted = true;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      if (textRef.current) textRef.current.style.transform = 'none';
+      return () => {
+        isMounted = false;
+      };
+    }
     lastScrollY.current = window.scrollY || window.pageYOffset || 0;
 
     const handleScroll = () => {
@@ -75,7 +82,8 @@ export function GiantScrollTypography({
   }, [direction, speed]);
 
   // Clean repeat items with elegant translucent visibility
-  const items = Array.from({ length: repeat }, (_, i) => (
+  const effectiveRepeat = Math.min(repeat, 8);
+  const items = Array.from({ length: effectiveRepeat }, (_, i) => (
     <span key={i} className="inline-flex items-center mx-10 shrink-0 select-none">
       <span
         style={
