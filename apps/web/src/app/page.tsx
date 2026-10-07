@@ -14,6 +14,7 @@ import { getTourImage, getTourLuxuryTag } from '@/lib/tour-assets';
 import { GiantScrollTypography } from '@/components/giant-scroll-typography';
 import { LuxuryPreloader } from '@/components/luxury-preloader';
 import { LiquidGlassBadge } from '@/components/ui/liquid-glass-badge';
+import { AiContextCard } from '@/components/ai-context-card';
 import {
   MapPin,
   Calendar,
@@ -318,6 +319,25 @@ function HomeContent() {
             </div>
           </div>
         </div>
+
+        <AiContextCard
+          compact
+          className="mt-4"
+          eyebrow="DELTA AI • LẬP KẾ HOẠCH NHANH"
+          title="Mô tả chuyến đi bằng một câu"
+          description="DELTA AI gợi ý từ danh sách tour hiện có. Bạn có thể tiếp tục bằng AI hoặc chuyển sang tự chọn tour bất cứ lúc nào."
+          prompt="Tôi muốn đi du lịch trong nước. Hãy giúp tôi chọn chuyến đi phù hợp theo ngân sách, thời gian và số người."
+          context={`Trang chủ DELTA TRAVEL; hiện có ${allTours.length} tour trong danh sách đang tải từ hệ thống.`}
+          suggestions={[
+            '2 người lớn, ngân sách 8 triệu, đi 3 ngày.',
+            'Tôi thích biển và muốn lịch còn nhiều chỗ.',
+            'Gợi ý chuyến đi miền Bắc cho cuối tuần.',
+          ]}
+          agentHref={
+            '/assistant?prompt=' +
+            encodeURIComponent('Hãy lập kế hoạch chuyến đi phù hợp nhất cho tôi.')
+          }
+        />
       </section>
 
       {/* Content wrapper with overflow-hidden to protect parallax typography without breaking sticky */}
