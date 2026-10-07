@@ -480,6 +480,15 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const isConfirmed = booking.status === 'CONFIRMED';
   const isCompleted = booking.status === 'COMPLETED';
   const isCancelled = booking.status === 'CANCELLED';
+  const bookingDuration = booking.durationDays ?? null;
+  const bookingEstimatedReturnAt =
+    booking.estimatedReturnAt ??
+    (bookingDuration
+      ? new Date(
+          new Date(booking.departureAt).getTime() +
+            Math.max(0, bookingDuration - 1) * 24 * 60 * 60 * 1000,
+        ).toISOString()
+      : null);
   const canCancel = canCustomerCancel(
     booking.status,
     new Date(booking.departureAt),
@@ -713,14 +722,20 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                   {lang === 'en' ? 'Estimated return' : 'Ngày về dự kiến'}
                 </span>
                 <span className="font-semibold text-stone-900 text-base mt-1 block">
-                  {formatDate(booking.estimatedReturnAt)}
+                  {bookingEstimatedReturnAt
+                    ? formatDate(bookingEstimatedReturnAt)
+                    : lang === 'en'
+                      ? 'Updating'
+                      : 'Đang cập nhật'}
                 </span>
-                <span className="mt-1 block text-[10px] font-semibold text-stone-500">
-                  {booking.durationDays} {lang === 'en' ? 'days' : 'ngày'}
-                  {booking.durationDays > 1
-                    ? ` · ${booking.durationDays - 1} ${lang === 'en' ? 'nights' : 'đêm'}`
-                    : ''}
-                </span>
+                {bookingDuration ? (
+                  <span className="mt-1 block text-[10px] font-semibold text-stone-500">
+                    {bookingDuration} {lang === 'en' ? 'days' : 'ngày'}
+                    {bookingDuration > 1
+                      ? ` · ${bookingDuration - 1} ${lang === 'en' ? 'nights' : 'đêm'}`
+                      : ''}
+                  </span>
+                ) : null}
               </div>
               <div className="p-4 rounded-xl bg-[#faf9f5] border border-stone-200/70">
                 <span className="text-xs text-stone-500 block">{t('bk_guest_count_label')}</span>
