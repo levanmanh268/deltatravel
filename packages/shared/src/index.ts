@@ -345,6 +345,8 @@ export const BookingSchema = z.object({
   cancelReason: z.string().nullable(),
   tourTitle: z.string(),
   departureAt: IsoDateSchema,
+  durationDays: z.number().int().min(1).max(60),
+  estimatedReturnAt: IsoDateSchema,
   details: z.array(BookingDetailSchema),
   serverTime: IsoDateSchema,
 });
