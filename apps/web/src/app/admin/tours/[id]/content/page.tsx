@@ -244,8 +244,19 @@ export default function TourContentPage({ params }: { params: Promise<{ id: stri
         </div>
       )}
 
-      {loading || !tour ? (
+      {loading ? (
         <div className="h-64 animate-pulse rounded-3xl bg-stone-100" />
+      ) : !tour ? (
+        <div className="rounded-3xl border border-red-200 bg-white p-8 text-center shadow-sm">
+          <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-red-600" />
+          <h2 className="font-black text-stone-950">Không thể mở nội dung tour</h2>
+          <p className="mt-2 text-xs text-stone-600">
+            {error || 'Tour không tồn tại hoặc tài khoản hiện tại không có quyền truy cập.'}
+          </p>
+          <Button asChild variant="outline" className="mt-4">
+            <Link href="/admin/tours">Quay lại danh sách tour</Link>
+          </Button>
+        </div>
       ) : (
         <div className="space-y-8">
           <section className="rounded-3xl border bg-white p-6 shadow-sm">
