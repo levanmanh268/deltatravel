@@ -33,11 +33,15 @@ export function bookingDto(b: BookingRow, now = new Date()) {
   };
 }
 export function scheduleDto(s: Schedule, now = new Date()) {
+  const estimatedReturnAt = new Date(
+    s.departureAt.getTime() + Math.max(0, s.durationDays - 1) * 24 * 60 * 60 * 1000,
+  );
   return {
     ...s,
     adultPrice: Number(s.adultPrice),
     childPrice: Number(s.childPrice),
     availableSeats: s.totalSeats - s.reservedSeats,
+    estimatedReturnAt,
     serverTime: now,
   };
 }
