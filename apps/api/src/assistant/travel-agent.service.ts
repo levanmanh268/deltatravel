@@ -665,6 +665,7 @@ export class TravelAgentService {
           contactName: current.constraints.contactName,
           contactEmail: current.constraints.contactEmail,
           contactPhone: phone,
+          travelers: [],
         },
         current.idempotencyKey,
       );
