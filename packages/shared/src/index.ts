@@ -621,6 +621,7 @@ export const SummarySchema = z.object({
   tours: z.number().int(),
   bookings: z.number().int(),
   pendingRefunds: z.number().int(),
+  collectedRevenueVnd: MoneySchema,
 });
 export const AuditSchema = z.object({
   id: IdSchema,
