@@ -44,6 +44,7 @@ import {
   CreateTourReviewSchema,
   TourReviewSchema,
   TourReviewListSchema,
+  AdminTourReviewSchema,
   TourMediaUploadRequestSchema,
   TourMediaUploadTicketSchema,
   TourMediaCompleteSchema,
@@ -671,6 +672,13 @@ export const adminApi = {
     api(`/admin/bookings/${id}/cancel`, BookingSchema, {
       method: 'POST',
       body: CancelSchema.parse({ reason }),
+    }),
+
+  reviews: () => api('/admin/reviews?page=1&pageSize=100', PageSchema(AdminTourReviewSchema)),
+
+  removeReview: (id: string) =>
+    api(`/admin/reviews/${id}`, AckSchema, {
+      method: 'DELETE',
     }),
 
   payments: () => api('/admin/payments?page=1&pageSize=100', PageSchema(PaymentSchema)),

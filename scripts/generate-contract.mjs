@@ -10,7 +10,8 @@ const id = '11111111-1111-4111-8111-111111111111',
   uid = '44444444-4444-4444-8444-444444444444',
   pid = '55555555-5555-4555-8555-555555555555';
 const now = '2026-12-01T01:00:00.000Z',
-  departure = '2026-12-15T01:00:00.000Z';
+  departure = '2026-12-15T01:00:00.000Z',
+  estimatedReturn = '2026-12-17T01:00:00.000Z';
 const user = {
   id: uid,
   name: 'Nguyễn Minh Anh',
@@ -39,6 +40,7 @@ const schedule = {
   totalSeats: 30,
   reservedSeats: 8,
   availableSeats: 22,
+  estimatedReturnAt: estimatedReturn,
   adultPrice: 3990000,
   childPrice: 2490000,
   status: 'OPEN',
@@ -67,6 +69,8 @@ const booking = {
   cancelReason: null,
   tourTitle: tour.title,
   departureAt: departure,
+  durationDays: 3,
+  estimatedReturnAt: estimatedReturn,
   details: [
     { kind: 'ADULT', quantity: 2, unitPrice: 3990000, lineTotal: 7980000 },
     { kind: 'CHILD', quantity: 1, unitPrice: 2490000, lineTotal: 2490000 },
@@ -109,7 +113,14 @@ const examples = {
   CreateTourSchema: (({ id, createdAt, updatedAt, ...r }) => r)(tour),
   UpdateTourSchema: { status: 'ACTIVE' },
   ScheduleSchema: schedule,
-  CreateScheduleSchema: (({ id, reservedSeats, availableSeats, serverTime, ...r }) => r)(schedule),
+  CreateScheduleSchema: (({
+    id,
+    reservedSeats,
+    availableSeats,
+    estimatedReturnAt,
+    serverTime,
+    ...r
+  }) => r)(schedule),
   UpdateScheduleSchema: { totalSeats: 35, childPrice: 2490000 },
   QuoteSchema: { scheduleId: sid, adults: 2, children: 1 },
   QuoteResultSchema: {
@@ -160,7 +171,20 @@ const examples = {
     reference: 'REFUND-20261201-001',
     note: 'Đã đối soát hoàn tiền đầy đủ qua cổng thanh toán',
   },
-  SummarySchema: { tours: 3, bookings: 12, pendingRefunds: 1 },
+  AdminTourReviewSchema: {
+    id: '66666666-6666-4666-8666-666666666666',
+    tourId: id,
+    rating: 5,
+    comment: 'Lịch trình hợp lý, thông tin minh bạch và hướng dẫn viên hỗ trợ tốt.',
+    authorName: user.name,
+    authorEmail: user.email,
+    authorAvatarUrl: null,
+    tourTitle: tour.title,
+    verifiedPurchase: true,
+    createdAt: now,
+    updatedAt: now,
+  },
+  SummarySchema: { tours: 3, bookings: 12, pendingRefunds: 1, collectedRevenueVnd: 0 },
   AuditSchema: {
     id,
     actorId: uid,

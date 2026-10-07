@@ -1,3 +1,4 @@
+# Production deployment marker: main should expose /api/release for provider/commit verification.
 [build]
   command = "npm run build -w @tour/shared && npm run build -w @tour/web"
   publish = "apps/web/.next"

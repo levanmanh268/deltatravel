@@ -1,0 +1,2 @@
+ALTER TABLE "DON_DAT_TOUR"
+  ADD COLUMN "travelers" JSONB NOT NULL DEFAULT '[]'::jsonb;

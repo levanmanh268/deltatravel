@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
-import { bookingApi, paymentApi } from '@/lib/api';
+import { bookingApi, paymentApi, tourApi } from '@/lib/api';
 import {
   BOOKING_LABELS,
   canCustomerCancel,
@@ -33,8 +33,13 @@ import {
   Sparkles,
   Wallet,
   Coins,
+  Copy,
+  CalendarPlus,
+  Printer,
+  Star,
 } from 'lucide-react';
 import { useLanguage } from '@/providers/language-provider';
+import { siteConfig } from '@/lib/site-config';
 
 type PaymentMethod =
   | 'DIRECT'
@@ -64,6 +69,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tourCommercial, setTourCommercial] =
+    useState<Awaited<ReturnType<typeof tourApi.get>>['commercial']>(null);
+  const [actionNotice, setActionNotice] = useState('');
 
   // Zero-cost sandbox-ready channels stay explicit so the UI never implies a gateway is live.
   const paymentOptions: PaymentOption[] = [
@@ -180,6 +188,21 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   > | null>(null);
   const [paymentCapabilitiesLoading, setPaymentCapabilitiesLoading] = useState(true);
 
+  const showSandboxPayments = process.env.NEXT_PUBLIC_SHOW_SANDBOX_PAYMENTS === 'true';
+  const visiblePaymentOptions = paymentOptions.filter((option) => {
+    if (option.provider === 'CASH') return true;
+    const capability = paymentCapabilities?.providers.find(
+      (item) => item.provider === option.provider,
+    );
+    const channelSupported =
+      !option.channel || Boolean(capability?.channels.includes(option.channel));
+    return Boolean(
+      capability?.available &&
+      channelSupported &&
+      (capability.environment === 'PRODUCTION' || showSandboxPayments),
+    );
+  });
+
   // Cancel booking modal
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
@@ -208,6 +231,27 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
 
   useEffect(() => {
     let active = true;
+    if (!booking?.tourId) {
+      setTourCommercial(null);
+      return () => {
+        active = false;
+      };
+    }
+    void tourApi
+      .get(booking.tourId)
+      .then((tour) => {
+        if (active) setTourCommercial(tour.commercial ?? null);
+      })
+      .catch(() => {
+        if (active) setTourCommercial(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [booking?.tourId]);
+
+  useEffect(() => {
+    let active = true;
     setPaymentCapabilitiesLoading(true);
     paymentApi
       .providers()
@@ -224,6 +268,54 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!visiblePaymentOptions.some((option) => option.id === selectedMethod)) {
+      setSelectedMethod('DIRECT');
+    }
+  }, [paymentCapabilities, selectedMethod]);
+
+  const copyBookingCode = async () => {
+    if (!booking) return;
+    try {
+      await navigator.clipboard.writeText(booking.id);
+      setActionNotice(lang === 'en' ? 'Booking code copied.' : 'Đã sao chép mã booking.');
+    } catch {
+      setActionNotice(
+        lang === 'en' ? 'Could not copy the booking code.' : 'Không thể sao chép mã booking.',
+      );
+    }
+  };
+
+  const downloadCalendar = () => {
+    if (!booking) return;
+    const start = new Date(booking.departureAt)
+      .toISOString()
+      .replace(/[-:]/g, '')
+      .replace(/\.\d{3}Z$/, 'Z');
+    const body = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Delta Travel//Booking//VI',
+      'BEGIN:VEVENT',
+      `UID:${booking.id}@delta-travel`,
+      `DTSTAMP:${new Date()
+        .toISOString()
+        .replace(/[-:]/g, '')
+        .replace(/\.\d{3}Z$/, 'Z')}`,
+      `DTSTART:${start}`,
+      `SUMMARY:${booking.tourTitle.replace(/[\r\n]/g, ' ')}`,
+      `DESCRIPTION:Booking ${booking.id} - DELTA TRAVEL`,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    const url = URL.createObjectURL(new Blob([body], { type: 'text/calendar;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `delta-travel-${booking.id.slice(0, 8)}.ics`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Accurate countdown based on expiresAt and serverTime
   useEffect(() => {
@@ -386,7 +478,17 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const isAwaitingCash = booking.status === 'AWAITING_CASH';
   const isPaid = booking.status === 'PAID';
   const isConfirmed = booking.status === 'CONFIRMED';
+  const isCompleted = booking.status === 'COMPLETED';
   const isCancelled = booking.status === 'CANCELLED';
+  const bookingDuration = booking.durationDays ?? null;
+  const bookingEstimatedReturnAt =
+    booking.estimatedReturnAt ??
+    (bookingDuration
+      ? new Date(
+          new Date(booking.departureAt).getTime() +
+            Math.max(0, bookingDuration - 1) * 24 * 60 * 60 * 1000,
+        ).toISOString()
+      : null);
   const canCancel = canCustomerCancel(
     booking.status,
     new Date(booking.departureAt),
@@ -440,9 +542,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       }
     >
       <AiContextCard
-        eyebrow="DELTA AI • BOOKING CONCIERGE"
-        title="AI giải thích đơn này và chủ động chỉ ra bước tiếp theo"
-        description="AI chỉ đọc dữ liệu mà tài khoản của bạn được phép thấy. Hủy hoặc thanh toán vẫn đi qua quy tắc backend và thao tác xác nhận riêng."
+        eyebrow="DELTA AI • TRỢ LÝ BOOKING"
+        title="Hiểu nhanh trạng thái đơn và việc bạn cần làm tiếp"
+        description="DELTA AI chỉ đọc dữ liệu thuộc tài khoản hiện tại. Hủy hoặc thanh toán vẫn cần thao tác xác nhận riêng của bạn."
         prompt={`Tóm tắt booking ${booking.id}: trạng thái ${booking.status}, tour ${booking.tourTitle}, khởi hành ${booking.departureAt}, tổng tiền ${booking.totalAmount.toLocaleString('vi-VN')} VND. Tôi cần làm gì tiếp theo và có điều gì cần chú ý?`}
         context={`Booking detail ${booking.id}; status ${booking.status}; customer đang xem chính đơn của mình.`}
         suggestions={[
@@ -453,6 +555,36 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
         autoRun
         className="mb-8"
       />
+
+      <div className="mb-8 flex flex-wrap items-center gap-2 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm print:hidden">
+        <button
+          type="button"
+          onClick={() => void copyBookingCode()}
+          className="inline-flex items-center gap-2 rounded-full border border-stone-300 px-4 py-2 text-xs font-bold text-stone-800 hover:bg-stone-50"
+        >
+          <Copy className="h-3.5 w-3.5" />
+          {lang === 'en' ? 'Copy booking code' : 'Sao chép mã đơn'}
+        </button>
+        <button
+          type="button"
+          onClick={downloadCalendar}
+          className="inline-flex items-center gap-2 rounded-full border border-stone-300 px-4 py-2 text-xs font-bold text-stone-800 hover:bg-stone-50"
+        >
+          <CalendarPlus className="h-3.5 w-3.5" />
+          {lang === 'en' ? 'Add to calendar' : 'Thêm vào lịch'}
+        </button>
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="inline-flex items-center gap-2 rounded-full border border-stone-300 px-4 py-2 text-xs font-bold text-stone-800 hover:bg-stone-50"
+        >
+          <Printer className="h-3.5 w-3.5" />
+          {lang === 'en' ? 'Print / save PDF' : 'In / lưu PDF'}
+        </button>
+        {actionNotice ? (
+          <span className="text-[11px] font-semibold text-emerald-700">{actionNotice}</span>
+        ) : null}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Left Column: Booking Details & Contact Info */}
@@ -534,7 +666,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                   </p>
                   <div className="mt-3 pt-3 border-t border-emerald-200 text-xs text-emerald-900 font-semibold flex flex-wrap gap-4">
                     <span>{t('bk_office_locations')}</span>
-                    <span>Hotline: 1900 6868</span>
+                    {siteConfig.supportPhone ? <span>{siteConfig.supportPhone}</span> : null}
                   </div>
                 </div>
               </div>
@@ -578,12 +710,32 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
               <span>{t('bk_itinerary_title')}</span>
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="p-4 rounded-xl bg-[#faf9f5] border border-stone-200/70">
                 <span className="text-xs text-stone-500 block">{t('bk_dep_date_label')}</span>
                 <span className="font-semibold text-stone-900 text-base mt-1 block">
                   {formatDate(booking.departureAt)}
                 </span>
+              </div>
+              <div className="p-4 rounded-xl bg-[#faf9f5] border border-stone-200/70">
+                <span className="text-xs text-stone-500 block">
+                  {lang === 'en' ? 'Estimated return' : 'Ngày về dự kiến'}
+                </span>
+                <span className="font-semibold text-stone-900 text-base mt-1 block">
+                  {bookingEstimatedReturnAt
+                    ? formatDate(bookingEstimatedReturnAt)
+                    : lang === 'en'
+                      ? 'Updating'
+                      : 'Đang cập nhật'}
+                </span>
+                {bookingDuration ? (
+                  <span className="mt-1 block text-[10px] font-semibold text-stone-500">
+                    {bookingDuration} {lang === 'en' ? 'days' : 'ngày'}
+                    {bookingDuration > 1
+                      ? ` · ${bookingDuration - 1} ${lang === 'en' ? 'nights' : 'đêm'}`
+                      : ''}
+                  </span>
+                ) : null}
               </div>
               <div className="p-4 rounded-xl bg-[#faf9f5] border border-stone-200/70">
                 <span className="text-xs text-stone-500 block">{t('bk_guest_count_label')}</span>
@@ -615,6 +767,40 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
 
+          {booking.travelers.length > 0 && (
+            <div className="rounded-2xl border border-stone-200/80 bg-white p-8 shadow-luxury">
+              <h2 className="font-serif text-xl font-bold text-stone-900 mb-4 flex items-center gap-2 pb-4 border-b border-stone-100">
+                <User className="h-5 w-5 text-amber-700" />
+                <span>{lang === 'en' ? 'Travelers' : 'Danh sách hành khách'}</span>
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {booking.travelers.map((traveler, index) => (
+                  <div
+                    key={`${traveler.kind}-${index}`}
+                    className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-xs"
+                  >
+                    <div className="font-black text-stone-950">{traveler.fullName}</div>
+                    <div className="mt-1 text-stone-500">
+                      {traveler.kind === 'ADULT'
+                        ? lang === 'en'
+                          ? 'Adult'
+                          : 'Người lớn'
+                        : lang === 'en'
+                          ? 'Child'
+                          : 'Trẻ em'}
+                      {traveler.birthDate ? ` · ${traveler.birthDate}` : ''}
+                    </div>
+                    {traveler.specialRequest ? (
+                      <div className="mt-2 leading-relaxed text-stone-600">
+                        {traveler.specialRequest}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Contact Representative */}
           <div className="rounded-2xl border border-stone-200/80 bg-white p-8 shadow-luxury">
             <h2 className="font-serif text-xl font-bold text-stone-900 mb-4 flex items-center gap-2 pb-4 border-b border-stone-100">
@@ -637,6 +823,31 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
           </div>
+
+          {isCompleted && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="flex items-center gap-2 text-sm font-black text-stone-950">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                    {lang === 'en'
+                      ? 'Rate your completed trip'
+                      : 'Đánh giá chuyến đi đã hoàn thành'}
+                  </h3>
+                  <p className="mt-1 text-xs leading-relaxed text-stone-600">
+                    {lang === 'en'
+                      ? 'Share a star rating and feedback. Your review will be marked as a verified booking.'
+                      : 'Hãy chấm sao và gửi feedback. Đánh giá của bạn sẽ được gắn nhãn booking xác thực.'}
+                  </p>
+                </div>
+                <Button asChild className="shrink-0 bg-stone-950 text-white">
+                  <Link href={`/tours/${booking.tourId}#reviews`}>
+                    {lang === 'en' ? 'Rate this tour' : 'Chấm sao & feedback'}
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Cancellation Section */}
           {canCancel && (
@@ -692,11 +903,13 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                   {t('bk_payment_method_label')}
                 </label>
                 <p className="text-[11px] leading-relaxed text-stone-500">
-                  Cổng có nhãn SANDBOX chỉ dùng giao dịch thử nghiệm và không trừ tiền thật.
+                  {showSandboxPayments
+                    ? 'Các phương thức thử nghiệm chỉ dùng cho demo và không trừ tiền thật.'
+                    : 'Chỉ các phương thức thanh toán đang được xác nhận sẵn sàng mới xuất hiện ở đây.'}
                 </p>
 
                 <div className="space-y-3">
-                  {paymentOptions.map((opt) => {
+                  {visiblePaymentOptions.map((opt) => {
                     const isSelected = selectedMethod === opt.id;
                     const provider = opt.provider;
                     const capability = paymentCapabilities?.providers.find(
@@ -845,7 +1058,13 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <div className="flex items-start gap-1.5">
                 <ShieldCheck className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
-                <span>{t('bk_hotline_support')}</span>
+                <Link href="/support" className="font-semibold underline underline-offset-2">
+                  {siteConfig.supportPhone || siteConfig.supportEmail
+                    ? lang === 'en'
+                      ? 'Contact official support'
+                      : 'Liên hệ hỗ trợ chính thức'
+                    : t('bk_hotline_support')}
+                </Link>
               </div>
             </div>
           </div>
@@ -873,6 +1092,35 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
             <p className="text-xs text-neutral-600 mb-4 leading-relaxed">
               {t('bk_cancel_modal_warning')}
             </p>
+
+            <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950">
+              <div className="font-black uppercase tracking-wider">
+                {lang === 'en'
+                  ? 'Financial impact before cancellation'
+                  : 'Thông tin tài chính trước khi hủy'}
+              </div>
+              <div className="mt-2">
+                <strong>{lang === 'en' ? 'Booking value:' : 'Giá trị booking:'}</strong>{' '}
+                {formatVND(booking.totalAmount)}
+              </div>
+              {tourCommercial?.cancellationPolicy ? (
+                <p className="mt-2">
+                  <strong>{lang === 'en' ? 'Cancellation policy:' : 'Chính sách hủy:'}</strong>{' '}
+                  {tourCommercial.cancellationPolicy}
+                </p>
+              ) : null}
+              {tourCommercial?.refundPolicy ? (
+                <p className="mt-2">
+                  <strong>{lang === 'en' ? 'Refund policy:' : 'Chính sách hoàn tiền:'}</strong>{' '}
+                  {tourCommercial.refundPolicy}
+                </p>
+              ) : null}
+              <p className="mt-2 text-[11px] text-amber-800">
+                {lang === 'en'
+                  ? 'The system does not invent a refund amount from free-text policy. The exact refund, when applicable, is confirmed from the published policy and payment record.'
+                  : 'Hệ thống không tự suy đoán số tiền hoàn từ chính sách dạng văn bản. Số tiền hoàn chính xác, nếu có, được đối chiếu theo chính sách đã công bố và giao dịch thanh toán.'}
+              </p>
+            </div>
 
             <form onSubmit={handleCancelBooking} className="space-y-4">
               <div>

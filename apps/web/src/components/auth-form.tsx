@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authApi } from '@/lib/api';
@@ -28,6 +28,14 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
   const { accept } = useAuth();
   const { t, lang } = useLanguage();
   const router = useRouter();
+  const [safeNext, setSafeNext] = useState<string | null>(null);
+
+  useEffect(() => {
+    const requestedNext = new URLSearchParams(window.location.search).get('next');
+    setSafeNext(
+      requestedNext?.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : null,
+    );
+  }, []);
 
   // Mode: 'login' | 'register' | 'forgot'
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(
@@ -54,6 +62,25 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
   const resetMessages = () => {
     setError('');
     setSuccess('');
+  };
+
+  const sendResetCode = async () => {
+    setBusy(true);
+    setError('');
+    setSuccess('');
+    try {
+      await authApi.requestPasswordReset(email.trim().toLowerCase());
+      setForgotStep(2);
+      setSuccess(
+        lang === 'en'
+          ? 'If an active account exists for this email, a 6-digit code will be sent and remain valid for 10 minutes.'
+          : 'Nếu có tài khoản đang hoạt động với email này, mã xác thực 6 số sẽ được gửi và có hiệu lực trong 10 phút.',
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Chưa thể gửi mã xác nhận. Vui lòng thử lại sau.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   // Submit Handler
@@ -107,7 +134,7 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
         if (result.user.role === 'ADMIN' || result.user.role === 'OPERATIONS') {
           router.push('/admin');
         } else {
-          router.push('/tours');
+          router.push(safeNext || '/tours');
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Đăng ký tài khoản không thành công.');
@@ -139,7 +166,7 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
         if (result.user.role === 'ADMIN' || result.user.role === 'OPERATIONS') {
           router.push('/admin');
         } else {
-          router.push('/tours');
+          router.push(safeNext || '/tours');
         }
       } catch (e) {
         setError(
@@ -166,22 +193,7 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
           return;
         }
 
-        setBusy(true);
-        try {
-          await authApi.requestPasswordReset(email.trim().toLowerCase());
-          setForgotStep(2);
-          setSuccess(
-            lang === 'en'
-              ? 'If an active account exists for this email, a 6-digit code will be sent and remain valid for 10 minutes.'
-              : 'Nếu có tài khoản đang hoạt động với email này, mã xác thực 6 số sẽ được gửi và có hiệu lực trong 10 phút.',
-          );
-        } catch (e) {
-          setError(
-            e instanceof Error ? e.message : 'Chưa thể gửi mã xác nhận. Vui lòng thử lại sau.',
-          );
-        } finally {
-          setBusy(false);
-        }
+        await sendResetCode();
         return;
       }
 
@@ -226,20 +238,29 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
               : 'Đặt lại mật khẩu thành công! Đang tự động đăng nhập...',
           );
 
-          // Auto login with new password
-          const result = await authApi.login({
-            email: email.trim().toLowerCase(),
-            password: newPassword,
-          });
-          accept(result);
+          try {
+            const result = await authApi.login({
+              email: email.trim().toLowerCase(),
+              password: newPassword,
+            });
+            accept(result);
 
-          setTimeout(() => {
-            if (result.user.role === 'ADMIN' || result.user.role === 'OPERATIONS') {
-              router.push('/admin');
-            } else {
-              router.push('/tours');
-            }
-          }, 800);
+            setTimeout(() => {
+              if (result.user.role === 'ADMIN' || result.user.role === 'OPERATIONS') {
+                router.push('/admin');
+              } else {
+                router.push(safeNext || '/tours');
+              }
+            }, 800);
+          } catch {
+            setMode('login');
+            setPassword('');
+            setSuccess(
+              lang === 'en'
+                ? 'Password reset successfully. Please sign in with your new password.'
+                : 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.',
+            );
+          }
         } catch (e) {
           setError(e instanceof Error ? e.message : 'Không thể đặt lại mật khẩu.');
         } finally {
@@ -572,13 +593,11 @@ export function AuthForm({ register = false, forgot = false }: AuthFormProps) {
               {forgotStep === 2 && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setForgotStep(1);
-                    resetMessages();
-                  }}
-                  className="font-bold text-amber-800 hover:underline cursor-pointer"
+                  onClick={() => void sendResetCode()}
+                  disabled={busy}
+                  className="font-bold text-amber-800 hover:underline cursor-pointer disabled:opacity-50"
                 >
-                  Gửi lại mã OTP
+                  {busy ? 'Đang gửi lại...' : 'Gửi lại mã OTP'}
                 </button>
               )}
             </div>

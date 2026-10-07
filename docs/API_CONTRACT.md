@@ -66,6 +66,8 @@ SRS-TOUR-2026-v1.0. Sinh từ shared Zod schemas và scripts/contract-manifest.m
 | GET    | /admin/bookings/{id}                      | ADMIN,OPERATIONS | Không                          | BookingSchema                        | 200  |
 | PATCH  | /admin/bookings/{id}/status               | ADMIN,OPERATIONS | TransitionSchema               | BookingSchema                        | 200  |
 | POST   | /admin/bookings/{id}/cancel               | ADMIN,OPERATIONS | CancelSchema                   | BookingSchema                        | 200  |
+| GET    | /admin/reviews                            | ADMIN,OPERATIONS | Không                          | AdminTourReviewSchema[]              | 200  |
+| DELETE | /admin/reviews/{id}                       | ADMIN            | Không                          | AckSchema                            | 200  |
 | GET    | /admin/payments                           | ADMIN,OPERATIONS | Không                          | PaymentSchema[]                      | 200  |
 | POST   | /admin/payments/{id}/cash-receipt         | ADMIN,OPERATIONS | CashReceiptSchema              | PaymentSchema                        | 200  |
 | POST   | /admin/payments/{id}/refund-record        | ADMIN            | RefundRecordSchema             | PaymentSchema                        | 200  |
@@ -510,6 +512,7 @@ Response:
         "totalSeats": 30,
         "reservedSeats": 8,
         "availableSeats": 22,
+        "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
         "adultPrice": 3990000,
         "childPrice": 2490000,
         "status": "OPEN",
@@ -543,6 +546,7 @@ Response:
     "totalSeats": 30,
     "reservedSeats": 8,
     "availableSeats": 22,
+    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
     "adultPrice": 3990000,
     "childPrice": 2490000,
     "status": "OPEN",
@@ -632,6 +636,8 @@ Response:
     "cancelReason": null,
     "tourTitle": "Đà Nẵng và Hội An",
     "departureAt": "2026-12-15T01:00:00.000Z",
+    "durationDays": 3,
+    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
     "details": [
       {
         "kind": "ADULT",
@@ -687,6 +693,8 @@ Response:
         "cancelReason": null,
         "tourTitle": "Đà Nẵng và Hội An",
         "departureAt": "2026-12-15T01:00:00.000Z",
+        "durationDays": 3,
+        "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
         "details": [
           {
             "kind": "ADULT",
@@ -743,6 +751,8 @@ Response:
     "cancelReason": null,
     "tourTitle": "Đà Nẵng và Hội An",
     "departureAt": "2026-12-15T01:00:00.000Z",
+    "durationDays": 3,
+    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
     "details": [
       {
         "kind": "ADULT",
@@ -802,6 +812,8 @@ Response:
     "cancelReason": "Thay đổi kế hoạch cá nhân",
     "tourTitle": "Đà Nẵng và Hội An",
     "departureAt": "2026-12-15T01:00:00.000Z",
+    "durationDays": 3,
+    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
     "details": [
       {
         "kind": "ADULT",
@@ -933,7 +945,8 @@ Response:
   "data": {
     "tours": 3,
     "bookings": 12,
-    "pendingRefunds": 1
+    "pendingRefunds": 1,
+    "collectedRevenueVnd": 0
   },
   "meta": {
     "requestId": "example-request-id",
@@ -1092,6 +1105,7 @@ Response:
         "totalSeats": 30,
         "reservedSeats": 8,
         "availableSeats": 22,
+        "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
         "adultPrice": 3990000,
         "childPrice": 2490000,
         "status": "OPEN",
@@ -1139,6 +1153,7 @@ Response:
     "totalSeats": 30,
     "reservedSeats": 8,
     "availableSeats": 22,
+    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
     "adultPrice": 3990000,
     "childPrice": 2490000,
     "status": "OPEN",
@@ -1176,6 +1191,7 @@ Response:
     "totalSeats": 30,
     "reservedSeats": 8,
     "availableSeats": 22,
+    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
     "adultPrice": 3990000,
     "childPrice": 2490000,
     "status": "OPEN",
@@ -1220,6 +1236,8 @@ Response:
         "cancelReason": null,
         "tourTitle": "Đà Nẵng và Hội An",
         "departureAt": "2026-12-15T01:00:00.000Z",
+        "durationDays": 3,
+        "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
         "details": [
           {
             "kind": "ADULT",
@@ -1276,6 +1294,8 @@ Response:
     "cancelReason": null,
     "tourTitle": "Đà Nẵng và Hội An",
     "departureAt": "2026-12-15T01:00:00.000Z",
+    "durationDays": 3,
+    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
     "details": [
       {
         "kind": "ADULT",
@@ -1335,6 +1355,8 @@ Response:
     "cancelReason": null,
     "tourTitle": "Đà Nẵng và Hội An",
     "departureAt": "2026-12-15T01:00:00.000Z",
+    "durationDays": 3,
+    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
     "details": [
       {
         "kind": "ADULT",
@@ -1394,6 +1416,8 @@ Response:
     "cancelReason": "Thay đổi kế hoạch cá nhân",
     "tourTitle": "Đà Nẵng và Hội An",
     "departureAt": "2026-12-15T01:00:00.000Z",
+    "durationDays": 3,
+    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
     "details": [
       {
         "kind": "ADULT",
@@ -1409,6 +1433,61 @@ Response:
       }
     ],
     "serverTime": "2026-12-01T01:00:00.000Z"
+  },
+  "meta": {
+    "requestId": "example-request-id",
+    "timestamp": "2026-12-01T01:00:00.000Z"
+  }
+}
+```
+
+## GET /admin/reviews
+
+Quyền: ADMIN,OPERATIONS. HTTP thành công: 200. Danh sách đánh giá sao và feedback xác thực từ khách đã hoàn thành tour.
+
+Query: page=1&pageSize=20.
+
+Response:
+
+```json
+{
+  "data": {
+    "items": [
+      {
+        "id": "66666666-6666-4666-8666-666666666666",
+        "tourId": "11111111-1111-4111-8111-111111111111",
+        "rating": 5,
+        "comment": "Lịch trình hợp lý, thông tin minh bạch và hướng dẫn viên hỗ trợ tốt.",
+        "authorName": "Nguyễn Minh Anh",
+        "authorEmail": "minhanh@example.com",
+        "authorAvatarUrl": null,
+        "tourTitle": "Đà Nẵng và Hội An",
+        "verifiedPurchase": true,
+        "createdAt": "2026-12-01T01:00:00.000Z",
+        "updatedAt": "2026-12-01T01:00:00.000Z"
+      }
+    ],
+    "page": 1,
+    "pageSize": 20,
+    "total": 1
+  },
+  "meta": {
+    "requestId": "example-request-id",
+    "timestamp": "2026-12-01T01:00:00.000Z"
+  }
+}
+```
+
+## DELETE /admin/reviews/{id}
+
+Quyền: ADMIN. HTTP thành công: 200. Gỡ đánh giá vi phạm và ghi audit log. Không làm mất lịch sử booking.
+
+Response:
+
+```json
+{
+  "data": {
+    "ok": true
   },
   "meta": {
     "requestId": "example-request-id",
@@ -2309,6 +2388,8 @@ Response:
       "cancelReason": null,
       "tourTitle": "Đà Nẵng và Hội An",
       "departureAt": "2026-12-15T01:00:00.000Z",
+      "durationDays": 3,
+      "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
       "details": [
         {
           "kind": "ADULT",

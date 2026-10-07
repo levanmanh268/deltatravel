@@ -146,14 +146,47 @@ export const PartySchema = z
   .object({ adults: z.number().int().min(1).max(100), children: z.number().int().min(0).max(100) })
   .strict();
 export const QuoteSchema = PartySchema.extend({ scheduleId: IdSchema }).strict();
-export const CreateBookingSchema = QuoteSchema.extend({
+
+export const TravelerSchema = z
+  .object({
+    kind: z.enum(['ADULT', 'CHILD']),
+    fullName: z.string().trim().min(2).max(100),
+    birthDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullable()
+      .default(null),
+    specialRequest: z.string().trim().max(500).nullable().default(null),
+  })
+  .strict();
+
+const CreateBookingBaseSchema = QuoteSchema.extend({
   contactName: name,
   contactEmail: email,
   contactPhone: z.string().regex(/^(?:\+84|0)[0-9]{9,10}$/),
+  travelers: z.array(TravelerSchema).max(200).default([]),
 }).strict();
-export const AssistantBookingProposalSchema = CreateBookingSchema.extend({
+
+function validateTravelerCounts(
+  value: z.infer<typeof CreateBookingBaseSchema>,
+  ctx: z.RefinementCtx,
+) {
+  if (value.travelers.length === 0) return;
+  const adultCount = value.travelers.filter((traveler) => traveler.kind === 'ADULT').length;
+  const childCount = value.travelers.filter((traveler) => traveler.kind === 'CHILD').length;
+  if (adultCount !== value.adults || childCount !== value.children) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['travelers'],
+      message: 'Danh sách hành khách phải khớp số người lớn và trẻ em',
+    });
+  }
+}
+
+export const CreateBookingSchema = CreateBookingBaseSchema.superRefine(validateTravelerCounts);
+export const AssistantBookingProposalSchema = CreateBookingBaseSchema.extend({
   provider: ProviderSchema.optional(),
-}).strict();
+}).superRefine(validateTravelerCounts);
 export const CancelSchema = z.object({ reason: z.string().trim().min(3).max(500) }).strict();
 export const TransitionSchema = z.object({ status: z.enum(['CONFIRMED', 'COMPLETED']) }).strict();
 export const CreatePaymentSchema = z
@@ -249,6 +282,11 @@ export const TourReviewListSchema = z.object({
   items: z.array(TourReviewSchema),
 });
 
+export const AdminTourReviewSchema = TourReviewSchema.extend({
+  authorEmail: z.string().email(),
+  tourTitle: z.string(),
+});
+
 // Public DTOs never expose database entities, credential hashes or provider secrets.
 export const UserSchema = z.object({
   id: IdSchema,
@@ -270,12 +308,13 @@ export const TourSchema = CreateTourSchema.extend({
   fromPrice: MoneySchema.nullable().optional(),
   ratingAverage: z.number().min(0).max(5).nullable().optional(),
   ratingCount: z.number().int().nonnegative().optional(),
-});
+}).passthrough();
 export const ScheduleSchema = CreateScheduleSchema.extend({
   durationDays: z.number().int().min(1).max(60),
   id: IdSchema,
   reservedSeats: z.number().int(),
   availableSeats: z.number().int(),
+  estimatedReturnAt: IsoDateSchema.optional(),
   serverTime: IsoDateSchema,
 });
 export const BookingDetailSchema = z.object({
@@ -296,6 +335,7 @@ export const BookingSchema = z.object({
   contactName: z.string(),
   contactEmail: z.string(),
   contactPhone: z.string(),
+  travelers: z.array(TravelerSchema).default([]),
   expiresAt: IsoDateSchema,
   createdAt: IsoDateSchema,
   paidAt: IsoDateSchema.nullable(),
@@ -304,6 +344,8 @@ export const BookingSchema = z.object({
   cancelReason: z.string().nullable(),
   tourTitle: z.string(),
   departureAt: IsoDateSchema,
+  durationDays: z.number().int().min(1).max(60).optional(),
+  estimatedReturnAt: IsoDateSchema.optional(),
   details: z.array(BookingDetailSchema),
   serverTime: IsoDateSchema,
 });
@@ -592,6 +634,7 @@ export const SummarySchema = z.object({
   tours: z.number().int(),
   bookings: z.number().int(),
   pendingRefunds: z.number().int(),
+  collectedRevenueVnd: MoneySchema,
 });
 export const AuditSchema = z.object({
   id: IdSchema,
@@ -623,6 +666,7 @@ export type TourItineraryDay = z.infer<typeof TourItineraryDaySchema>;
 export type TourCommercial = z.infer<typeof TourCommercialSchema>;
 export type Schedule = z.infer<typeof ScheduleSchema>;
 export type Booking = z.infer<typeof BookingSchema>;
+export type Traveler = z.infer<typeof TravelerSchema>;
 export type Payment = z.infer<typeof PaymentSchema>;
 export type PaymentProviderCapability = z.infer<typeof PaymentProviderCapabilitySchema>;
 export type IntegrationStatus = z.infer<typeof IntegrationStatusSchema>;
@@ -631,6 +675,7 @@ export type AssistantResult = z.infer<typeof AssistantResultSchema>;
 export type AssistantPageContext = z.infer<typeof AssistantPageContextSchema>;
 export type TourReview = z.infer<typeof TourReviewSchema>;
 export type TourReviewList = z.infer<typeof TourReviewListSchema>;
+export type AdminTourReview = z.infer<typeof AdminTourReviewSchema>;
 export type AgentPlan = z.infer<typeof AgentPlanSchema>;
 export type AgentPlanRequest = z.infer<typeof AgentPlanRequestSchema>;
 export type AgentPlanUpdate = z.infer<typeof AgentPlanUpdateSchema>;

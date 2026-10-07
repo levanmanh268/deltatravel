@@ -14,6 +14,7 @@ export function bookingDto(b: BookingRow, now = new Date()) {
     contactName: b.contactName,
     contactEmail: b.contactEmail,
     contactPhone: b.contactPhone,
+    travelers: Array.isArray(b.travelers) ? b.travelers : [],
     expiresAt: b.expiresAt,
     createdAt: b.createdAt,
     paidAt: b.paidAt,
@@ -22,6 +23,11 @@ export function bookingDto(b: BookingRow, now = new Date()) {
     cancelReason: b.cancelReason,
     tourTitle: b.tourTitle,
     departureAt: b.schedule.departureAt,
+    durationDays: b.schedule.durationDays,
+    estimatedReturnAt: new Date(
+      b.schedule.departureAt.getTime() +
+        Math.max(0, b.schedule.durationDays - 1) * 24 * 60 * 60 * 1000,
+    ),
     serverTime: now,
     details: b.details.map((d) => ({
       kind: d.kind,
@@ -32,11 +38,15 @@ export function bookingDto(b: BookingRow, now = new Date()) {
   };
 }
 export function scheduleDto(s: Schedule, now = new Date()) {
+  const estimatedReturnAt = new Date(
+    s.departureAt.getTime() + Math.max(0, s.durationDays - 1) * 24 * 60 * 60 * 1000,
+  );
   return {
     ...s,
     adultPrice: Number(s.adultPrice),
     childPrice: Number(s.childPrice),
     availableSeats: s.totalSeats - s.reservedSeats,
+    estimatedReturnAt,
     serverTime: now,
   };
 }

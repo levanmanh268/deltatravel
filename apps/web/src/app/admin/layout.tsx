@@ -20,6 +20,7 @@ import {
   ArrowLeft,
   ShieldCheck,
   Sparkles,
+  Star,
 } from 'lucide-react';
 
 const ADMIN_NAV_LINKS = [
@@ -28,6 +29,7 @@ const ADMIN_NAV_LINKS = [
   { href: '/admin/schedules', label: 'Lịch khởi hành & Slot', icon: Calendar, adminOnly: false },
   { href: '/admin/bookings', label: 'Quản lý Đơn & Sao kê', icon: Ticket, adminOnly: false },
   { href: '/admin/payments', label: 'Thanh toán & Hoàn tiền', icon: CreditCard, adminOnly: false },
+  { href: '/admin/reviews', label: 'Đánh giá & Feedback', icon: Star, adminOnly: false },
   { href: '/admin/system', label: 'AI & trạng thái hệ thống', icon: Cpu, adminOnly: false },
   { href: '/admin/audit-logs', label: 'Nhật ký kiểm toán', icon: FileText, adminOnly: true },
 ];

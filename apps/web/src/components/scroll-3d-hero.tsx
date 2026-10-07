@@ -29,6 +29,7 @@ export function Scroll3DHero() {
   const isRunning = useRef<boolean>(true);
 
   const [uiProgress, setUiProgress] = useState<number>(0);
+  const [liteMode, setLiteMode] = useState(false);
 
   // Draw frame on canvas with aspect-ratio cover
   const drawFrame = (frame: number) => {
@@ -111,9 +112,29 @@ export function Scroll3DHero() {
   useEffect(() => {
     isRunning.current = true;
 
-    // Immediately trigger background preload of all 150 frames
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const connection = (
+      navigator as Navigator & {
+        connection?: { saveData?: boolean; effectiveType?: string };
+      }
+    ).connection;
+    const constrainedNetwork =
+      connection?.saveData ||
+      connection?.effectiveType === 'slow-2g' ||
+      connection?.effectiveType === '2g';
+    const shouldUseLiteMode = Boolean(reduceMotion || constrainedNetwork);
+    setLiteMode(shouldUseLiteMode);
+
+    if (shouldUseLiteMode) {
+      setUiProgress(0.75);
+      void preloadFrame(120).then(() => drawFrame(120));
+      return () => {
+        isRunning.current = false;
+      };
+    }
+
     startBackgroundFramePreload();
-    preloadFrame(1).then(() => {
+    void preloadFrame(1).then(() => {
       drawFrame(1);
     });
 
@@ -179,7 +200,7 @@ export function Scroll3DHero() {
     <div
       id="hero-3d-section"
       ref={containerRef}
-      className="relative w-full h-[360vh] bg-black text-white"
+      className={`relative w-full ${liteMode ? 'h-screen' : 'h-[360vh]'} bg-black text-white`}
     >
       {/* Sticky Fullscreen Scrubber covering 100% viewport */}
       <div className="sticky top-0 h-screen min-h-[100dvh] w-full overflow-hidden flex items-center justify-center bg-black">

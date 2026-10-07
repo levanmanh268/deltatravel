@@ -7,10 +7,30 @@ import { useAvailability } from '@/hooks/use-availability';
 import { bookingApi } from '@/lib/api';
 import type { z } from 'zod';
 import { useAuth } from '@/providers/auth-provider';
-import { IdSchema, type QuoteResultSchema } from '@tour/shared';
+import { IdSchema, type QuoteResultSchema, type Traveler } from '@tour/shared';
 import { formatVND, formatDate } from '@/lib/format';
 
 type QuoteResult = z.infer<typeof QuoteResultSchema>;
+type TravelerDraft = Pick<Traveler, 'kind' | 'fullName' | 'birthDate' | 'specialRequest'>;
+
+function syncTravelerDrafts(
+  current: TravelerDraft[],
+  adults: number,
+  children: number,
+): TravelerDraft[] {
+  const existingAdults = current.filter((item) => item.kind === 'ADULT');
+  const existingChildren = current.filter((item) => item.kind === 'CHILD');
+  const make = (kind: 'ADULT' | 'CHILD', previous?: TravelerDraft): TravelerDraft => ({
+    kind,
+    fullName: previous?.fullName ?? '',
+    birthDate: previous?.birthDate ?? null,
+    specialRequest: previous?.specialRequest ?? null,
+  });
+  return [
+    ...Array.from({ length: adults }, (_, index) => make('ADULT', existingAdults[index])),
+    ...Array.from({ length: children }, (_, index) => make('CHILD', existingChildren[index])),
+  ];
+}
 
 function parsePartyParam(value: string | null, fallback: number, min: number, max: number) {
   if (value === null || value.trim() === '') return fallback;
@@ -48,6 +68,9 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
   const [contactName, setContactName] = useState(user?.name || '');
   const [contactEmail, setContactEmail] = useState(user?.email || '');
   const [contactPhone, setContactPhone] = useState('');
+  const [travelers, setTravelers] = useState<TravelerDraft[]>(() =>
+    syncTravelerDrafts([], initialAdults, initialChildren),
+  );
 
   // Polling availability every 3 seconds
   const { data: schedule, error: availabilityError } = useAvailability(scheduleId);
@@ -61,14 +84,55 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Idempotency Key: maintained for network retry; regenerated only if party changes
+  // Keep the same idempotency key for a true retry of the same request, but
+  // rotate it whenever any booking payload field changes.
   const [idempotencyKey, setIdempotencyKey] = useState<string>(() => crypto.randomUUID());
 
-  // Regenerate key when adults or children change
-  const partyKey = useMemo(() => `${adults}-${childrenCount}`, [adults, childrenCount]);
+  useEffect(() => {
+    setTravelers((current) => syncTravelerDrafts(current, adults, childrenCount));
+  }, [adults, childrenCount]);
+
+  const bookingRequestKey = useMemo(
+    () =>
+      JSON.stringify({
+        scheduleId,
+        adults,
+        children: childrenCount,
+        contactName,
+        contactEmail,
+        contactPhone,
+        travelers,
+      }),
+    [scheduleId, adults, childrenCount, contactName, contactEmail, contactPhone, travelers],
+  );
+
   useEffect(() => {
     setIdempotencyKey(crypto.randomUUID());
-  }, [partyKey]);
+  }, [bookingRequestKey]);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(`delta_checkout_draft_${scheduleId}`);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as {
+        adults?: number;
+        children?: number;
+        contactName?: string;
+        contactEmail?: string;
+        contactPhone?: string;
+        travelers?: TravelerDraft[];
+      };
+      if (Number.isInteger(draft.adults) && draft.adults! >= 1) setAdults(draft.adults!);
+      if (Number.isInteger(draft.children) && draft.children! >= 0)
+        setChildrenCount(draft.children!);
+      if (typeof draft.contactName === 'string') setContactName(draft.contactName);
+      if (typeof draft.contactEmail === 'string') setContactEmail(draft.contactEmail);
+      if (typeof draft.contactPhone === 'string') setContactPhone(draft.contactPhone);
+      if (Array.isArray(draft.travelers)) setTravelers(draft.travelers);
+    } catch {
+      sessionStorage.removeItem(`delta_checkout_draft_${scheduleId}`);
+    }
+  }, [scheduleId]);
 
   // Fetch official quote
   useEffect(() => {
@@ -111,9 +175,26 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
 
   const handleSubmitBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
     setSubmitError(null);
 
+    if (!user) {
+      sessionStorage.setItem(
+        `delta_checkout_draft_${scheduleId}`,
+        JSON.stringify({
+          adults,
+          children: childrenCount,
+          contactName,
+          contactEmail,
+          contactPhone,
+          travelers,
+        }),
+      );
+      const next = `/checkout/${scheduleId}?adults=${adults}&children=${childrenCount}`;
+      router.push(`/login?next=${encodeURIComponent(next)}`);
+      return;
+    }
+
+    setSubmitting(true);
     try {
       const result = await bookingApi.create(
         {
@@ -123,11 +204,17 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
           contactName: contactName.trim(),
           contactEmail: contactEmail.trim(),
           contactPhone: contactPhone.trim(),
+          travelers: travelers.map((traveler) => ({
+            kind: traveler.kind,
+            fullName: traveler.fullName.trim(),
+            birthDate: traveler.birthDate || null,
+            specialRequest: traveler.specialRequest?.trim() || null,
+          })),
         },
         idempotencyKey,
       );
 
-      // Redirect immediately to booking detail page
+      sessionStorage.removeItem(`delta_checkout_draft_${scheduleId}`);
       router.push(`/bookings/${result.id}`);
     } catch (err) {
       setSubmitError(
@@ -147,10 +234,17 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
 
   return (
     <div className="space-y-8">
+      {!user && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-xs leading-relaxed text-amber-950">
+          {lang === 'en'
+            ? 'You can review the trip and complete traveler details first. Sign in is only required when you actually hold the seats.'
+            : 'Bạn có thể xem giá và điền thông tin hành khách trước. Hệ thống chỉ yêu cầu đăng nhập khi bạn thực sự bấm giữ chỗ.'}
+        </div>
+      )}
       <AiContextCard
-        eyebrow="DELTA AI • PRE-BOOKING REVIEW"
-        title="AI kiểm tra đơn trước khi bạn giữ chỗ"
-        description="AI đọc lịch, số chỗ và báo giá hiện tại. Backend vẫn là lớp quyết định cuối cùng khi tạo booking, nên AI không thể bỏ qua kiểm tra nghiệp vụ."
+        eyebrow="DELTA AI • KIỂM TRA TRƯỚC KHI ĐẶT"
+        title="Kiểm tra lại chuyến đi trước khi bạn giữ chỗ"
+        description="DELTA AI đối chiếu giá, ngày khởi hành và số chỗ hiện có. Hệ thống vẫn kiểm tra lại một lần nữa khi bạn bấm giữ chỗ."
         prompt={
           schedule && quote
             ? `Kiểm tra giúp tôi trước khi đặt lịch ${scheduleId}: ${adults} người lớn, ${childrenCount} trẻ em, tổng báo giá ${quote.totalAmount.toLocaleString('vi-VN')} VND, hiện còn ${schedule.availableSeats} chỗ. Hãy nêu điều cần chú ý và bước tiếp theo.`
@@ -274,6 +368,134 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
               )}
             </div>
 
+            {/* Traveler details */}
+            <div className="rounded-2xl border border-stone-200/80 bg-white p-8 shadow-luxury">
+              <div className="mb-6 border-b border-stone-100 pb-4">
+                <h2 className="font-serif text-xl font-bold text-stone-900">
+                  {lang === 'en' ? 'Traveler details' : 'Thông tin từng hành khách'}
+                </h2>
+                <p className="mt-1 text-xs leading-relaxed text-stone-500">
+                  {lang === 'en'
+                    ? 'Names are required for the booking. Date of birth and special requests are optional and should only be provided when relevant to the trip.'
+                    : 'Họ tên được dùng để lập danh sách khách. Ngày sinh và yêu cầu đặc biệt là tùy chọn, chỉ cần cung cấp khi có liên quan đến chuyến đi.'}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {travelers.map((traveler, index) => {
+                  const adultNumber = travelers
+                    .slice(0, index + 1)
+                    .filter((item) => item.kind === 'ADULT').length;
+                  const childNumber = travelers
+                    .slice(0, index + 1)
+                    .filter((item) => item.kind === 'CHILD').length;
+                  const label =
+                    traveler.kind === 'ADULT'
+                      ? lang === 'en'
+                        ? `Adult ${adultNumber}`
+                        : `Người lớn ${adultNumber}`
+                      : lang === 'en'
+                        ? `Child ${childNumber}`
+                        : `Trẻ em ${childNumber}`;
+
+                  return (
+                    <div
+                      key={`${traveler.kind}-${index}`}
+                      className="rounded-2xl border border-stone-200 bg-[#faf9f5] p-5"
+                    >
+                      <div className="mb-4 flex items-center justify-between gap-3">
+                        <span className="text-xs font-black uppercase tracking-wider text-stone-800">
+                          {label}
+                        </span>
+                        <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-stone-500 ring-1 ring-stone-200">
+                          {traveler.kind === 'ADULT'
+                            ? lang === 'en'
+                              ? 'Adult'
+                              : 'Người lớn'
+                            : lang === 'en'
+                              ? 'Child'
+                              : 'Trẻ em'}
+                        </span>
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <label className="text-xs font-semibold text-stone-700">
+                          {lang === 'en' ? 'Full name *' : 'Họ và tên *'}
+                          <input
+                            required
+                            minLength={2}
+                            maxLength={100}
+                            value={traveler.fullName}
+                            onChange={(event) =>
+                              setTravelers((current) =>
+                                current.map((item, travelerIndex) =>
+                                  travelerIndex === index
+                                    ? { ...item, fullName: event.target.value }
+                                    : item,
+                                ),
+                              )
+                            }
+                            className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-normal text-stone-900 outline-none focus:border-black"
+                            placeholder={
+                              lang === 'en' ? 'Name on traveler list' : 'Tên trên danh sách khách'
+                            }
+                          />
+                        </label>
+
+                        <label className="text-xs font-semibold text-stone-700">
+                          {lang === 'en' ? 'Date of birth' : 'Ngày sinh'}
+                          <input
+                            type="date"
+                            value={traveler.birthDate ?? ''}
+                            onChange={(event) =>
+                              setTravelers((current) =>
+                                current.map((item, travelerIndex) =>
+                                  travelerIndex === index
+                                    ? { ...item, birthDate: event.target.value || null }
+                                    : item,
+                                ),
+                              )
+                            }
+                            className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-normal text-stone-900 outline-none focus:border-black"
+                          />
+                        </label>
+                      </div>
+
+                      <label className="mt-4 block text-xs font-semibold text-stone-700">
+                        {lang === 'en' ? 'Special request' : 'Yêu cầu đặc biệt'}
+                        <textarea
+                          rows={2}
+                          maxLength={500}
+                          value={traveler.specialRequest ?? ''}
+                          onChange={(event) =>
+                            setTravelers((current) =>
+                              current.map((item, travelerIndex) =>
+                                travelerIndex === index
+                                  ? { ...item, specialRequest: event.target.value || null }
+                                  : item,
+                              ),
+                            )
+                          }
+                          className="mt-1.5 w-full resize-none rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm font-normal text-stone-900 outline-none focus:border-black"
+                          placeholder={
+                            lang === 'en'
+                              ? 'Meals, mobility assistance, pickup note...'
+                              : 'Ăn chay, hỗ trợ di chuyển, lưu ý điểm đón...'
+                          }
+                        />
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="mt-4 text-[11px] leading-relaxed text-stone-500">
+                {lang === 'en'
+                  ? 'Government identification is not collected by default. Operations may request additional documents only when a specific itinerary legally requires them.'
+                  : 'Hệ thống không thu thập CCCD mặc định. Bộ phận vận hành chỉ yêu cầu thêm giấy tờ khi một hành trình cụ thể thực sự cần theo quy định.'}
+              </p>
+            </div>
+
             {/* Contact Information Form */}
             <div className="rounded-2xl border border-stone-200/80 bg-white p-8 shadow-luxury">
               <h2 className="font-serif text-xl font-bold text-stone-900 mb-2">
@@ -354,11 +576,18 @@ function CheckoutContent({ scheduleId }: { scheduleId: string }) {
                   isSeatExceeded ||
                   !contactName ||
                   !contactEmail ||
-                  !contactPhone
+                  !contactPhone ||
+                  travelers.some((traveler) => traveler.fullName.trim().length < 2)
                 }
                 className="w-full sm:w-auto bg-stone-900 hover:bg-stone-800 text-white px-8 py-3 rounded-xl shadow-md text-sm font-semibold"
               >
-                {submitting ? t('chk_holding') : t('chk_btn_hold')}
+                {submitting
+                  ? t('chk_holding')
+                  : !user
+                    ? lang === 'en'
+                      ? 'Sign in to hold seats'
+                      : 'Đăng nhập để giữ chỗ'
+                    : t('chk_btn_hold')}
               </Button>
             </div>
           </form>

@@ -2876,7 +2876,7 @@
                               "createdAt",
                               "updatedAt"
                             ],
-                            "additionalProperties": false
+                            "additionalProperties": true
                           }
                         },
                         "page": {
@@ -3311,7 +3311,7 @@
                         "createdAt",
                         "updatedAt"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": true
                     },
                     "meta": {
                       "type": "object",
@@ -3552,6 +3552,10 @@
                               "availableSeats": {
                                 "type": "integer"
                               },
+                              "estimatedReturnAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
                               "serverTime": {
                                 "type": "string",
                                 "format": "date-time"
@@ -3614,6 +3618,7 @@
                         "totalSeats": 30,
                         "reservedSeats": 8,
                         "availableSeats": 22,
+                        "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                         "adultPrice": 3990000,
                         "childPrice": 2490000,
                         "status": "OPEN",
@@ -3806,6 +3811,10 @@
                         "availableSeats": {
                           "type": "integer"
                         },
+                        "estimatedReturnAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
                         "serverTime": {
                           "type": "string",
                           "format": "date-time"
@@ -3852,6 +3861,7 @@
                     "totalSeats": 30,
                     "reservedSeats": 8,
                     "availableSeats": 22,
+                    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                     "adultPrice": 3990000,
                     "childPrice": 2490000,
                     "status": "OPEN",
@@ -4289,6 +4299,38 @@
                         "contactPhone": {
                           "type": "string"
                         },
+                        "travelers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": ["ADULT", "CHILD"]
+                              },
+                              "fullName": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 100
+                              },
+                              "birthDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                "nullable": true,
+                                "default": null
+                              },
+                              "specialRequest": {
+                                "type": "string",
+                                "maxLength": 500,
+                                "nullable": true,
+                                "default": null
+                              }
+                            },
+                            "required": ["kind", "fullName"],
+                            "additionalProperties": false
+                          },
+                          "default": []
+                        },
                         "expiresAt": {
                           "type": "string",
                           "format": "date-time"
@@ -4320,6 +4362,15 @@
                           "type": "string"
                         },
                         "departureAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "durationDays": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 60
+                        },
+                        "estimatedReturnAt": {
                           "type": "string",
                           "format": "date-time"
                         },
@@ -4421,6 +4472,8 @@
                     "cancelReason": null,
                     "tourTitle": "Đà Nẵng và Hội An",
                     "departureAt": "2026-12-15T01:00:00.000Z",
+                    "durationDays": 3,
+                    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                     "details": [
                       {
                         "kind": "ADULT",
@@ -4580,6 +4633,39 @@
                   "contactPhone": {
                     "type": "string",
                     "pattern": "^(?:\\+84|0)[0-9]{9,10}$"
+                  },
+                  "travelers": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["ADULT", "CHILD"]
+                        },
+                        "fullName": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
+                        "birthDate": {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                          "nullable": true,
+                          "default": null
+                        },
+                        "specialRequest": {
+                          "type": "string",
+                          "maxLength": 500,
+                          "nullable": true,
+                          "default": null
+                        }
+                      },
+                      "required": ["kind", "fullName"],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 200,
+                    "default": []
                   }
                 },
                 "required": [
@@ -4699,6 +4785,38 @@
                               "contactPhone": {
                                 "type": "string"
                               },
+                              "travelers": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": ["ADULT", "CHILD"]
+                                    },
+                                    "fullName": {
+                                      "type": "string",
+                                      "minLength": 2,
+                                      "maxLength": 100
+                                    },
+                                    "birthDate": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                      "nullable": true,
+                                      "default": null
+                                    },
+                                    "specialRequest": {
+                                      "type": "string",
+                                      "maxLength": 500,
+                                      "nullable": true,
+                                      "default": null
+                                    }
+                                  },
+                                  "required": ["kind", "fullName"],
+                                  "additionalProperties": false
+                                },
+                                "default": []
+                              },
                               "expiresAt": {
                                 "type": "string",
                                 "format": "date-time"
@@ -4730,6 +4848,15 @@
                                 "type": "string"
                               },
                               "departureAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "durationDays": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 60
+                              },
+                              "estimatedReturnAt": {
                                 "type": "string",
                                 "format": "date-time"
                               },
@@ -4847,6 +4974,8 @@
                         "cancelReason": null,
                         "tourTitle": "Đà Nẵng và Hội An",
                         "departureAt": "2026-12-15T01:00:00.000Z",
+                        "durationDays": 3,
+                        "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                         "details": [
                           {
                             "kind": "ADULT",
@@ -5058,6 +5187,38 @@
                         "contactPhone": {
                           "type": "string"
                         },
+                        "travelers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": ["ADULT", "CHILD"]
+                              },
+                              "fullName": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 100
+                              },
+                              "birthDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                "nullable": true,
+                                "default": null
+                              },
+                              "specialRequest": {
+                                "type": "string",
+                                "maxLength": 500,
+                                "nullable": true,
+                                "default": null
+                              }
+                            },
+                            "required": ["kind", "fullName"],
+                            "additionalProperties": false
+                          },
+                          "default": []
+                        },
                         "expiresAt": {
                           "type": "string",
                           "format": "date-time"
@@ -5089,6 +5250,15 @@
                           "type": "string"
                         },
                         "departureAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "durationDays": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 60
+                        },
+                        "estimatedReturnAt": {
                           "type": "string",
                           "format": "date-time"
                         },
@@ -5190,6 +5360,8 @@
                     "cancelReason": null,
                     "tourTitle": "Đà Nẵng và Hội An",
                     "departureAt": "2026-12-15T01:00:00.000Z",
+                    "durationDays": 3,
+                    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                     "details": [
                       {
                         "kind": "ADULT",
@@ -5396,6 +5568,38 @@
                         "contactPhone": {
                           "type": "string"
                         },
+                        "travelers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": ["ADULT", "CHILD"]
+                              },
+                              "fullName": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 100
+                              },
+                              "birthDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                "nullable": true,
+                                "default": null
+                              },
+                              "specialRequest": {
+                                "type": "string",
+                                "maxLength": 500,
+                                "nullable": true,
+                                "default": null
+                              }
+                            },
+                            "required": ["kind", "fullName"],
+                            "additionalProperties": false
+                          },
+                          "default": []
+                        },
                         "expiresAt": {
                           "type": "string",
                           "format": "date-time"
@@ -5427,6 +5631,15 @@
                           "type": "string"
                         },
                         "departureAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "durationDays": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 60
+                        },
+                        "estimatedReturnAt": {
                           "type": "string",
                           "format": "date-time"
                         },
@@ -5528,6 +5741,8 @@
                     "cancelReason": "Thay đổi kế hoạch cá nhân",
                     "tourTitle": "Đà Nẵng và Hội An",
                     "departureAt": "2026-12-15T01:00:00.000Z",
+                    "durationDays": 3,
+                    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                     "details": [
                       {
                         "kind": "ADULT",
@@ -6423,9 +6638,14 @@
                         },
                         "pendingRefunds": {
                           "type": "integer"
+                        },
+                        "collectedRevenueVnd": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9999999999
                         }
                       },
-                      "required": ["tours", "bookings", "pendingRefunds"],
+                      "required": ["tours", "bookings", "pendingRefunds", "collectedRevenueVnd"],
                       "additionalProperties": false
                     },
                     "meta": {
@@ -6450,7 +6670,8 @@
                   "data": {
                     "tours": 3,
                     "bookings": 12,
-                    "pendingRefunds": 1
+                    "pendingRefunds": 1,
+                    "collectedRevenueVnd": 0
                   },
                   "meta": {
                     "requestId": "example-request-id",
@@ -6872,7 +7093,7 @@
                               "createdAt",
                               "updatedAt"
                             ],
-                            "additionalProperties": false
+                            "additionalProperties": true
                           }
                         },
                         "page": {
@@ -7299,7 +7520,7 @@
                         "createdAt",
                         "updatedAt"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": true
                     },
                     "meta": {
                       "type": "object",
@@ -7943,7 +8164,7 @@
                         "createdAt",
                         "updatedAt"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": true
                     },
                     "meta": {
                       "type": "object",
@@ -8569,6 +8790,10 @@
                               "availableSeats": {
                                 "type": "integer"
                               },
+                              "estimatedReturnAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
                               "serverTime": {
                                 "type": "string",
                                 "format": "date-time"
@@ -8631,6 +8856,7 @@
                         "totalSeats": 30,
                         "reservedSeats": 8,
                         "availableSeats": 22,
+                        "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                         "adultPrice": 3990000,
                         "childPrice": 2490000,
                         "status": "OPEN",
@@ -8815,6 +9041,10 @@
                         "availableSeats": {
                           "type": "integer"
                         },
+                        "estimatedReturnAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
                         "serverTime": {
                           "type": "string",
                           "format": "date-time"
@@ -8861,6 +9091,7 @@
                     "totalSeats": 30,
                     "reservedSeats": 8,
                     "availableSeats": 22,
+                    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                     "adultPrice": 3990000,
                     "childPrice": 2490000,
                     "status": "OPEN",
@@ -9108,6 +9339,10 @@
                         "availableSeats": {
                           "type": "integer"
                         },
+                        "estimatedReturnAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
                         "serverTime": {
                           "type": "string",
                           "format": "date-time"
@@ -9154,6 +9389,7 @@
                     "totalSeats": 30,
                     "reservedSeats": 8,
                     "availableSeats": 22,
+                    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                     "adultPrice": 3990000,
                     "childPrice": 2490000,
                     "status": "OPEN",
@@ -9408,6 +9644,38 @@
                               "contactPhone": {
                                 "type": "string"
                               },
+                              "travelers": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "enum": ["ADULT", "CHILD"]
+                                    },
+                                    "fullName": {
+                                      "type": "string",
+                                      "minLength": 2,
+                                      "maxLength": 100
+                                    },
+                                    "birthDate": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                      "nullable": true,
+                                      "default": null
+                                    },
+                                    "specialRequest": {
+                                      "type": "string",
+                                      "maxLength": 500,
+                                      "nullable": true,
+                                      "default": null
+                                    }
+                                  },
+                                  "required": ["kind", "fullName"],
+                                  "additionalProperties": false
+                                },
+                                "default": []
+                              },
                               "expiresAt": {
                                 "type": "string",
                                 "format": "date-time"
@@ -9439,6 +9707,15 @@
                                 "type": "string"
                               },
                               "departureAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "durationDays": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 60
+                              },
+                              "estimatedReturnAt": {
                                 "type": "string",
                                 "format": "date-time"
                               },
@@ -9556,6 +9833,8 @@
                         "cancelReason": null,
                         "tourTitle": "Đà Nẵng và Hội An",
                         "departureAt": "2026-12-15T01:00:00.000Z",
+                        "durationDays": 3,
+                        "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                         "details": [
                           {
                             "kind": "ADULT",
@@ -9767,6 +10046,38 @@
                         "contactPhone": {
                           "type": "string"
                         },
+                        "travelers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": ["ADULT", "CHILD"]
+                              },
+                              "fullName": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 100
+                              },
+                              "birthDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                "nullable": true,
+                                "default": null
+                              },
+                              "specialRequest": {
+                                "type": "string",
+                                "maxLength": 500,
+                                "nullable": true,
+                                "default": null
+                              }
+                            },
+                            "required": ["kind", "fullName"],
+                            "additionalProperties": false
+                          },
+                          "default": []
+                        },
                         "expiresAt": {
                           "type": "string",
                           "format": "date-time"
@@ -9798,6 +10109,15 @@
                           "type": "string"
                         },
                         "departureAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "durationDays": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 60
+                        },
+                        "estimatedReturnAt": {
                           "type": "string",
                           "format": "date-time"
                         },
@@ -9899,6 +10219,8 @@
                     "cancelReason": null,
                     "tourTitle": "Đà Nẵng và Hội An",
                     "departureAt": "2026-12-15T01:00:00.000Z",
+                    "durationDays": 3,
+                    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                     "details": [
                       {
                         "kind": "ADULT",
@@ -10105,6 +10427,38 @@
                         "contactPhone": {
                           "type": "string"
                         },
+                        "travelers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": ["ADULT", "CHILD"]
+                              },
+                              "fullName": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 100
+                              },
+                              "birthDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                "nullable": true,
+                                "default": null
+                              },
+                              "specialRequest": {
+                                "type": "string",
+                                "maxLength": 500,
+                                "nullable": true,
+                                "default": null
+                              }
+                            },
+                            "required": ["kind", "fullName"],
+                            "additionalProperties": false
+                          },
+                          "default": []
+                        },
                         "expiresAt": {
                           "type": "string",
                           "format": "date-time"
@@ -10136,6 +10490,15 @@
                           "type": "string"
                         },
                         "departureAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "durationDays": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 60
+                        },
+                        "estimatedReturnAt": {
                           "type": "string",
                           "format": "date-time"
                         },
@@ -10237,6 +10600,8 @@
                     "cancelReason": null,
                     "tourTitle": "Đà Nẵng và Hội An",
                     "departureAt": "2026-12-15T01:00:00.000Z",
+                    "durationDays": 3,
+                    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                     "details": [
                       {
                         "kind": "ADULT",
@@ -10464,6 +10829,38 @@
                         "contactPhone": {
                           "type": "string"
                         },
+                        "travelers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": ["ADULT", "CHILD"]
+                              },
+                              "fullName": {
+                                "type": "string",
+                                "minLength": 2,
+                                "maxLength": 100
+                              },
+                              "birthDate": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                "nullable": true,
+                                "default": null
+                              },
+                              "specialRequest": {
+                                "type": "string",
+                                "maxLength": 500,
+                                "nullable": true,
+                                "default": null
+                              }
+                            },
+                            "required": ["kind", "fullName"],
+                            "additionalProperties": false
+                          },
+                          "default": []
+                        },
                         "expiresAt": {
                           "type": "string",
                           "format": "date-time"
@@ -10495,6 +10892,15 @@
                           "type": "string"
                         },
                         "departureAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "durationDays": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 60
+                        },
+                        "estimatedReturnAt": {
                           "type": "string",
                           "format": "date-time"
                         },
@@ -10596,6 +11002,8 @@
                     "cancelReason": "Thay đổi kế hoạch cá nhân",
                     "tourTitle": "Đà Nẵng và Hội An",
                     "departureAt": "2026-12-15T01:00:00.000Z",
+                    "durationDays": 3,
+                    "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                     "details": [
                       {
                         "kind": "ADULT",
@@ -10739,6 +11147,450 @@
               },
               "example": {
                 "reason": "Thay đổi kế hoạch cá nhân"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reviews": {
+      "get": {
+        "summary": "Danh sách đánh giá sao và feedback xác thực từ khách đã hoàn thành tour.",
+        "operationId": "get_admin_reviews",
+        "tags": ["admin"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "tourId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "rating": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 5
+                              },
+                              "comment": {
+                                "type": "string"
+                              },
+                              "authorName": {
+                                "type": "string"
+                              },
+                              "authorAvatarUrl": {
+                                "type": "string",
+                                "format": "uri",
+                                "nullable": true
+                              },
+                              "verifiedPurchase": {
+                                "type": "boolean"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "authorEmail": {
+                                "type": "string",
+                                "format": "email"
+                              },
+                              "tourTitle": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "tourId",
+                              "rating",
+                              "comment",
+                              "authorName",
+                              "authorAvatarUrl",
+                              "verifiedPurchase",
+                              "createdAt",
+                              "updatedAt",
+                              "authorEmail",
+                              "tourTitle"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "pageSize": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": ["items", "page", "pageSize", "total"],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": ["requestId", "timestamp"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["data", "meta"],
+                  "additionalProperties": false
+                },
+                "example": {
+                  "data": {
+                    "items": [
+                      {
+                        "id": "66666666-6666-4666-8666-666666666666",
+                        "tourId": "11111111-1111-4111-8111-111111111111",
+                        "rating": 5,
+                        "comment": "Lịch trình hợp lý, thông tin minh bạch và hướng dẫn viên hỗ trợ tốt.",
+                        "authorName": "Nguyễn Minh Anh",
+                        "authorEmail": "minhanh@example.com",
+                        "authorAvatarUrl": null,
+                        "tourTitle": "Đà Nẵng và Hội An",
+                        "verifiedPurchase": true,
+                        "createdAt": "2026-12-01T01:00:00.000Z",
+                        "updatedAt": "2026-12-01T01:00:00.000Z"
+                      }
+                    ],
+                    "page": 1,
+                    "pageSize": 20,
+                    "total": 1
+                  },
+                  "meta": {
+                    "requestId": "example-request-id",
+                    "timestamp": "2026-12-01T01:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reviews/{id}": {
+      "delete": {
+        "summary": "Gỡ đánh giá vi phạm và ghi audit log. Không làm mất lịch sử booking.",
+        "operationId": "delete_admin_reviews__id_",
+        "tags": ["admin"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "boolean",
+                          "enum": [true]
+                        }
+                      },
+                      "required": ["ok"],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "timestamp": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": ["requestId", "timestamp"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["data", "meta"],
+                  "additionalProperties": false
+                },
+                "example": {
+                  "data": {
+                    "ok": true
+                  },
+                  "meta": {
+                    "requestId": "example-request-id",
+                    "timestamp": "2026-12-01T01:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "See error.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
               }
             }
           }
@@ -12752,6 +13604,38 @@
                             "contactPhone": {
                               "type": "string"
                             },
+                            "travelers": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": ["ADULT", "CHILD"]
+                                  },
+                                  "fullName": {
+                                    "type": "string",
+                                    "minLength": 2,
+                                    "maxLength": 100
+                                  },
+                                  "birthDate": {
+                                    "type": "string",
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                    "nullable": true,
+                                    "default": null
+                                  },
+                                  "specialRequest": {
+                                    "type": "string",
+                                    "maxLength": 500,
+                                    "nullable": true,
+                                    "default": null
+                                  }
+                                },
+                                "required": ["kind", "fullName"],
+                                "additionalProperties": false
+                              },
+                              "default": []
+                            },
                             "expiresAt": {
                               "type": "string",
                               "format": "date-time"
@@ -12783,6 +13667,15 @@
                               "type": "string"
                             },
                             "departureAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "durationDays": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 60
+                            },
+                            "estimatedReturnAt": {
                               "type": "string",
                               "format": "date-time"
                             },
@@ -13627,6 +14520,38 @@
                             "contactPhone": {
                               "type": "string"
                             },
+                            "travelers": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": ["ADULT", "CHILD"]
+                                  },
+                                  "fullName": {
+                                    "type": "string",
+                                    "minLength": 2,
+                                    "maxLength": 100
+                                  },
+                                  "birthDate": {
+                                    "type": "string",
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                    "nullable": true,
+                                    "default": null
+                                  },
+                                  "specialRequest": {
+                                    "type": "string",
+                                    "maxLength": 500,
+                                    "nullable": true,
+                                    "default": null
+                                  }
+                                },
+                                "required": ["kind", "fullName"],
+                                "additionalProperties": false
+                              },
+                              "default": []
+                            },
                             "expiresAt": {
                               "type": "string",
                               "format": "date-time"
@@ -13658,6 +14583,15 @@
                               "type": "string"
                             },
                             "departureAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "durationDays": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 60
+                            },
+                            "estimatedReturnAt": {
                               "type": "string",
                               "format": "date-time"
                             },
@@ -14422,6 +15356,38 @@
                             "contactPhone": {
                               "type": "string"
                             },
+                            "travelers": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": ["ADULT", "CHILD"]
+                                  },
+                                  "fullName": {
+                                    "type": "string",
+                                    "minLength": 2,
+                                    "maxLength": 100
+                                  },
+                                  "birthDate": {
+                                    "type": "string",
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                    "nullable": true,
+                                    "default": null
+                                  },
+                                  "specialRequest": {
+                                    "type": "string",
+                                    "maxLength": 500,
+                                    "nullable": true,
+                                    "default": null
+                                  }
+                                },
+                                "required": ["kind", "fullName"],
+                                "additionalProperties": false
+                              },
+                              "default": []
+                            },
                             "expiresAt": {
                               "type": "string",
                               "format": "date-time"
@@ -14453,6 +15419,15 @@
                               "type": "string"
                             },
                             "departureAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "durationDays": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 60
+                            },
+                            "estimatedReturnAt": {
                               "type": "string",
                               "format": "date-time"
                             },
@@ -15281,6 +16256,38 @@
                             "contactPhone": {
                               "type": "string"
                             },
+                            "travelers": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": ["ADULT", "CHILD"]
+                                  },
+                                  "fullName": {
+                                    "type": "string",
+                                    "minLength": 2,
+                                    "maxLength": 100
+                                  },
+                                  "birthDate": {
+                                    "type": "string",
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                    "nullable": true,
+                                    "default": null
+                                  },
+                                  "specialRequest": {
+                                    "type": "string",
+                                    "maxLength": 500,
+                                    "nullable": true,
+                                    "default": null
+                                  }
+                                },
+                                "required": ["kind", "fullName"],
+                                "additionalProperties": false
+                              },
+                              "default": []
+                            },
                             "expiresAt": {
                               "type": "string",
                               "format": "date-time"
@@ -15312,6 +16319,15 @@
                               "type": "string"
                             },
                             "departureAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "durationDays": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 60
+                            },
+                            "estimatedReturnAt": {
                               "type": "string",
                               "format": "date-time"
                             },
@@ -16105,6 +17121,38 @@
                             "contactPhone": {
                               "type": "string"
                             },
+                            "travelers": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": ["ADULT", "CHILD"]
+                                  },
+                                  "fullName": {
+                                    "type": "string",
+                                    "minLength": 2,
+                                    "maxLength": 100
+                                  },
+                                  "birthDate": {
+                                    "type": "string",
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                    "nullable": true,
+                                    "default": null
+                                  },
+                                  "specialRequest": {
+                                    "type": "string",
+                                    "maxLength": 500,
+                                    "nullable": true,
+                                    "default": null
+                                  }
+                                },
+                                "required": ["kind", "fullName"],
+                                "additionalProperties": false
+                              },
+                              "default": []
+                            },
                             "expiresAt": {
                               "type": "string",
                               "format": "date-time"
@@ -16136,6 +17184,15 @@
                               "type": "string"
                             },
                             "departureAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "durationDays": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 60
+                            },
+                            "estimatedReturnAt": {
                               "type": "string",
                               "format": "date-time"
                             },
@@ -16842,6 +17899,39 @@
                     "type": "string",
                     "pattern": "^(?:\\+84|0)[0-9]{9,10}$"
                   },
+                  "travelers": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": ["ADULT", "CHILD"]
+                        },
+                        "fullName": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 100
+                        },
+                        "birthDate": {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                          "nullable": true,
+                          "default": null
+                        },
+                        "specialRequest": {
+                          "type": "string",
+                          "maxLength": 500,
+                          "nullable": true,
+                          "default": null
+                        }
+                      },
+                      "required": ["kind", "fullName"],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 200,
+                    "default": []
+                  },
                   "provider": {
                     "type": "string",
                     "enum": ["VNPAY", "MOMO", "ZALOPAY", "CASH"]
@@ -16953,6 +18043,38 @@
                             "contactPhone": {
                               "type": "string"
                             },
+                            "travelers": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": ["ADULT", "CHILD"]
+                                  },
+                                  "fullName": {
+                                    "type": "string",
+                                    "minLength": 2,
+                                    "maxLength": 100
+                                  },
+                                  "birthDate": {
+                                    "type": "string",
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                    "nullable": true,
+                                    "default": null
+                                  },
+                                  "specialRequest": {
+                                    "type": "string",
+                                    "maxLength": 500,
+                                    "nullable": true,
+                                    "default": null
+                                  }
+                                },
+                                "required": ["kind", "fullName"],
+                                "additionalProperties": false
+                              },
+                              "default": []
+                            },
                             "expiresAt": {
                               "type": "string",
                               "format": "date-time"
@@ -16984,6 +18106,15 @@
                               "type": "string"
                             },
                             "departureAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "durationDays": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 60
+                            },
+                            "estimatedReturnAt": {
                               "type": "string",
                               "format": "date-time"
                             },
@@ -17099,6 +18230,8 @@
                       "cancelReason": null,
                       "tourTitle": "Đà Nẵng và Hội An",
                       "departureAt": "2026-12-15T01:00:00.000Z",
+                      "durationDays": 3,
+                      "estimatedReturnAt": "2026-12-17T01:00:00.000Z",
                       "details": [
                         {
                           "kind": "ADULT",

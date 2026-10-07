@@ -138,6 +138,7 @@ model Booking {
   contactName String
   contactEmail String
   contactPhone String
+  travelers Json @default("[]")
   expiresAt DateTime @db.Timestamptz(3)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   paidAt DateTime? @db.Timestamptz(3)
