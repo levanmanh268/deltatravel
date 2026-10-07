@@ -556,12 +556,7 @@ export const adminApi = {
 
   tours: () => api('/admin/tours?page=1&pageSize=100', PageSchema(TourResponseSchema)),
 
-  tour: async (id: string) => {
-    const page = await adminApi.tours();
-    const tour = page.items.find((item) => item.id === id);
-    if (!tour) throw new ApiError(404, 'TOUR_NOT_FOUND', 'Không tìm thấy tour.');
-    return tour;
-  },
+  tour: (id: string) => api(`/admin/tours/${id}`, TourResponseSchema),
 
   createTour: (input: Partial<z.infer<typeof TourSchema>>) =>
     api('/admin/tours', TourResponseSchema, {
