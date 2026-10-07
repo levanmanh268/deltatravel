@@ -385,7 +385,13 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
                             className={`mt-1 text-[11px] ${isSelected ? 'text-neutral-300' : 'text-neutral-500'}`}
                           >
                             {lang === 'en' ? 'Est. return:' : 'Về dự kiến:'}{' '}
-                            {formatDate(schedule.estimatedReturnAt)}
+                            {formatDate(
+                              schedule.estimatedReturnAt ??
+                                estimatedReturnDate(
+                                  dateInputValue(schedule.departureAt),
+                                  schedule.durationDays,
+                                )!,
+                            )}
                           </p>
                         </div>
                         {isSelected && (
