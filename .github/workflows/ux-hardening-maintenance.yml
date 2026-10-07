@@ -49,7 +49,6 @@ jobs:
             apps/web/src/app/sitemap.ts \
             apps/api/src/admin/admin.service.ts \
             apps/api/src/bookings/dto.ts \
-            apps/api/prisma/schema.prisma \
             packages/shared/src/index.ts
       - name: Regenerate API contract
         run: |
