@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, use } from 'react';
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -206,10 +206,7 @@ export default function TourDetailPage({ params }: { params: Promise<{ id: strin
   const galleryImages = tour ? getTourGallery(tour) : [];
   const luxuryTag = tour ? getTourLuxuryTag(tour, lang) : '';
   const commercial = tour.commercial;
-  const plannedReturnDate = useMemo(
-    () => estimatedReturnDate(plannedDepartureDate, effectiveDuration),
-    [plannedDepartureDate, effectiveDuration],
-  );
+  const plannedReturnDate = estimatedReturnDate(plannedDepartureDate, effectiveDuration);
 
   if (!displayTour) return null;
 
