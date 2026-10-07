@@ -23,6 +23,11 @@ export function bookingDto(b: BookingRow, now = new Date()) {
     cancelReason: b.cancelReason,
     tourTitle: b.tourTitle,
     departureAt: b.schedule.departureAt,
+    durationDays: b.schedule.durationDays,
+    estimatedReturnAt: new Date(
+      b.schedule.departureAt.getTime() +
+        Math.max(0, b.schedule.durationDays - 1) * 24 * 60 * 60 * 1000,
+    ),
     serverTime: now,
     details: b.details.map((d) => ({
       kind: d.kind,
