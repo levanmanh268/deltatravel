@@ -332,7 +332,7 @@ function ToursListContent() {
           <span className="text-xs font-black uppercase tracking-[0.2em] text-neutral-800">
             {activeRegion
               ? `${t('tours_counter_prefix')} ${REGION_TABS.find((r) => r.id === activeRegion)?.label.toUpperCase()} • ${filteredTours.length} ${t('tours_counter_suffix')}`
-              : `${t('tours_counter_prefix')} • ${tours.length} ${t('tours_counter_suffix')}`}
+              : `${t('tours_counter_prefix')} • ${filteredTours.length} ${t('tours_counter_suffix')}`}
           </span>
         </div>
 
