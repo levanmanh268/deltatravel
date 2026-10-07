@@ -201,6 +201,7 @@ export default function AdminSchedulesPage() {
                 <th className="px-5 py-4">Tour</th>
                 <th className="px-5 py-4">Khởi hành</th>
                 <th className="px-5 py-4">Số ngày</th>
+                <th className="px-5 py-4">Về dự kiến</th>
                 <th className="px-5 py-4">Kho chỗ</th>
                 <th className="px-5 py-4">Giá người lớn</th>
                 <th className="px-5 py-4">Giá trẻ em</th>
@@ -221,6 +222,9 @@ export default function AdminSchedulesPage() {
                     {formatDateTime(schedule.departureAt)}
                   </td>
                   <td className="px-5 py-4 font-black">{schedule.durationDays} ngày</td>
+                  <td className="px-5 py-4 font-semibold">
+                    {formatDateTime(schedule.estimatedReturnAt)}
+                  </td>
                   <td className="px-5 py-4">
                     <span className="font-black text-emerald-800">
                       {schedule.availableSeats} trống
@@ -308,6 +312,31 @@ export default function AdminSchedulesPage() {
                   onChange={(e) => setDepartureDate(e.target.value)}
                 />
               </label>
+
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <div className="text-[10px] font-black uppercase tracking-wider text-amber-900">
+                  Thời gian dự kiến
+                </div>
+                <div className="mt-1 text-sm font-black text-stone-950">
+                  {durationDays} ngày{durationDays > 1 ? ` · ${durationDays - 1} đêm` : ''}
+                </div>
+                <div className="mt-1 text-xs text-stone-700">
+                  Ngày về dự kiến:{' '}
+                  <strong>
+                    {departureDate
+                      ? new Intl.DateTimeFormat('vi-VN', {
+                          dateStyle: 'medium',
+                          timeStyle: 'short',
+                        }).format(
+                          new Date(
+                            new Date(departureDate).getTime() +
+                              Math.max(0, durationDays - 1) * 24 * 60 * 60 * 1000,
+                          ),
+                        )
+                      : 'Chưa chọn ngày khởi hành'}
+                  </strong>
+                </div>
+              </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1 font-semibold">
