@@ -6,6 +6,7 @@ import { adminApi, assistantApi, paymentApi, systemApi } from '@/lib/api';
 import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import { AiContextCard } from '@/components/ai-context-card';
+import { formatVND } from '@/lib/format';
 import {
   Activity,
   Bot,
@@ -106,7 +107,7 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <Metric
           icon={<Compass className="h-5 w-5" />}
           label="Tour trong hệ thống"
@@ -124,6 +125,12 @@ export default function AdminDashboardPage() {
           label="Chờ hoàn tiền"
           value={loading ? '...' : String(snapshot.summary?.pendingRefunds ?? 0)}
           detail="REFUND_REQUIRED"
+        />
+        <Metric
+          icon={<CircleDollarSign className="h-5 w-5" />}
+          label="Doanh thu đã thu"
+          value={loading ? '...' : formatVND(snapshot.summary?.collectedRevenueVnd ?? 0)}
+          detail="Chỉ payment SUCCEEDED"
         />
         <Metric
           icon={<Bot className="h-5 w-5" />}

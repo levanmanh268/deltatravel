@@ -160,7 +160,7 @@ const examples = {
     reference: 'REFUND-20261201-001',
     note: 'Đã đối soát hoàn tiền đầy đủ qua cổng thanh toán',
   },
-  SummarySchema: { tours: 3, bookings: 12, pendingRefunds: 1 },
+  SummarySchema: { tours: 3, bookings: 12, pendingRefunds: 1, collectedRevenueVnd: 0 },
   AuditSchema: {
     id,
     actorId: uid,

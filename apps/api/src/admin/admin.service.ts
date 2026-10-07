@@ -149,14 +149,24 @@ export class AdminService {
       tours: number;
       bookings: number;
       pendingRefunds: number;
+      collectedRevenueVnd: number;
     }>('operations:summary');
     if (cached) return cached;
-    const [tours, bookings, pendingRefunds] = await Promise.all([
+    const [tours, bookings, pendingRefunds, collected] = await Promise.all([
       this.db.tour.count({ where: { deletedAt: null } }),
       this.db.booking.count(),
       this.db.payment.count({ where: { status: 'REFUND_REQUIRED' } }),
+      this.db.payment.aggregate({
+        where: { status: 'SUCCEEDED' },
+        _sum: { amount: true },
+      }),
     ]);
-    const value = { tours, bookings, pendingRefunds };
+    const value = {
+      tours,
+      bookings,
+      pendingRefunds,
+      collectedRevenueVnd: Number(collected._sum.amount ?? 0n),
+    };
     await this.cache.write('operations:summary', value, 15);
     return value;
   }

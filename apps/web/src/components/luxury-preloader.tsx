@@ -27,7 +27,19 @@ export function LuxuryPreloader() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const alreadyPlayed = sessionStorage.getItem('delta_intro_played');
-      if (alreadyPlayed === 'true') {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const connection = (
+        navigator as Navigator & {
+          connection?: { saveData?: boolean; effectiveType?: string };
+        }
+      ).connection;
+      const constrainedNetwork =
+        connection?.saveData ||
+        connection?.effectiveType === 'slow-2g' ||
+        connection?.effectiveType === '2g';
+
+      if (alreadyPlayed === 'true' || reduceMotion || constrainedNetwork) {
+        sessionStorage.setItem('delta_intro_played', 'true');
         setIsVisible(false);
         return;
       }
@@ -122,11 +134,11 @@ export function LuxuryPreloader() {
       }
     });
 
-    // Failsafe maximum timer: if page is ready or 8s passed, ensure site is accessible
+    // Never let the cinematic intro block access to the product for more than 2.5 seconds.
     const failsafeTimer = setTimeout(() => {
       isPageReadyRef.current = true;
       completePreloader();
-    }, 8000);
+    }, 2500);
 
     return () => {
       if (animRef.current) cancelAnimationFrame(animRef.current);
@@ -193,7 +205,7 @@ export function LuxuryPreloader() {
         autoPlay
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
         onCanPlay={handleCanPlay}
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleVideoEnded}

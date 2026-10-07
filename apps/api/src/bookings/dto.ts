@@ -14,6 +14,7 @@ export function bookingDto(b: BookingRow, now = new Date()) {
     contactName: b.contactName,
     contactEmail: b.contactEmail,
     contactPhone: b.contactPhone,
+    travelers: Array.isArray(b.travelers) ? b.travelers : [],
     expiresAt: b.expiresAt,
     createdAt: b.createdAt,
     paidAt: b.paidAt,
