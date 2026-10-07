@@ -98,7 +98,7 @@ export function AgentBookingPanel({
   const [scheduleId, setScheduleId] = useState(initialScheduleId || '');
 
   const editFormRef = useRef<HTMLFormElement>(null);
-  const bước xác nhậnRef = useRef<HTMLDivElement>(null);
+  const checkpointRef = useRef<HTMLDivElement>(null);
   const adultsRef = useRef<HTMLInputElement>(null);
   const childrenRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
