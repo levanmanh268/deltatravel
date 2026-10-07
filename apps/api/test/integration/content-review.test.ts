@@ -130,6 +130,9 @@ describe('content and review persistence', () => {
     );
     scheduleId = created.id;
     expect(created.durationDays).toBe(3);
+    expect(new Date(created.estimatedReturnAt!).getTime()).toBe(
+      new Date(created.departureAt).getTime() + 2 * 86400000,
+    );
   });
 
   it('returns tourId in booking DTO and enforces completed-booking reviews', async () => {
@@ -160,5 +163,11 @@ describe('content and review persistence', () => {
     const page = await reviews.list(tourId);
     expect(page.summary.count).toBe(1);
     expect(page.summary.average).toBe(5);
+
+    const adminPage = await admin.reviews({ page: 1, pageSize: 20 });
+    const adminReview = adminPage.items.find((item) => item.id === saved.id);
+    expect(adminReview?.tourTitle).toBe('Tour content test');
+    expect(adminReview?.authorEmail).toContain('@test.invalid');
+    expect(adminReview?.rating).toBe(5);
   });
 });

@@ -493,6 +493,14 @@ function ToursListContent() {
                     <p className="mt-3 text-xs leading-relaxed text-neutral-600 line-clamp-3 font-normal">
                       {tour.description}
                     </p>
+                    <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2.5 py-1 text-[10px] font-black text-stone-700">
+                      <Calendar className="h-3 w-3" />
+                      {lang === 'en' ? 'Estimated duration' : 'Thời gian dự kiến'}:{' '}
+                      {tour.durationDays} {lang === 'en' ? 'days' : 'ngày'}
+                      {tour.durationDays > 1
+                        ? ` · ${tour.durationDays - 1} ${lang === 'en' ? 'nights' : 'đêm'}`
+                        : ''}
+                    </div>
                   </div>
 
                   {/* Bottom Price & Apple CTA Action */}
