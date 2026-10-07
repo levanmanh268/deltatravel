@@ -1,0 +1,38 @@
+name: Dependency lock refresh
+
+on:
+  push:
+    branches:
+      - manh/ux-hardening-20261007
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: ${{ !contains(github.event.head_commit.message, '[dep-refresh]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: manh/ux-hardening-20261007
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Refresh patched production dependencies in lockfile
+        run: npm audit fix --package-lock-only
+      - name: Verify high-severity production audit
+        run: npm audit --omit=dev --audit-level=high
+      - name: Commit lockfile refresh
+        run: |
+          if git diff --quiet -- package-lock.json; then
+            echo "No lockfile changes"
+            exit 0
+          fi
+          git config user.name "delta-travel-ci"
+          git config user.email "actions@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "chore: refresh patched production dependencies [dep-refresh]"
+          git push origin HEAD:manh/ux-hardening-20261007
