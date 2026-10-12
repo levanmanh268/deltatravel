@@ -3,6 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { z } from 'zod';
 import type { AssistantResult } from '@tour/shared';
 
+// Strict calendar validation: a regex alone incorrectly accepts 31 February.
+const validCalendarDate = (value: string): boolean => {
+  const parts = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(value);
+  if (!parts) return false;
+  const year = Number(parts[1]);
+  const month = Number(parts[2]);
+  const day = Number(parts[3]);
+  if (year < 100 || month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() + 1 === month && date.getUTCDate() === day;
+};
+
 export const AgentIntentSchema = z
   .object({
     intent: z.enum([
@@ -28,10 +40,12 @@ export const AgentIntentSchema = z
     departureFrom: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .refine(validCalendarDate, 'Ngày không tồn tại trong lịch')
       .optional(),
     departureTo: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .refine(validCalendarDate, 'Ngày không tồn tại trong lịch')
       .optional(),
   })
   .strict();
@@ -57,11 +71,14 @@ export class AiProviderService {
       ? Math.round(Number(budgetMatch[1].replace(',', '.')) * 1000000)
       : undefined;
     const normalizeDate = (value: string) => {
-      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-      const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (!match) return undefined;
-      const [, day, month, year] = match;
-      return year + '-' + month.padStart(2, '0') + '-' + day.padStart(2, '0');
+      let normalized = value;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (!match) return undefined;
+        const [, day, month, year] = match;
+        normalized = year + '-' + month.padStart(2, '0') + '-' + day.padStart(2, '0');
+      }
+      return validCalendarDate(normalized) ? normalized : undefined;
     };
     const dates = Array.from(
       s.matchAll(/\b(\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4})\b/g),
@@ -118,6 +135,23 @@ export class AiProviderService {
       return { ...base, intent: 'TRAVEL_PLAN' };
     }
     return { ...base, intent: 'SEARCH_TOURS' };
+  }
+
+  private validatedFallback(message: string): AgentIntent {
+    const raw = this.fallback(message);
+    const parsed = AgentIntentSchema.safeParse(raw);
+    if (parsed.success) return parsed.data;
+    const safe: Record<string, unknown> = { ...raw };
+    // Parser-derived values cannot bypass the same constraints used for LLM responses.
+    // Drop only bad optional fields; never coerce dangerous party sizes or invalid dates.
+    for (const issue of parsed.error.issues) {
+      const key = issue.path[0];
+      if (typeof key === 'string' && key !== 'intent' && key !== 'query') delete safe[key];
+    }
+    const repaired = AgentIntentSchema.safeParse(safe);
+    return repaired.success ? repaired.data : {
+      intent: 'SEARCH_TOURS', query: message.slice(0, 120),
+    };
   }
 
   status() {
@@ -244,7 +278,7 @@ export class AiProviderService {
       }
     }
 
-    return { intent: this.fallback(message), mode: 'RULE_BASED' };
+    return { intent: this.validatedFallback(message), mode: 'RULE_BASED' };
   }
 
   async synthesize(
