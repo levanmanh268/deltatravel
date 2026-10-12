@@ -21,6 +21,21 @@ describe('assistant Stage 1 grounding and authorization', () => {
     expect(planned.intent.departureTo).toBe('2026-10-12');
   });
 
+  it('rejects impossible calendar dates and out-of-range party values in offline fallback', async () => {
+    const ai = new AiProviderService(new ConfigService({}));
+    const impossible = await ai.classify(
+      'lập kế hoạch 150 người lớn 500 trẻ em trong 90 ngày từ 31/02/2026',
+      [],
+    );
+    expect(impossible.mode).toBe('RULE_BASED');
+    expect(impossible.intent.adults).toBeUndefined();
+    expect(impossible.intent.children).toBeUndefined();
+    expect(impossible.intent.durationDays).toBeUndefined();
+    expect(impossible.intent.departureFrom).toBeUndefined();
+    const leap = await ai.classify('lập kế hoạch 2 người lớn từ 29/02/2028', []);
+    expect(leap.intent.departureFrom).toBe('2028-02-29');
+  });
+
   it('delegates MY_BOOKINGS using the authenticated principal', async () => {
     const ai = {
       classify: vi.fn().mockResolvedValue({
