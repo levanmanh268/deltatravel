@@ -5,7 +5,7 @@ import type { AssistantResult } from '@tour/shared';
 
 // Strict calendar validation: a regex alone incorrectly accepts 31 February.
 const validCalendarDate = (value: string): boolean => {
-  const parts = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(value);
+  const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!parts) return false;
   const year = Number(parts[1]);
   const month = Number(parts[2]);
