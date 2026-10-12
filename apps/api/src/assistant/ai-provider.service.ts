@@ -12,7 +12,11 @@ const validCalendarDate = (value: string): boolean => {
   const day = Number(parts[3]);
   if (year < 100 || month < 1 || month > 12 || day < 1 || day > 31) return false;
   const date = new Date(Date.UTC(year, month - 1, day));
-  return date.getUTCFullYear() === year && date.getUTCMonth() + 1 === month && date.getUTCDate() === day;
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() + 1 === month &&
+    date.getUTCDate() === day
+  );
 };
 
 export const AgentIntentSchema = z
@@ -149,9 +153,12 @@ export class AiProviderService {
       if (typeof key === 'string' && key !== 'intent' && key !== 'query') delete safe[key];
     }
     const repaired = AgentIntentSchema.safeParse(safe);
-    return repaired.success ? repaired.data : {
-      intent: 'SEARCH_TOURS', query: message.slice(0, 120),
-    };
+    return repaired.success
+      ? repaired.data
+      : {
+          intent: 'SEARCH_TOURS',
+          query: message.slice(0, 120),
+        };
   }
 
   status() {
