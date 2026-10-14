@@ -11,6 +11,48 @@ function pass(label, detail = '') {
   console.log(`PASS  ${label}${detail ? `  ${detail}` : ''}`);
 }
 
+// Render free instances can serve a temporary wake-up screen while Next.js boots.
+// Recover from that state, but require the actual app UI before accepting the release.
+async function openAppSurface(page, path, selector) {
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    const response = await page.goto(WEB + path, {
+      waitUntil: 'domcontentloaded',
+      timeout: 120000,
+    });
+    const surface = page.locator(selector).first();
+    try {
+      await surface.waitFor({ state: 'visible', timeout: attempt === 1 ? 15000 : 30000 });
+      return surface;
+    } catch (cause) {
+      const body = await page
+        .locator('body')
+        .innerText({ timeout: 5000 })
+        .catch(() => '[body not available]');
+      console.log(
+        'LIVE_APP_WAIT',
+        JSON.stringify({
+          path,
+          attempt,
+          httpStatus: response?.status() ?? null,
+          url: page.url(),
+          body: body.slice(0, 400),
+        }),
+      );
+      if (attempt === 4) {
+        throw new Error(
+          'Actual app surface did not appear after cold-start recovery: ' +
+            selector +
+            ' on ' +
+            path +
+            '. Last error: ' +
+            String(cause),
+        );
+      }
+    }
+  }
+  throw new Error('Unreachable cold-start recovery state');
+}
+
 const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -22,9 +64,7 @@ try {
     }
   });
 
-  await page.goto(WEB + '/', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  const homepagePlanner = page.locator('[data-ai-surface="context-card"]').first();
-  await homepagePlanner.waitFor({ state: 'visible' });
+  const homepagePlanner = await openAppSurface(page, '/', '[data-ai-surface="context-card"]');
   if (await page.getByTestId('ai-command-center-launcher').count()) {
     throw new Error(
       'Homepage should use the inline DELTA AI planner without a duplicate floating launcher',
@@ -32,9 +72,7 @@ try {
   }
   pass('homepage DELTA AI planner without duplicate launcher');
 
-  await page.goto(WEB + '/tours', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  const discovery = page.locator('[data-ai-surface="context-card"]').first();
-  await discovery.waitFor({ state: 'visible' });
+  const discovery = await openAppSurface(page, '/tours', '[data-ai-surface="context-card"]');
 
   // Capture a real catalog destination before AI ranking reorders the cards.
   const stableTourLink = page.locator('a.liquid-glass-card[href^="/tours/"]').first();
